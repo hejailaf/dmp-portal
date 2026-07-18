@@ -133,6 +133,38 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
   digest-expiry retry.
 - ⬜ Phase 4: WORKFLOW_RECIPE.md (SharePoint Designer emails), pilot.
 
+## Session handoff (2026-07-18) — read before continuing
+
+- **Deployment pipeline**: push to GitHub `hejailaf/dmp-portal` (public;
+  dist-sp/ is committed on purpose — it's the payload). At work the user
+  opens `stackblitz.com/github/hejailaf/dmp-portal` (anonymous; GitHub
+  itself is blocked there), downloads the project zip, uploads `dist-sp/`
+  files into the `DMPApp` library on the SharePoint subsite
+  (`/personal/<user>/dmp`, unique permissions). Typical update = replace
+  `index.aspx` + `assets/index.js` + `assets/index.css`. ALWAYS
+  `npm run package:sp` + commit + push after user-visible changes.
+- **On-site state**: Phase 2 verified (provision green, self-test incl.
+  DELETE green, roles map correctly). §4 permissions applied per
+  LIST_SETUP.md (incl. on-site learnings already folded into that doc:
+  Stop-Inheriting needed before Permission Levels appears; "DMP Add only"
+  must include Use Remote Interfaces; Limited Access is normal). The user
+  has NOT yet deployed the newest UI build (dark mode etc.) nor run the §5
+  closeout: full vertical slice + the colleague-with-only-Requester test
+  (also proves non-owner page rendering).
+- **Recent UI additions** (all pushed): dark mode (system-following +
+  header toggle, `color-scheme` for native scrollbars/pickers), footer
+  credit (Abdullah F. Alharbi / abdullah.hejaili@aramco.com), editor hint
+  "Highlighted" chip styled like mandatory cells, per-role home section
+  headings + Requester tiles hidden for staff.
+- **Pending decisions**: (1) site RENAME — shortlist offered: DataBridge
+  (recommended, tagline "Your bridge to SAP PM master data"), PM Data Desk,
+  keep DMP; user has not chosen yet. Rename = `strings.ts` appName (+
+  tagline) + `index.html` title + README/docs mentions; internal DMP_* list
+  and group names stay. (2) Migration off the personal site collection to a
+  team site before broad rollout.
+- **Next build phase**: Phase 3 — attachments UI, Excel EXPORT on detail
+  page (reuse excel-lines machinery), admin dashboard, polish.
+
 ## Dev commands
 
 - `npm run dev` — app on MockProvider at http://localhost:5173 (role switcher
