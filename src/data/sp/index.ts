@@ -105,9 +105,25 @@ export class SharePointProvider implements DataProvider {
     return { request, lines: await this.fetchLines(id) }
   }
 
-  private async writeAudit(requestId: string, event: AuditEvent, oldValue?: string, newValue?: string) {
+  /** The request's DCR ref — only for child-item Titles (SharePoint list UI). */
+  private async refOf(requestId: string): Promise<string> {
+    const data = await spGet(`${item(REQUESTS, requestId)}?$select=Title`)
+    return (data.Title as string) ?? ''
+  }
+
+  // Child-item Titles start with the request ref so admins can find (and
+  // hand-delete) a request's rows straight in the SharePoint list UI. The
+  // app itself never reads these Titles — it filters by RequestId.
+  private async writeAudit(
+    requestId: string,
+    event: AuditEvent,
+    oldValue?: string,
+    newValue?: string,
+    ref?: string,
+  ) {
+    const r = ref ?? (await this.refOf(requestId))
     await spPost(`${listPath(AUDIT)}/items`, {
-      Title: event,
+      Title: `${r} ${event}`.trim(),
       RequestId: Number(requestId),
       Event: event,
       OldValue: oldValue ?? '',
@@ -116,7 +132,7 @@ export class SharePointProvider implements DataProvider {
   }
 
   /** Replace all lines of a request (derivations always applied — same rule as the mock). */
-  private async writeLines(requestId: string, lines: DraftLineInput[]) {
+  private async writeLines(requestId: string, ref: string, lines: DraftLineInput[]) {
     const existing = await spGet(
       `${listPath(LINES)}/items?$select=Id&$filter=RequestId eq ${Number(requestId)}&$top=4999`,
     )
@@ -127,7 +143,7 @@ export class SharePointProvider implements DataProvider {
     for (const l of lines) {
       order += 1
       await spPost(`${listPath(LINES)}/items`, {
-        Title: `${l.objectType} ${l.action}`,
+        Title: `${ref} ${l.objectType} ${l.action}`.trim(),
         RequestId: Number(requestId),
         ObjectType: l.objectType,
         LineAction: l.action,
@@ -165,8 +181,8 @@ export class SharePointProvider implements DataProvider {
       ref = nextRef(await this.allRefs(), year)
       await spMerge(item(REQUESTS, id), { Title: ref })
     }
-    await this.writeLines(id, lines)
-    await this.writeAudit(id, 'Created')
+    await this.writeLines(id, ref, lines)
+    await this.writeAudit(id, 'Created', undefined, undefined, ref)
     return this.fetchRequest(id)
   }
 
@@ -175,7 +191,7 @@ export class SharePointProvider implements DataProvider {
     if (req.status !== 'Draft') throw new Error('Only drafts can be edited')
     if (req.requesterId !== me.id && !me.roles.includes('admin'))
       throw new Error('Only the requester can edit this draft')
-    await this.writeLines(id, lines)
+    await this.writeLines(id, req.ref, lines)
     await spMerge(item(REQUESTS, id), { LineSummary: summarizeLines(lines) })
     await this.writeAudit(id, 'DraftUpdated')
     return this.fetchRequest(id)
@@ -200,7 +216,7 @@ export class SharePointProvider implements DataProvider {
       RejectReason: '',
       LineSummary: summarizeLines(lines),
     })
-    await this.writeAudit(id, t.event, 'Draft', 'Waiting to be started')
+    await this.writeAudit(id, t.event, 'Draft', 'Waiting to be started', req.ref)
     return this.fetchRequest(id)
   }
 
@@ -216,7 +232,7 @@ export class SharePointProvider implements DataProvider {
       assigneeId === me.id ? me : (await this.listAssignableUsers()).find((u) => u.id === assigneeId)
     if (!assignee) throw new Error('Unknown maintainer')
     await spMerge(item(REQUESTS, id), { AssigneeLogin: assignee.id, AssigneeName: assignee.displayName })
-    await this.writeAudit(id, 'Assigned', req.assigneeName, assignee.displayName)
+    await this.writeAudit(id, 'Assigned', req.assigneeName, assignee.displayName, req.ref)
     return this.fetchRequest(id)
   }
 
@@ -230,7 +246,7 @@ export class SharePointProvider implements DataProvider {
       Object.assign(patch, { SubmittedAt: null, DueDate: null, SlaDays: null })
     }
     await spMerge(item(REQUESTS, id), patch)
-    await this.writeAudit(id, t.event, req.status, to)
+    await this.writeAudit(id, t.event, req.status, to, req.ref)
     return this.fetchRequest(id)
   }
 
@@ -239,19 +255,19 @@ export class SharePointProvider implements DataProvider {
     if (!reason.trim()) throw new Error('A reject reason is required')
     const t = assertTransition(this.ctxFor(me, req), req.status, 'Rejected')
     await spMerge(item(REQUESTS, id), { RequestStatus: 'Rejected', RejectReason: reason.trim() })
-    await this.writeAudit(id, t.event, req.status, reason.trim())
+    await this.writeAudit(id, t.event, req.status, reason.trim(), req.ref)
     return this.fetchRequest(id)
   }
 
   async addComment(id: string, body: string): Promise<Comment> {
     if (!body.trim()) throw new Error('Comment cannot be empty')
-    const me = await this.me()
+    const [me, ref] = await Promise.all([this.me(), this.refOf(id)])
     const created = await spPost(`${listPath(COMMENTS)}/items`, {
-      Title: '',
+      Title: ref,
       RequestId: Number(id),
       Body: body.trim(),
     })
-    await this.writeAudit(id, 'CommentAdded')
+    await this.writeAudit(id, 'CommentAdded', undefined, undefined, ref)
     return {
       id: String(created.Id),
       requestId: id,
