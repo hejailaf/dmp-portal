@@ -62,8 +62,10 @@ export function HomePage() {
       {/* text-only brand lockup (the header shows the icon on this page);
           variants swap on the `.dark` html class */}
       <div className="flex justify-center pb-2 pt-4">
-        <img src={lockupLight} alt={S.appName} className="h-16 w-auto dark:hidden" />
-        <img src={lockupDark} alt={S.appName} className="hidden h-16 w-auto dark:block" />
+        {/* h-20 with the designer's padded 585x160 viewBox keeps the rendered
+            wordmark the size the user approved at h-16 with the old tight crop */}
+        <img src={lockupLight} alt={S.appName} className="h-20 w-auto dark:hidden" />
+        <img src={lockupDark} alt={S.appName} className="hidden h-20 w-auto dark:block" />
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>

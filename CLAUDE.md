@@ -170,11 +170,12 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
   home header). Derived assets (scripted edits of the
   designer's files, in src/assets/): dark variants via the fill map
   navy→#E6F2FA, blue→#5B9BE8, teal→#2BC0AE, slate→#84A0B5; text-only
-  lockups = nested emblem `<svg>` removed + viewBox cropped to the
-  text bounds (currently "204 53 556 118" — MEASURE with getBBox() in
-  the browser after any wordmark change, don't reuse the old box).
-  Artwork revs applied 2026-07-18 (emblem) + 2026-07-19 (wordmark) —
-  the deployment contains ZERO image files — no logo files in uploads; the header PNGs uploaded
+  lockups are now DESIGNER-SUPPLIED (bundle assets, viewBox
+  "0 0 585 160" with padding — home banner uses h-20 so the rendered
+  wordmark matches the size approved at h-16 with the old tight crop;
+  designer's dark tagline is #8FA8C4). Artwork revs applied 2026-07-18
+  (emblem) + 2026-07-19 (wordmark, official text-only files) — the
+  deployment contains ZERO image files — no logo files in uploads; the header PNGs uploaded
   earlier to SharePoint are harmless orphans. Bell + overdue pill
   deliberately deferred to Phase 3. Deploy note: usual three files plus
   `assets/logo-icon.png` (favicon) if not already uploaded.
