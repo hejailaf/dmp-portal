@@ -90,9 +90,11 @@ Then click ribbon **Permission Levels**:
 1. **`DMP Contribute (no delete)`** — click **Contribute** → Copy Permission
    Level → name it as above → UNTICK **Delete Items** and **Delete
    Versions** → Create. (Requesters can add/edit but never delete.)
-2. **`DMP Add only`** — Add a Permission Level → name it → tick ONLY:
-   **Add Items, View Items, View Pages, Open** → Create. (Everyone writes
-   audit rows as themselves; nobody can edit or delete history.)
+2. **`DMP Add only`** — Add a Permission Level → name it → tick ONLY these
+   four (all under **List Permissions**): **Add Items, View Items, Open
+   Items, View Application Pages** → Create. Leave Edit/Delete unticked —
+   that is what makes the audit log tamper-proof (everyone adds rows as
+   themselves; nobody edits or deletes history).
 
 ### 4b. Per-list assignments
 
