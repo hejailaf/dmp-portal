@@ -1,6 +1,6 @@
 import { getProvider } from '@/data'
-import logoLight from '@/assets/logo-header.png'
-import logoDark from '@/assets/logo-header-dark.png'
+import logoLight from '@/assets/logo-header.svg'
+import logoDark from '@/assets/logo-header-dark.svg'
 import { useAsync } from './hooks'
 import { href, useRoute } from './router'
 import { S } from './strings'

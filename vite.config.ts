@@ -13,6 +13,10 @@ export default defineConfig({
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
   build: {
+    // inline the ~9KB header logo SVGs as data URIs (default limit is 4KB) —
+    // fewer files to upload to the SharePoint library, and no reliance on
+    // SP2019 serving .svg from a doc library
+    assetsInlineLimit: 16384,
     rollupOptions: {
       input: {
         index: fileURLToPath(new URL('./index.html', import.meta.url)),

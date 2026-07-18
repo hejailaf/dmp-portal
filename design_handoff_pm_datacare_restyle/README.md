@@ -72,7 +72,7 @@ Badge spec: height 24px, padding 0 11px, font 12.5px/600, pill radius, 7px round
 
 ### 3. `src/app/App.tsx` — brand-guide header
 - Header height **64px** (`h-16`, currently `h-14`), white card background, 1px bottom hairline (as today).
-- Replace the wrench-icon square + app name with the logo image: `logo-header.png` (light) / `logo-header-dark.png` (dark), `height: 34px`. Both files are in `assets/` in this bundle — copy to the repo (e.g. `src/assets/`) and import. Swap on theme (simplest: render both with `dark:hidden` / `hidden dark:block`).
+- Replace the wrench-icon square + app name with the logo image: prefer the vector versions `logo-header.svg` (light) / `logo-header-dark.svg` (dark), `height: 34px` (PNG fallbacks also included). Both files are in `assets/` in this bundle — copy to the repo (e.g. `src/assets/`) and import. Swap on theme (simplest: render both with `dark:hidden` / `hidden dark:block`).
 - `NavLink`: change from rounded-pill to **underline nav**: no background, `text-sm font-semibold`, full header height, `border-b-[2.5px]`; active = primary text + primary underline; inactive = muted text, transparent underline, hover → foreground. 120ms color transition.
 - Keep ThemeToggle and user name on the right; optionally add the bell with a blue count pill (see prototype header — 20px stroke icon, 16px blue pill, count = overdue requests in the user's scope).
 
@@ -97,9 +97,10 @@ All existing behavior is unchanged. The prototype demonstrates: underline nav, s
 Navy #0D3B66 · Blue #1E63D6 (hover #1854B8, active #134497) · Sky #38A9E0 · Teal #00A79D (hover #00907F) · Light blue #E6F2FA · Surface #F2F6FA · Slate #607D8B · Warning #E19A2F · Danger #D6455A. Border #D6E2ED, border-strong #B9CDDD, input border #C3D4E2. Spacing on a 4px scale; content max 1200px (home page cap; data pages full-width as today). Radii: 6 / 10 / 14 / pill. Type: Segoe UI 400/600/700/800; 14px body, 13px secondary, 11-12px uppercase labels; headings navy (#0D3B66 light, #DCE9F5 dark).
 
 ## Assets
-- `assets/logo-header.png` — header lockup for light mode (from the PM DataCare brand guide).
-- `assets/logo-header-dark.png` — dark-mode variant (transparent background, navy "PM" recolored light; generated for this handoff).
-- `assets/logo-icon.png` — icon-only mark (favicon / compact use).
+- `assets/logo-header.svg` / `assets/logo-header.png` — header lockup for light mode. SVGs are preferred: fully vector, wordmark converted to outlined paths (no font dependency).
+- `assets/logo-header-dark.svg` / `assets/logo-header-dark.png` — dark-mode variant (light "PM" wordmark for the navy header).
+- `assets/logo-icon.svg` / `assets/logo-icon.png` — icon-only mark (favicon / compact use).
+- `assets/logo-horizontal.svg` — full lockup with tagline (login page / about screens if needed).
 
 ## Files in this bundle
 - `README.md` — this document (self-sufficient implementation spec).
