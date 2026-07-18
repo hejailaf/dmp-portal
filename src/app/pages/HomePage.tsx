@@ -9,22 +9,7 @@ import { href } from '../router'
 import { S } from '../strings'
 import { useCurrentUser } from '../user-context'
 import { Badge } from '../components/ui/badge'
-import { Card, CardContent } from '../components/ui/card'
-
-function StatCard({ label, value, to, tone }: { label: string; value: number; to: string; tone?: 'red' }) {
-  return (
-    <a href={href(to)} className="block">
-      <Card className="transition-colors hover:border-ring">
-        <CardContent className="p-4">
-          <div className={`text-3xl font-semibold ${tone === 'red' && value > 0 ? 'text-destructive' : ''}`}>
-            {value}
-          </div>
-          <div className="mt-1 text-sm text-muted-foreground">{label}</div>
-        </CardContent>
-      </Card>
-    </a>
-  )
-}
+import { StatCard } from '../components/StatCard'
 
 export function HomePage() {
   const user = useCurrentUser()
@@ -141,7 +126,9 @@ export function HomePage() {
               to="/requests?scope=all&status=Completed"
             />
           </div>
-          <p className="mt-3 text-sm text-muted-foreground">{S.home.cards.dashboardSoon}</p>
+          <a href={href('/admin/dashboard')} className="mt-3 inline-block text-sm text-primary hover:underline">
+            {S.home.cards.dashboardLink}
+          </a>
         </div>
       )}
     </div>

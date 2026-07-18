@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { createColumnHelper, getCoreRowModel, useReactTable } from '@tanstack/react-table'
-import { FileSpreadsheet, Pencil } from 'lucide-react'
+import { FileSpreadsheet, Paperclip, Pencil } from 'lucide-react'
 import { getProvider } from '@/data'
+import { makeRequestExport } from '@/lib/excel-export'
 import { appliesTo, OBJECT_TYPE_CONFIGS, type ObjectTypeConfig } from '@/domain/field-map'
 import { isEmptyLine } from '@/domain/schemas'
 import { availableTransitions, type TransitionCtx } from '@/domain/status'
@@ -97,6 +98,80 @@ function Meta({ label, children }: { label: string; children: React.ReactNode })
   )
 }
 
+function AttachmentsCard({ requestId, onAdded }: { requestId: string; onAdded: () => void }) {
+  const provider = getProvider()
+  const attachments = useAsync(() => provider.listAttachments(requestId), [requestId])
+  const fileRef = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState<string>()
+
+  const upload = async (file: File) => {
+    setUploading(true)
+    setError(undefined)
+    try {
+      await provider.addAttachment(requestId, file)
+      attachments.reload()
+      onAdded()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{S.detail.attachmentsTitle}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {attachments.loading && <p className="text-sm text-muted-foreground">{S.detail.loading}</p>}
+        {attachments.error && <p className="text-sm text-destructive">{attachments.error}</p>}
+        {attachments.data &&
+          (attachments.data.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{S.detail.attachmentsEmpty}</p>
+          ) : (
+            <ul className="space-y-1">
+              {attachments.data.map((a) => (
+                <li key={a.fileName} className="flex items-center gap-2 text-sm">
+                  <Paperclip className="h-4 w-4 flex-none text-muted-foreground" />
+                  <a
+                    href={a.url}
+                    download={a.fileName}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="break-all text-primary hover:underline"
+                  >
+                    {a.fileName}
+                  </a>
+                  {a.size != null && (
+                    <span className="flex-none text-xs text-muted-foreground">
+                      {Math.max(1, Math.round(a.size / 1024))} KB
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          ))}
+        {error && <p className="text-sm text-destructive">{error}</p>}
+        <input
+          ref={fileRef}
+          type="file"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            e.target.value = '' // allow re-picking the same file
+            if (file) void upload(file)
+          }}
+        />
+        <Button variant="outline" size="sm" disabled={uploading} onClick={() => fileRef.current?.click()}>
+          <Paperclip className="h-4 w-4" /> {uploading ? S.detail.attachmentUploading : S.detail.attachmentAdd}
+        </Button>
+      </CardContent>
+    </Card>
+  )
+}
+
 export function RequestDetailPage({ id }: { id: string }) {
   const user = useCurrentUser()
   const provider = getProvider()
@@ -106,6 +181,7 @@ export function RequestDetailPage({ id }: { id: string }) {
   const maintainers = useAsync(() => provider.listAssignableUsers(), [])
 
   const [busy, setBusy] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const [banner, setBanner] = useState<string>()
   const [rejectOpen, setRejectOpen] = useState(false)
   const [rejectReason, setRejectReason] = useState('')
@@ -178,8 +254,30 @@ export function RequestDetailPage({ id }: { id: string }) {
           <p className="mt-1 text-sm text-muted-foreground">{req.lineSummary}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" disabled title={S.detail.exportSoon}>
-            <FileSpreadsheet className="h-4 w-4" /> {S.detail.exportExcel}
+          <Button
+            variant="outline"
+            disabled={exporting || visibleLines.length === 0}
+            onClick={() =>
+              void (async () => {
+                setExporting(true)
+                setBanner(undefined)
+                try {
+                  const blob = await makeRequestExport(req, visibleLines)
+                  const url = URL.createObjectURL(blob)
+                  const a = document.createElement('a')
+                  a.href = url
+                  a.download = `${req.ref}.xlsx`
+                  a.click()
+                  URL.revokeObjectURL(url)
+                } catch (e) {
+                  setBanner(e instanceof Error ? e.message : String(e))
+                } finally {
+                  setExporting(false)
+                }
+              })()
+            }
+          >
+            <FileSpreadsheet className="h-4 w-4" /> {exporting ? S.detail.exporting : S.detail.exportExcel}
           </Button>
           {canEditDraft && (
             <a href={href(`/requests/${req.id}/edit`)}>
@@ -238,6 +336,7 @@ export function RequestDetailPage({ id }: { id: string }) {
           <Meta label={S.detail.submittedAt}>{formatDate(req.submittedAt)}</Meta>
           <Meta label={S.detail.dueDate}>{formatDate(req.dueDate)}</Meta>
           <Meta label={S.detail.slaDays}>{req.slaDays ?? '—'}</Meta>
+          {req.completedAt && <Meta label={S.detail.completedAt}>{formatDate(req.completedAt)}</Meta>}
         </CardContent>
       </Card>
 
@@ -323,15 +422,7 @@ export function RequestDetailPage({ id }: { id: string }) {
             </CardContent>
           </Card>
 
-          {/* attachments — Phase 3 */}
-          <Card>
-            <CardHeader>
-              <CardTitle>{S.detail.attachmentsTitle}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">{S.detail.attachmentsSoon}</p>
-            </CardContent>
-          </Card>
+          <AttachmentsCard requestId={req.id} onAdded={() => audit.reload()} />
         </div>
       </div>
 

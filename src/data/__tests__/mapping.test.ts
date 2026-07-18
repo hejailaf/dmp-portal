@@ -22,6 +22,7 @@ describe('mapRequest', () => {
       Created: '2026-07-10T08:00:00Z',
       SubmittedAt: '2026-07-11T08:00:00Z',
       DueDate: '2026-07-14T08:00:00Z',
+      CompletedAt: '2026-07-13T08:00:00Z',
       SlaDays: 3,
       RejectReason: null,
       LineSummary: 'Equipment: 1 Change',
@@ -33,6 +34,7 @@ describe('mapRequest', () => {
       requesterId: 'i:0#.w|corp\\rana',
       assigneeId: 'i:0#.w|corp\\malik',
       slaDays: 3,
+      completedAt: '2026-07-13T08:00:00Z',
       lineSummary: 'Equipment: 1 Change',
     })
   })

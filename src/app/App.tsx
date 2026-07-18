@@ -8,6 +8,7 @@ import { UserContext, useCurrentUser } from './user-context'
 import { RoleSwitcher } from './components/RoleSwitcher'
 import { ThemeToggle } from './components/ThemeToggle'
 import { Button } from './components/ui/button'
+import { DashboardPage } from './pages/DashboardPage'
 import { HomePage } from './pages/HomePage'
 import { ProvisionPage } from './pages/ProvisionPage'
 import { RequestDetailPage } from './pages/RequestDetailPage'
@@ -66,6 +67,9 @@ function Shell({ children }: { children: React.ReactNode }) {
             )}
             {(isRequester || isAdmin) && <NavLink to="/new" label={S.nav.newRequest} active={route.path === '/new'} />}
             {isAdmin && (
+              <NavLink to="/admin/dashboard" label={S.nav.dashboard} active={route.path === '/admin/dashboard'} />
+            )}
+            {isAdmin && (
               <NavLink to="/admin/provision" label={S.nav.setup} active={route.path === '/admin/provision'} />
             )}
           </nav>
@@ -98,6 +102,7 @@ function Routes() {
   if (first === 'requests' && !second) return <RequestListPage />
   if (first === 'requests' && second && third === 'edit') return <RequestEditorPage requestId={second} />
   if (first === 'requests' && second && !third) return <RequestDetailPage id={second} />
+  if (first === 'admin' && second === 'dashboard') return <DashboardPage />
   if (first === 'admin' && second === 'provision') return <ProvisionPage />
 
   return (

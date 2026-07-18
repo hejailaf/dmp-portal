@@ -45,7 +45,7 @@ const COMMENTS = 'DMP_Comments'
 const AUDIT = 'DMP_AuditLog'
 
 const REQUEST_SELECT =
-  '$select=Id,Title,RequestStatus,RequesterLogin,RequesterName,AssigneeLogin,AssigneeName,Created,SubmittedAt,DueDate,SlaDays,RejectReason,LineSummary'
+  '$select=Id,Title,RequestStatus,RequesterLogin,RequesterName,AssigneeLogin,AssigneeName,Created,SubmittedAt,DueDate,CompletedAt,SlaDays,RejectReason,LineSummary'
 const LINE_SELECT = '$select=Id,RequestId,ObjectType,LineAction,LineOrder,FieldData'
 
 const item = (list: string, id: string | number) => `${listPath(list)}/items(${Number(id)})`
@@ -241,6 +241,7 @@ export class SharePointProvider implements DataProvider {
     const t = assertTransition(this.ctxFor(me, req), req.status, to)
     if (to === 'Rejected') throw new Error('Use rejectRequest — a reject reason is required')
     const patch: Record<string, unknown> = { RequestStatus: to }
+    if (to === 'Completed') patch.CompletedAt = new Date().toISOString()
     if (t.event === 'Reopened') {
       // back to draft: SLA is recomputed at the next submit
       Object.assign(patch, { SubmittedAt: null, DueDate: null, SlaDays: null })

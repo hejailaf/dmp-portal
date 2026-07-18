@@ -15,10 +15,10 @@ import { appliesTo, applyDerivations, isRequired, type FieldDef, type ObjectType
 
 const ENTRY_ROWS = 500
 const KEY_ROW_MARKER = '__action'
-const AMBER = 'FFFCE4A6'
+export const AMBER = 'FFFCE4A6' // shared with the Phase-3 export (excel-export.ts)
 
 // exceljs is heavyweight — load it on demand so the main bundle stays small.
-async function excel() {
+export async function excel() {
   return (await import('exceljs')).default ?? (await import('exceljs'))
 }
 

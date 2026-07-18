@@ -221,6 +221,7 @@ export class MockProvider implements DataProvider {
     if (to === 'Rejected') throw new Error('Use rejectRequest — a reject reason is required')
     const from = req.status
     req.status = to
+    if (to === 'Completed') req.completedAt = new Date().toISOString()
     if (t.event === 'Reopened') {
       // back to draft: SLA is recomputed at the next submit
       req.submittedAt = undefined

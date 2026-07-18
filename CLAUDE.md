@@ -136,9 +136,20 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
   not Person fields.
 - ✅ Field-map tuned to company policy + Excel template/import feature
   (2026-07-17, ahead of phase order at user request; exceljs installed).
-- ⬜ Phase 3: attachments UI, Excel EXPORT on the detail page (import
-  exists; export reuses the same field-map machinery), admin dashboard,
-  digest-expiry retry.
+- ✅ Phase 3 BUILT (2026-07-19), verified end-to-end on the mock:
+  attachments UI on detail (any user with access, any status, no in-app
+  delete — SharePoint permissions are the boundary), Excel EXPORT on
+  detail (`src/lib/excel-export.ts` — Summary + one sheet per present
+  object type, derived fields INCLUDED, amber mandatory / grey
+  inapplicable / identifiers never greyed, exceljs stays lazy),
+  `#/admin/dashboard` (KPI cards + maintainer performance from
+  `src/domain/dashboard.ts`, computed at render), `CompletedAt` column
+  (stamped on transition to Completed in BOTH providers; dashboard
+  on-time %/cycle time need it — pre-upgrade Completed items show "—").
+  ON-SITE STEP PENDING: re-run "Verify & provision" once so the existing
+  DMP_Requests list gains CompletedAt. Note: the formerly listed
+  "digest-expiry retry" was already implemented in Phase 2
+  (client.ts 403 → refresh digest → retry once) — not a Phase-3 item.
 - ⬜ Phase 4: WORKFLOW_RECIPE.md (SharePoint Designer emails), pilot.
 
 ## Session handoff (2026-07-18) — read before continuing

@@ -38,6 +38,7 @@ export interface Request {
   submittedAt?: string
   slaDays?: number
   dueDate?: string
+  completedAt?: string // stamped on the transition to Completed (Phase 3)
   rejectReason?: string
   lineSummary: string // denormalized, for list views
 }

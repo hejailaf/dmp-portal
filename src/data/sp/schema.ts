@@ -54,6 +54,7 @@ export const LIST_SPECS: ListSpec[] = [
       text('AssigneeName'),
       dateTime('SubmittedAt'),
       dateTime('DueDate'),
+      dateTime('CompletedAt'), // Phase 3 — provision re-run adds it to existing lists
       number('SlaDays'),
       note('RejectReason'),
       note('LineSummary'),

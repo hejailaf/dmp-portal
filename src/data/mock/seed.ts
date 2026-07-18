@@ -33,6 +33,8 @@ interface SeedSpec {
   assignee?: User
   /** days ago the request was submitted (omit for drafts) */
   submittedDaysAgo?: number
+  /** days ago the request was completed (Completed seeds only) */
+  completedDaysAgo?: number
   rejectReason?: string
   lines: Array<Pick<RequestLine, 'objectType' | 'action' | 'fieldData'>>
 }
@@ -69,6 +71,7 @@ export function buildSeed(): MockDb {
       submittedAt,
       slaDays,
       dueDate: submittedAt && slaDays ? computeDueDate(submittedAt, slaDays) : undefined,
+      completedAt: spec.completedDaysAgo !== undefined ? daysAgo(spec.completedDaysAgo) : undefined,
       rejectReason: spec.rejectReason,
       lineSummary: summarizeLines(lines),
     }
@@ -83,7 +86,7 @@ export function buildSeed(): MockDb {
     if ((spec.status === 'In process' || spec.status === 'Completed') && spec.assignee && submittedAt)
       audit(id, 'StatusChanged', spec.assignee, daysAgo((spec.submittedDaysAgo ?? 1) - 0.5), 'Waiting to be started', 'In process')
     if (spec.status === 'Completed' && spec.assignee)
-      audit(id, 'StatusChanged', spec.assignee, daysAgo(0.2), 'In process', 'Completed')
+      audit(id, 'StatusChanged', spec.assignee, req.completedAt ?? daysAgo(0.2), 'In process', 'Completed')
     if (spec.status === 'Rejected' && spec.rejectReason)
       audit(id, 'Rejected', SEED_USERS[4], daysAgo(0.5), 'Waiting to be started', spec.rejectReason)
     return req
@@ -220,6 +223,7 @@ export function buildSeed(): MockDb {
     requester: rana,
     assignee: malik,
     submittedDaysAgo: 12,
+    completedDaysAgo: 0.2, // SLA 5d, submitted 12d ago → completed LATE (dashboard demo)
     lines: [
       {
         objectType: 'PM',
@@ -238,6 +242,7 @@ export function buildSeed(): MockDb {
     requester: omar,
     assignee: mona,
     submittedDaysAgo: 20,
+    completedDaysAgo: 19, // SLA 2d → completed ON TIME (dashboard demo)
     lines: [
       { objectType: 'BOM_LINKAGE', action: 'DELETE', fieldData: { parentNumber: '10001899', deletionReason: 'Equipment scrapped' } },
     ],
