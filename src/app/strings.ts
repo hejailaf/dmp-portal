@@ -18,6 +18,9 @@ export const S = {
   home: {
     welcome: (name: string) => `Welcome, ${name}`,
     roleLabel: 'Your roles',
+    sectionRequester: 'As a Requester',
+    sectionMaintainer: 'As a Data Maintainer',
+    sectionAdmin: 'As an Admin',
     newRequestCta: 'Create a new request',
     open: 'Open',
     cards: {

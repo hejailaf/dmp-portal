@@ -30,11 +30,15 @@ export function HomePage() {
   const isRequester = user.roles.includes('requester')
   const isMaintainer = user.roles.includes('maintainer')
   const isAdmin = user.roles.includes('admin')
+  // staff (maintainers/admins) don't need their own requester tiles on the
+  // home page — they can still file via the nav + "Create a new request"
+  const isStaff = isMaintainer || isAdmin
+  const showRequesterTiles = isRequester && !isStaff
 
   const overview = useAsync(async () => {
     const empty: Request[] = []
     const [mine, queue, unassigned, all] = await Promise.all([
-      isRequester ? provider.listRequests('mine') : empty,
+      showRequesterTiles ? provider.listRequests('mine') : empty,
       isMaintainer ? provider.listRequests('queue') : empty,
       isMaintainer || isAdmin ? provider.listRequests('unassigned') : empty,
       isAdmin ? provider.listRequests('all') : empty,
@@ -76,8 +80,12 @@ export function HomePage() {
         )}
       </div>
 
-      {isRequester && (
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      {showRequesterTiles && (
+        <div>
+          <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {S.home.sectionRequester}
+          </h2>
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <StatCard label={S.home.cards.myRequests} value={mine.length} to="/requests?scope=mine" />
           <StatCard
             label={S.home.cards.myDrafts}
@@ -86,24 +94,33 @@ export function HomePage() {
           />
           <StatCard label={S.home.cards.myOpen} value={open(mine).length} to="/requests?scope=mine" />
           <StatCard label={S.home.cards.overdue} value={overdue(mine).length} to="/requests?scope=mine&overdue=1" tone="red" />
+          </div>
         </div>
       )}
 
       {isMaintainer && (
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <StatCard label={S.home.cards.myQueue} value={open(queue).length} to="/requests?scope=queue" />
-          <StatCard label={S.home.cards.overdue} value={overdue(queue).length} to="/requests?scope=queue&overdue=1" tone="red" />
-          <StatCard label={S.home.cards.unassignedPool} value={unassigned.length} to="/requests?scope=unassigned" />
-          <StatCard
-            label={S.home.cards.completed}
-            value={queue.filter((r) => r.status === 'Completed').length}
-            to="/requests?scope=queue&status=Completed"
-          />
+        <div>
+          <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {S.home.sectionMaintainer}
+          </h2>
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <StatCard label={S.home.cards.myQueue} value={open(queue).length} to="/requests?scope=queue" />
+            <StatCard label={S.home.cards.overdue} value={overdue(queue).length} to="/requests?scope=queue&overdue=1" tone="red" />
+            <StatCard label={S.home.cards.unassignedPool} value={unassigned.length} to="/requests?scope=unassigned" />
+            <StatCard
+              label={S.home.cards.completed}
+              value={queue.filter((r) => r.status === 'Completed').length}
+              to="/requests?scope=queue&status=Completed"
+            />
+          </div>
         </div>
       )}
 
       {isAdmin && (
-        <>
+        <div>
+          <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {S.home.sectionAdmin}
+          </h2>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             <StatCard label={S.home.cards.all} value={all.length} to="/requests?scope=all" />
             <StatCard label={S.home.cards.overdue} value={overdue(all).length} to="/requests?scope=all&overdue=1" tone="red" />
@@ -114,8 +131,8 @@ export function HomePage() {
               to="/requests?scope=all&status=Completed"
             />
           </div>
-          <p className="text-sm text-muted-foreground">{S.home.cards.dashboardSoon}</p>
-        </>
+          <p className="mt-3 text-sm text-muted-foreground">{S.home.cards.dashboardSoon}</p>
+        </div>
       )}
     </div>
   )
