@@ -118,6 +118,11 @@ Also grant all three groups **Read** on the **subsite itself** (Site
 settings → Site permissions → Grant Permissions) so members can reach the
 library at all.
 
+**"Limited Access" is normal** — SharePoint auto-adds it (greyed out, can't
+be assigned/removed by hand) so members can traverse to content they're
+allowed to use; it grants nothing on its own. Just confirm each group ALSO
+shows its real level from the table, not only Limited Access.
+
 Check on DMP_Requests and DMP_RequestLines: List settings → Advanced
 settings → "Read access / Create and Edit access" must remain **All items**
 (maintainers edit items created by requesters).
