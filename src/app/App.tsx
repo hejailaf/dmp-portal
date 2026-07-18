@@ -7,6 +7,7 @@ import { UserContext, useCurrentUser } from './user-context'
 import { RoleSwitcher } from './components/RoleSwitcher'
 import { Button } from './components/ui/button'
 import { HomePage } from './pages/HomePage'
+import { ProvisionPage } from './pages/ProvisionPage'
 import { RequestDetailPage } from './pages/RequestDetailPage'
 import { RequestEditorPage } from './pages/RequestEditorPage'
 import { RequestListPage } from './pages/RequestListPage'
@@ -63,6 +64,9 @@ function Shell({ children }: { children: React.ReactNode }) {
               />
             )}
             {(isRequester || isAdmin) && <NavLink to="/new" label={S.nav.newRequest} active={route.path === '/new'} />}
+            {isAdmin && (
+              <NavLink to="/admin/provision" label={S.nav.setup} active={route.path === '/admin/provision'} />
+            )}
           </nav>
           <div className="ml-auto text-sm text-muted-foreground">{user.displayName}</div>
         </div>
@@ -84,6 +88,7 @@ function Routes() {
   if (first === 'requests' && !second) return <RequestListPage />
   if (first === 'requests' && second && third === 'edit') return <RequestEditorPage requestId={second} />
   if (first === 'requests' && second && !third) return <RequestDetailPage id={second} />
+  if (first === 'admin' && second === 'provision') return <ProvisionPage />
 
   return (
     <div className="py-16 text-center">

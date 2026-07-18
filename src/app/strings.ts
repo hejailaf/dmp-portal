@@ -12,6 +12,7 @@ export const S = {
     unassigned: 'Unassigned',
     allRequests: 'All requests',
     newRequest: 'New request',
+    setup: 'Site setup',
   },
 
   home: {
@@ -152,6 +153,24 @@ export const S = {
     CommentAdded: 'added a comment',
     AttachmentAdded: 'added an attachment',
   } as Record<string, string>,
+
+  provision: {
+    title: 'Site setup',
+    intro:
+      'Creates and verifies the four DMP lists on this SharePoint site, checks the role groups, and runs a write self-test. Safe to run repeatedly.',
+    provisionNow: 'Verify & provision lists',
+    selfTest: 'Run connection self-test',
+    running: 'Working…',
+    listsTitle: 'Lists',
+    groupsTitle: 'Role groups',
+    groupExists: 'exists',
+    groupMissing: 'missing',
+    groupsHint: 'Create missing groups by hand — see docs/LIST_SETUP.md for the exact names and permissions.',
+    selfTestTitle: 'Connection self-test',
+    mockNote: 'Running on the mock provider — nothing to provision; the buttons demonstrate the screen only.',
+    recipeHint: 'Groups and permissions are set up manually once — the click-by-click recipe is docs/LIST_SETUP.md.',
+    adminOnly: 'Site setup is only available to DMP Admins.',
+  },
 
   roleSwitcher: {
     title: 'Demo role switcher',

@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "test": "vitest run",
-    "package:sp": "npm run build && node scripts/package-sp.mjs"
+    "package:sp": "node scripts/package-sp.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.2",

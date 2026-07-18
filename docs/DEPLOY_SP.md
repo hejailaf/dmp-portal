@@ -1,26 +1,31 @@
 # DEPLOY_SP.md — Browser-only deployment guide
 
 Everything here happens in the browser at work. No terminal, no admin center
-beyond normal site-owner rights.
+beyond site-owner rights on the **dmp subsite** (created 2026-07-19, unique
+permissions — Phase 0 verified everything renders and writes there).
 
-> **Where we are now:** only Phase 0 (the spike) should be uploaded so far.
-> Follow `PHASE0_UPLOAD.md` for that. The full first-time setup below becomes
-> relevant when Phase 2 ships; the routine-update procedure at the bottom is
-> final and won't change.
+> **Note on location:** the site currently lives under a personal site
+> collection (`/personal/<you>/dmp`). That's fine for the pilot but tied to
+> your account — before broad rollout, ask IT for a small team site and
+> repeat this first-time setup there (re-upload + re-provision; moving
+> existing list data across is a separate exercise).
 
-## First-time setup (once, when the real app deploys — Phase 2+)
+## First-time setup (once — Phase 2)
 
-1. **Document library** — create a library named `DMPApp` (Site contents →
-   New → Document library).
-2. **Groups** — create three SharePoint groups (Site settings → People and
-   groups): `DMP Requesters`, `DMP Maintainers`, `DMP Admins`, and add the
-   right people. The app maps roles from these exact names.
-3. **Lists** — Phase 2 ships an admin Provision screen in the app plus
-   `LIST_SETUP.md` with the manual recipe (4 lists: DMP_Requests,
-   DMP_RequestLines, DMP_Comments, DMP_AuditLog).
-4. **Permissions** — recipe ships with `LIST_SETUP.md` (Requesters
-   contribute-no-delete, Maintainers edit, Admins full).
-5. **Notifications** — Phase 4 ships `WORKFLOW_RECIPE.md` (SharePoint
+1. **Document library** — `DMPApp` on the dmp subsite (done during Phase 0).
+2. **Upload the app** — from `dist-sp/`: `index.aspx` (+ `spike.aspx` if you
+   want diagnostics available) into the library root; everything from
+   `dist-sp/assets/` into the library's `assets` folder.
+3. **Groups** — create `DMP Requesters` / `DMP Maintainers` / `DMP Admins`
+   per `LIST_SETUP.md` §1 and put yourself in DMP Admins.
+4. **Lists** — open `index.aspx` → **Site setup** in the nav → **Verify &
+   provision lists** (all green), then **Run connection self-test** (ends
+   with "DELETE OK"). Manual fallback: `LIST_SETUP.md` §3.
+5. **Permissions** — apply `LIST_SETUP.md` §4 (two custom levels, per-list
+   grants, Read on the subsite for all three groups).
+6. **Vertical slice** — run `LIST_SETUP.md` §5's checks, including a
+   non-owner colleague opening the app.
+7. **Notifications** — Phase 4 ships `WORKFLOW_RECIPE.md` (SharePoint
    Designer 2013 workflow, click-by-click).
 
 ## Routine update (every new build)

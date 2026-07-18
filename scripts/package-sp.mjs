@@ -6,6 +6,16 @@
 import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { execSync } from 'node:child_process'
 
+// Phase 2: the packaged app is the PRODUCTION build against real SharePoint
+// lists. `npm run dev` / `npm run build` stay on the mock provider.
+console.log('Typechecking…')
+execSync('npx tsc --noEmit', { stdio: 'inherit' })
+console.log('Building (VITE_DATA_PROVIDER=sharepoint)…')
+execSync('npx vite build', {
+  stdio: 'inherit',
+  env: { ...process.env, VITE_DATA_PROVIDER: 'sharepoint' },
+})
+
 const build = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 12) // e.g. 202607161435
 const out = 'dist-sp'
 

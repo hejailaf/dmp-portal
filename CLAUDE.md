@@ -100,14 +100,28 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
 
 ## Phase status
 
-- ✅ Phase 0 built (`spike.aspx` + `docs/PHASE0_UPLOAD.md`) — **awaiting
-  on-site results**. Phase 2 must be built to whatever the spike reports
-  (especially nometadata vs verbose writes).
+- ✅ Phase 0 PASSED on-site (2026-07-19), all 5 checks green. Findings that
+  bind Phase 2: **nometadata works for ALL writes** (list create, item
+  create, MERGE — no `__metadata`/verbose needed); digest timeout **1800s**;
+  claims-style login names (`i:0#.w|domain\user`); site is a **subsite with
+  unique permissions under the user's personal site collection**
+  (`/personal/<user>/dmp`) — works, but flagged to migrate to a team site
+  before broad rollout (personal site collections are tied to the owner's
+  account). Rendering blocked on the parent site was permission-level, not
+  farm-level; untested: person-field writes (avoided — see Phase 2 notes).
 - ✅ Phase 1 built: domain + tests, MockProvider + seed, full UI (home,
   lists, AIW editor, detail with comments/audit). Verified end-to-end in the
   browser across all three roles.
-- ⬜ Phase 2: SharePointProvider, provision/verify-lists screen, LIST_SETUP +
-  permissions recipe. Blocked on Phase-0 report.
+- ✅ Phase 2 BUILT (2026-07-19), awaiting on-site verification:
+  `src/data/sp/` (client with digest cache + 403-retry, schema, pure
+  mapping w/ tests, full provider — nometadata writes only), Site setup
+  screen (`#/admin/provision`: provision/verify lists, groups check,
+  connection self-test incl. the untested DELETE verb), `LIST_SETUP.md`
+  (groups, custom permission levels "DMP Contribute (no delete)" +
+  "DMP Add only", per-list grants). `package:sp` now builds
+  VITE_DATA_PROVIDER=sharepoint; dev stays mock. Deviation (approved):
+  requester/assignee stored as TEXT columns (claims login + display name),
+  not Person fields.
 - ✅ Field-map tuned to company policy + Excel template/import feature
   (2026-07-17, ahead of phase order at user request; exceljs installed).
 - ⬜ Phase 3: attachments UI, Excel EXPORT on the detail page (import
