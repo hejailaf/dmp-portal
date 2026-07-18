@@ -5,6 +5,8 @@
 /* System font stack only — no CDN fonts allowed (spec §2). */
 @layer base {
   :root {
+    /* native UI (scrollbars, dropdown panels, date picker) follows the theme */
+    color-scheme: light;
     --background: 220 20% 97%;
     --foreground: 222 47% 11%;
     --card: 0 0% 100%;
@@ -27,6 +29,7 @@
 
   /* dark palette — readability first; toggled via the `dark` class on <html> */
   .dark {
+    color-scheme: dark;
     --background: 222 18% 11%;
     --foreground: 220 15% 90%;
     --card: 222 16% 15%;
