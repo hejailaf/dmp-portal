@@ -100,9 +100,12 @@ export interface SubmitValidation {
   lineResults: Record<string, LineValidation>
 }
 
+export const DESCRIPTION_REQUIRED = 'Add a request description (business reason or reference) before submitting'
+
 /** Everything that must hold before a draft may be submitted. */
-export function validateForSubmit(lines: RequestLine[]): SubmitValidation {
+export function validateForSubmit(lines: RequestLine[], description: string): SubmitValidation {
   const requestErrors: string[] = []
+  if (!description.trim()) requestErrors.push(DESCRIPTION_REQUIRED)
   if (lines.length === 0) requestErrors.push('Add at least one line item before submitting')
   const lineResults: Record<string, LineValidation> = {}
   let allOk = true

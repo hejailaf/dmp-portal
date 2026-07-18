@@ -10,6 +10,7 @@ function req(partial: Partial<Request>): Request {
   return {
     id: String(n),
     ref: `DCR-26${String(n).padStart(4, '0')}`,
+    description: 'test request',
     status: 'Draft',
     requesterId: 'u-r',
     requesterName: 'Rana',

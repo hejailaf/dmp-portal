@@ -121,7 +121,7 @@ export class MockProvider implements DataProvider {
     return { request, lines }
   }
 
-  async createRequest(lines: DraftLineInput[]): Promise<Request> {
+  async createRequest(lines: DraftLineInput[], description: string): Promise<Request> {
     await sleep()
     const me = this.me()
     if (!me.roles.includes('requester') && !me.roles.includes('admin'))
@@ -130,6 +130,7 @@ export class MockProvider implements DataProvider {
     const req: Request = {
       id,
       ref: nextRef(this.db.requests.map((r) => r.ref), new Date().getFullYear()),
+      description: description.trim(),
       status: 'Draft',
       requesterId: me.id,
       requesterName: me.displayName,
@@ -158,7 +159,7 @@ export class MockProvider implements DataProvider {
     )
   }
 
-  async updateDraft(id: string, lines: DraftLineInput[]): Promise<Request> {
+  async updateDraft(id: string, lines: DraftLineInput[], description: string): Promise<Request> {
     await sleep()
     const req = this.mustGet(id)
     const ctx = this.ctxFor(req)
@@ -166,6 +167,7 @@ export class MockProvider implements DataProvider {
     if (!ctx.isOwner && !ctx.roles.includes('admin'))
       throw new Error('Only the requester can edit this draft')
     this.replaceLines(id, lines)
+    req.description = description.trim()
     req.lineSummary = summarizeLines(lines)
     this.writeAudit(id, 'DraftUpdated')
     this.save()
@@ -181,8 +183,9 @@ export class MockProvider implements DataProvider {
       .map((l, i) => ({ ...l, order: i + 1 }))
     this.db.lines = [...this.db.lines.filter((l) => l.requestId !== id), ...lines]
     req.lineSummary = summarizeLines(lines)
-    const validation = validateForSubmit(lines)
-    if (!validation.ok) throw new Error('Request has validation errors — fix the lines first')
+    const validation = validateForSubmit(lines, req.description)
+    if (!validation.ok)
+      throw new Error(validation.requestErrors[0] ?? 'Request has validation errors — fix the lines first')
     const t = assertTransition(this.ctxFor(req), req.status, 'Waiting to be started')
     req.status = 'Waiting to be started'
     req.submittedAt = new Date().toISOString()

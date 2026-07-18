@@ -251,6 +251,7 @@ export function RequestDetailPage({ id }: { id: string }) {
             <StatusBadge status={req.status} />
             <SlaBadge request={req} />
           </div>
+          {req.description && <p className="mt-1 max-w-3xl text-sm">{req.description}</p>}
           <p className="mt-1 text-sm text-muted-foreground">{req.lineSummary}</p>
         </div>
         <div className="flex flex-wrap gap-2">

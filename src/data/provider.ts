@@ -38,8 +38,8 @@ export interface DataProvider {
   listRequests(scope: RequestScope): Promise<Request[]>
   getRequest(id: string): Promise<RequestDetail>
   /** Creates a Draft. Draft lines may be incomplete — full validation happens at submit. */
-  createRequest(lines: DraftLineInput[]): Promise<Request>
-  updateDraft(id: string, lines: DraftLineInput[]): Promise<Request>
+  createRequest(lines: DraftLineInput[], description: string): Promise<Request>
+  updateDraft(id: string, lines: DraftLineInput[], description: string): Promise<Request>
   /** Validates lines, enforces the state machine, computes SLA/due date. */
   submitRequest(id: string): Promise<Request>
   /** Admin: assign anyone. Maintainer: may only claim an unassigned request for themselves. */

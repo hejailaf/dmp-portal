@@ -9,7 +9,7 @@ describe('demo seed stays valid under the current field map', () => {
     const db = buildSeed()
     for (const req of db.requests.filter((r) => r.status !== 'Draft')) {
       const lines = db.lines.filter((l) => l.requestId === req.id)
-      const v = validateForSubmit(lines)
+      const v = validateForSubmit(lines, req.description)
       const problems = Object.entries(v.lineResults)
         .filter(([, r]) => !r.ok)
         .map(([id, r]) => `${req.ref}/${id}: ${[...r.lineErrors, ...Object.values(r.fieldErrors)].join('; ')}`)

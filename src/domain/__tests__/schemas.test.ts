@@ -206,15 +206,23 @@ describe('isEmptyLine (pruned at submit instead of validated)', () => {
 
 describe('validateForSubmit', () => {
   it('rejects a request with no lines', () => {
-    const v = validateForSubmit([])
+    const v = validateForSubmit([], 'valid description')
     expect(v.ok).toBe(false)
     expect(v.requestErrors.join(' ')).toMatch(/at least one line/i)
+  })
+
+  it('rejects a request with a blank description', () => {
+    const good = line({ id: 'A', objectType: 'EQUIPMENT', action: 'ADD', fieldData: validEquipmentAdd })
+    const v = validateForSubmit([good], '   ')
+    expect(v.ok).toBe(false)
+    expect(v.requestErrors.join(' ')).toMatch(/description/i)
+    expect(validateForSubmit([good], 'MOC-1234 pump replacement').ok).toBe(true)
   })
 
   it('reports per-line results keyed by line id', () => {
     const good = line({ id: 'A', objectType: 'EQUIPMENT', action: 'ADD', fieldData: validEquipmentAdd })
     const bad = line({ id: 'B', objectType: 'EQUIPMENT', action: 'DELETE', fieldData: {} })
-    const v = validateForSubmit([good, bad])
+    const v = validateForSubmit([good, bad], 'valid description')
     expect(v.ok).toBe(false)
     expect(v.lineResults.A.ok).toBe(true)
     expect(v.lineResults.B.ok).toBe(false)

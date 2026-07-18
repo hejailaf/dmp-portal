@@ -24,6 +24,7 @@ describe('mapRequest', () => {
       DueDate: '2026-07-14T08:00:00Z',
       CompletedAt: '2026-07-13T08:00:00Z',
       SlaDays: 3,
+      Description: 'Pump replacement - MOC-2100',
       RejectReason: null,
       LineSummary: 'Equipment: 1 Change',
     })
@@ -35,6 +36,7 @@ describe('mapRequest', () => {
       assigneeId: 'i:0#.w|corp\\malik',
       slaDays: 3,
       completedAt: '2026-07-13T08:00:00Z',
+      description: 'Pump replacement - MOC-2100',
       lineSummary: 'Equipment: 1 Change',
     })
   })
@@ -96,6 +98,7 @@ describe('filterByScope (same rules as the mock)', () => {
   const req = (over: Partial<Request>): Request => ({
     id: '1',
     ref: 'DCR-260001',
+    description: '',
     status: 'Waiting to be started',
     requesterId: 'u-a',
     requesterName: 'A',

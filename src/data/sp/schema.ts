@@ -56,6 +56,7 @@ export const LIST_SPECS: ListSpec[] = [
       dateTime('DueDate'),
       dateTime('CompletedAt'), // Phase 3 — provision re-run adds it to existing lists
       number('SlaDays'),
+      note('Description'), // request purpose/reference — provision re-run adds it too
       note('RejectReason'),
       note('LineSummary'),
     ],

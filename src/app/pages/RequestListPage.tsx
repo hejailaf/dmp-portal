@@ -53,7 +53,7 @@ export function RequestListPage() {
     if (search.trim()) {
       const q = search.trim().toLowerCase()
       rows = rows.filter((r) =>
-        [r.ref, r.lineSummary, r.requesterName, r.assigneeName ?? '']
+        [r.ref, r.description, r.lineSummary, r.requesterName, r.assigneeName ?? '']
           .join(' ')
           .toLowerCase()
           .includes(q),

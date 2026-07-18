@@ -29,6 +29,8 @@ export interface User {
 export interface Request {
   id: string
   ref: string // DCR-YYNNNN
+  /** Business reason / reference (e.g. MOC no.) — required to submit, free while drafting. */
+  description: string
   status: RequestStatus
   requesterId: string
   requesterName: string

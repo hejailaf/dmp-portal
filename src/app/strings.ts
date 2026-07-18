@@ -87,6 +87,9 @@ export const S = {
   editor: {
     newTitle: 'New request',
     editTitle: (ref: string) => `Edit draft ${ref}`,
+    descriptionLabel: 'Request description',
+    descriptionPlaceholder:
+      'Business reason or reference (e.g. MOC or work-order number) — enter the data changes in the lines below',
     addLine: 'Add line',
     selectLine: 'Select line',
     selectAll: 'Select all lines',

@@ -22,6 +22,7 @@ export async function makeRequestExport(req: Request, lines: RequestLine[]): Pro
   const summary = wb.addWorksheet('Summary')
   const rows: Array<[string, string]> = [
     ['Ref', req.ref],
+    ['Description', req.description],
     ['Status', req.status],
     ['Requester', req.requesterName],
     ['Assignee', req.assigneeName ?? ''],

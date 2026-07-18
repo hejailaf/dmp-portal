@@ -18,6 +18,7 @@ export interface RequestItem {
   DueDate?: string | null
   CompletedAt?: string | null
   SlaDays?: number | null
+  Description?: string | null
   RejectReason?: string | null
   LineSummary?: string | null
 }
@@ -46,6 +47,7 @@ export function mapRequest(item: RequestItem): Request {
   return {
     id: String(item.Id),
     ref: item.Title,
+    description: item.Description ?? '',
     status: (item.RequestStatus ?? 'Draft') as RequestStatus,
     requesterId: item.RequesterLogin ?? '',
     requesterName: item.RequesterName ?? '',

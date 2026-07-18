@@ -45,7 +45,7 @@ const COMMENTS = 'DMP_Comments'
 const AUDIT = 'DMP_AuditLog'
 
 const REQUEST_SELECT =
-  '$select=Id,Title,RequestStatus,RequesterLogin,RequesterName,AssigneeLogin,AssigneeName,Created,SubmittedAt,DueDate,CompletedAt,SlaDays,RejectReason,LineSummary'
+  '$select=Id,Title,RequestStatus,RequesterLogin,RequesterName,AssigneeLogin,AssigneeName,Created,SubmittedAt,DueDate,CompletedAt,SlaDays,Description,RejectReason,LineSummary'
 const LINE_SELECT = '$select=Id,RequestId,ObjectType,LineAction,LineOrder,FieldData'
 
 const item = (list: string, id: string | number) => `${listPath(list)}/items(${Number(id)})`
@@ -158,7 +158,7 @@ export class SharePointProvider implements DataProvider {
     return ((data.value ?? []) as { Title: string }[]).map((i) => i.Title)
   }
 
-  async createRequest(lines: DraftLineInput[]): Promise<Request> {
+  async createRequest(lines: DraftLineInput[], description: string): Promise<Request> {
     const me = await this.me()
     if (!me.roles.includes('requester') && !me.roles.includes('admin'))
       throw new Error('Only requesters can create requests')
@@ -169,6 +169,7 @@ export class SharePointProvider implements DataProvider {
       RequestStatus: 'Draft',
       RequesterLogin: me.id,
       RequesterName: me.displayName,
+      Description: description.trim(),
       LineSummary: summarizeLines(lines),
     })
     const id = String(created.Id)
@@ -186,13 +187,16 @@ export class SharePointProvider implements DataProvider {
     return this.fetchRequest(id)
   }
 
-  async updateDraft(id: string, lines: DraftLineInput[]): Promise<Request> {
+  async updateDraft(id: string, lines: DraftLineInput[], description: string): Promise<Request> {
     const [me, req] = await Promise.all([this.me(), this.fetchRequest(id)])
     if (req.status !== 'Draft') throw new Error('Only drafts can be edited')
     if (req.requesterId !== me.id && !me.roles.includes('admin'))
       throw new Error('Only the requester can edit this draft')
     await this.writeLines(id, req.ref, lines)
-    await spMerge(item(REQUESTS, id), { LineSummary: summarizeLines(lines) })
+    await spMerge(item(REQUESTS, id), {
+      Description: description.trim(),
+      LineSummary: summarizeLines(lines),
+    })
     await this.writeAudit(id, 'DraftUpdated')
     return this.fetchRequest(id)
   }
@@ -203,8 +207,9 @@ export class SharePointProvider implements DataProvider {
     // empty (never-filled) lines are pruned at submit, not validated
     for (const l of lines.filter(isEmptyLine)) await spDelete(item(LINES, l.id))
     lines = lines.filter((l) => !isEmptyLine(l))
-    const validation = validateForSubmit(lines)
-    if (!validation.ok) throw new Error('Request has validation errors — fix the lines first')
+    const validation = validateForSubmit(lines, req.description)
+    if (!validation.ok)
+      throw new Error(validation.requestErrors[0] ?? 'Request has validation errors — fix the lines first')
     const t = assertTransition(this.ctxFor(me, req), req.status, 'Waiting to be started')
     const submittedAt = new Date().toISOString()
     const slaDays = slaDaysFor(lines)

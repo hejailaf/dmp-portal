@@ -29,6 +29,7 @@ const daysAgo = (n: number) => new Date(Date.now() - n * 86_400_000).toISOString
 
 interface SeedSpec {
   status: Request['status']
+  description: string
   requester: User
   assignee?: User
   /** days ago the request was submitted (omit for drafts) */
@@ -62,6 +63,7 @@ export function buildSeed(): MockDb {
     const req: Request = {
       id,
       ref: formatRef(year, seq),
+      description: spec.description,
       status: spec.status,
       requesterId: spec.requester.id,
       requesterName: spec.requester.displayName,
@@ -98,6 +100,7 @@ export function buildSeed(): MockDb {
   add({
     status: 'Draft',
     requester: rana,
+    description: 'New feed pump for SITE-B (project WO-77812)',
     lines: [
       {
         objectType: 'EQUIPMENT',
@@ -109,6 +112,7 @@ export function buildSeed(): MockDb {
   add({
     status: 'Draft',
     requester: omar,
+    description: 'Task list correction for compressor PM',
     lines: [
       { objectType: 'PM', action: 'CHANGE', fieldData: { equipmentNumber: '10004711', taskListNumber: '889' } },
     ],
@@ -119,6 +123,7 @@ export function buildSeed(): MockDb {
     status: 'Waiting to be started',
     requester: rana,
     submittedDaysAgo: 1,
+    description: 'New air compressor AC-310 install - MOC-2201',
     lines: [
       {
         objectType: 'EQUIPMENT',
@@ -154,6 +159,7 @@ export function buildSeed(): MockDb {
     requester: omar,
     assignee: malik,
     submittedDaysAgo: 2,
+    description: 'Create compressor bay functional location - MOC-2188',
     lines: [
       {
         objectType: 'FLOC',
@@ -171,7 +177,8 @@ export function buildSeed(): MockDb {
     status: 'Waiting to be started',
     requester: rana,
     assignee: mona,
-    submittedDaysAgo: 9, // overdue (max SLA here is 5)
+    submittedDaysAgo: 9,
+    description: 'Cooling tower fan replacement - WO-77250', // overdue (max SLA here is 5)
     lines: [
       {
         objectType: 'EQUIPMENT',
@@ -202,6 +209,7 @@ export function buildSeed(): MockDb {
     requester: omar,
     assignee: malik,
     submittedDaysAgo: 1,
+    description: 'Cost center transfer after area reorg',
     lines: [
       { objectType: 'EQUIPMENT', action: 'CHANGE', fieldData: { equipmentNumber: '10002501', costCenter: 'CC-4711' } },
     ],
@@ -210,7 +218,8 @@ export function buildSeed(): MockDb {
     status: 'In process',
     requester: rana,
     assignee: mona,
-    submittedDaysAgo: 6, // overdue (SLA 3 for change)
+    submittedDaysAgo: 6,
+    description: 'Pump P-07 cost center + PM cycle extension - MOC-2144', // overdue (SLA 3 for change)
     lines: [
       { objectType: 'FLOC', action: 'CHANGE', fieldData: { functionalLocation: 'SITE-B-PROC-PMP-07', costCenter: 'CC-2200' } },
       { objectType: 'PM', action: 'CHANGE', fieldData: { equipmentNumber: '10002501', taskListNumber: '102', maintenanceItem: '458', changeDetails: 'Extend cycle to 6 months' } },
@@ -223,6 +232,7 @@ export function buildSeed(): MockDb {
     requester: rana,
     assignee: malik,
     submittedDaysAgo: 12,
+    description: 'New PM plan for boiler feed pump - MOC-2100',
     completedDaysAgo: 0.2, // SLA 5d, submitted 12d ago → completed LATE (dashboard demo)
     lines: [
       {
@@ -242,6 +252,7 @@ export function buildSeed(): MockDb {
     requester: omar,
     assignee: mona,
     submittedDaysAgo: 20,
+    description: 'Remove BOM link for scrapped equipment - WO-76990',
     completedDaysAgo: 19, // SLA 2d → completed ON TIME (dashboard demo)
     lines: [
       { objectType: 'BOM_LINKAGE', action: 'DELETE', fieldData: { parentNumber: '10001899', deletionReason: 'Equipment scrapped' } },
@@ -253,6 +264,7 @@ export function buildSeed(): MockDb {
     status: 'Rejected',
     requester: rana,
     submittedDaysAgo: 3,
+    description: 'Cost center change for pump P-11',
     rejectReason: 'Cost center CC-9999 does not exist — please verify and resubmit',
     lines: [
       { objectType: 'EQUIPMENT', action: 'CHANGE', fieldData: { equipmentNumber: '10007001', costCenter: 'CC-9999' } },

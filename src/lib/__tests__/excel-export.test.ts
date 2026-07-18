@@ -7,6 +7,7 @@ import { makeRequestExport } from '../excel-export'
 const REQ: Request = {
   id: 'r-1',
   ref: 'DCR-260042',
+  description: 'New feed pump - MOC-2299',
   status: 'In process',
   requesterId: 'u-r',
   requesterName: 'Rana Requester',
@@ -72,11 +73,12 @@ describe('makeRequestExport', () => {
     ])
   })
 
-  it('Summary carries the ref and status', async () => {
+  it('Summary carries the ref, description, and status', async () => {
     const wb = await load(REQ, LINES)
     const ws = wb.getWorksheet('Summary')!
     expect(ws.getCell('B1').value).toBe('DCR-260042')
-    expect(ws.getCell('B2').value).toBe('In process')
+    expect(ws.getCell('B2').value).toBe('New feed pump - MOC-2299')
+    expect(ws.getCell('B3').value).toBe('In process')
   })
 
   it('includes derived fields with their values (unlike the template)', async () => {

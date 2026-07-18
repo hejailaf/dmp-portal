@@ -79,6 +79,10 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
 - Line SAP fields live in one JSON blob (`FieldData`) validated by Zod —
   never mirrored as SharePoint columns.
 - Drafts are visible only to their requester and admins.
+- Request `description` (business reason/reference, ≤500 chars): free
+  while drafting, REQUIRED at submit (user decision 2026-07-19) —
+  enforced in `validateForSubmit(lines, description)` and thus in BOTH
+  providers + the editor. Stored as the `Description` note column.
 - Empty (never-filled) lines are pruned at submit — in the editor AND in
   the provider (`isEmptyLine`); the Phase-2 SharePointProvider must prune
   on submit too. Drafts keep scratch rows.
@@ -147,7 +151,7 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
   (stamped on transition to Completed in BOTH providers; dashboard
   on-time %/cycle time need it — pre-upgrade Completed items show "—").
   ON-SITE STEP PENDING: re-run "Verify & provision" once so the existing
-  DMP_Requests list gains CompletedAt. Note: the formerly listed
+  DMP_Requests list gains CompletedAt AND Description (added same day). Note: the formerly listed
   "digest-expiry retry" was already implemented in Phase 2
   (client.ts 403 → refresh digest → retry once) — not a Phase-3 item.
 - ⬜ Phase 4: WORKFLOW_RECIPE.md (SharePoint Designer emails), pilot.

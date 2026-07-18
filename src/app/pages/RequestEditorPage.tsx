@@ -24,7 +24,7 @@ import { navigate } from '../router'
 import { S } from '../strings'
 import { Button } from '../components/ui/button'
 import { Card, CardContent } from '../components/ui/card'
-import { Input, Select } from '../components/ui/input'
+import { Input, Select, Textarea } from '../components/ui/input'
 import { autoColumnSize, DataGrid, measureCellWidth, usePersistedColumnSizing } from '../components/DataGrid'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 
@@ -379,6 +379,7 @@ function EditorGrid({
 export function RequestEditorPage({ requestId }: { requestId?: string }) {
   const provider = getProvider()
   const [lines, setLines] = useState<EditorLine[]>([])
+  const [description, setDescription] = useState('')
   const [errors, setErrors] = useState<ErrorsByLine>({})
   const [requestErrors, setRequestErrors] = useState<string[]>([])
   const [busy, setBusy] = useState<'save' | 'submit'>()
@@ -386,6 +387,9 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
   const [initialized, setInitialized] = useState(!requestId)
   const [tab, setTab] = useState<ObjectType>('EQUIPMENT')
   const [importNotes, setImportNotes] = useState<string[]>([])
+  // checkbox selection drives the per-tab Duplicate/Delete toolbar buttons
+  // (must live ABOVE the early returns — hooks may not be conditional)
+  const [selected, setSelected] = useState<ReadonlySet<string>>(new Set())
   const fileInputRef = useRef<HTMLInputElement>(null)
   const importTarget = useRef<ObjectTypeConfig>()
 
@@ -404,6 +408,7 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
           fieldData: { ...l.fieldData },
         })),
       )
+      setDescription(existing.data.request.description)
       setInitialized(true)
     }
   }, [requestId, existing.data, initialized])
@@ -426,8 +431,6 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
   const addLine = (objectType: ObjectType) =>
     setLines((ls) => [...ls, { key: crypto.randomUUID(), objectType, action: 'ADD', fieldData: {} }])
 
-  // checkbox selection drives the per-tab Duplicate/Delete toolbar buttons
-  const [selected, setSelected] = useState<ReadonlySet<string>>(new Set())
   const toggleSelect = (key: string) =>
     setSelected((s) => {
       const next = new Set(s)
@@ -504,10 +507,10 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
 
   const saveDraft = async (ls: EditorLine[]): Promise<string> => {
     if (requestId) {
-      await provider.updateDraft(requestId, toInputs(ls))
+      await provider.updateDraft(requestId, toInputs(ls), description)
       return requestId
     }
-    const req = await provider.createRequest(toInputs(ls))
+    const req = await provider.createRequest(toInputs(ls), description)
     return req.id
   }
 
@@ -530,7 +533,7 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
     // untouched lines are dropped silently instead of raising validation errors
     const kept = lines.filter((l) => !isEmptyLine(l))
     if (kept.length !== lines.length) setLines(kept)
-    const validation = validateForSubmit(toDomainLines(kept))
+    const validation = validateForSubmit(toDomainLines(kept), description)
     setErrors(validation.lineResults)
     setRequestErrors(validation.requestErrors)
     if (!validation.ok) {
@@ -595,6 +598,21 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
           ))}
         </div>
       )}
+      {/* request description — free while drafting, required to submit */}
+      <div>
+        <label className="mb-1 block text-sm font-medium" htmlFor="req-description">
+          {S.editor.descriptionLabel}
+        </label>
+        <Textarea
+          id="req-description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder={S.editor.descriptionPlaceholder}
+          maxLength={500}
+          className="min-h-[56px] max-w-3xl"
+        />
+      </div>
+
       <input
         ref={fileInputRef}
         type="file"
