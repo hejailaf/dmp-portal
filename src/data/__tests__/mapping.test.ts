@@ -13,7 +13,7 @@ describe('mapRequest', () => {
   it('maps a full item', () => {
     const r = mapRequest({
       Id: 7,
-      Title: 'REQ-2026-0007',
+      Title: 'DCR-260007',
       RequestStatus: 'In process',
       RequesterLogin: 'i:0#.w|corp\\rana',
       RequesterName: 'Rana R',
@@ -28,7 +28,7 @@ describe('mapRequest', () => {
     })
     expect(r).toMatchObject({
       id: '7',
-      ref: 'REQ-2026-0007',
+      ref: 'DCR-260007',
       status: 'In process',
       requesterId: 'i:0#.w|corp\\rana',
       assigneeId: 'i:0#.w|corp\\malik',
@@ -38,7 +38,7 @@ describe('mapRequest', () => {
   })
 
   it('maps a minimal draft (empty optionals become undefined)', () => {
-    const r = mapRequest({ Id: 1, Title: 'REQ-2026-0001', Created: '2026-07-10T08:00:00Z' })
+    const r = mapRequest({ Id: 1, Title: 'DCR-260001', Created: '2026-07-10T08:00:00Z' })
     expect(r.status).toBe('Draft')
     expect(r.assigneeId).toBeUndefined()
     expect(r.submittedAt).toBeUndefined()
@@ -93,7 +93,7 @@ describe('mapComment / mapAudit author fields', () => {
 describe('filterByScope (same rules as the mock)', () => {
   const req = (over: Partial<Request>): Request => ({
     id: '1',
-    ref: 'REQ-2026-0001',
+    ref: 'DCR-260001',
     status: 'Waiting to be started',
     requesterId: 'u-a',
     requesterName: 'A',

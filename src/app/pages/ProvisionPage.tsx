@@ -65,7 +65,7 @@ export function ProvisionPage() {
       </div>
 
       {error && (
-        <p className="rounded-md border border-destructive/40 bg-red-50 p-3 text-sm text-destructive dark:bg-red-950/30">{error}</p>
+        <p className="rounded-md border border-destructive/40 bg-[var(--danger-tint)] p-3 text-sm text-destructive">{error}</p>
       )}
       {!isSharePoint && <p className="text-sm text-muted-foreground">{S.provision.mockNote}</p>}
 

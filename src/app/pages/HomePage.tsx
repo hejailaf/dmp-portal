@@ -12,7 +12,7 @@ import { Card, CardContent } from '../components/ui/card'
 function StatCard({ label, value, to, tone }: { label: string; value: number; to: string; tone?: 'red' }) {
   return (
     <a href={href(to)} className="block">
-      <Card className="transition-colors hover:border-primary/50">
+      <Card className="transition-colors hover:border-ring">
         <CardContent className="p-4">
           <div className={`text-3xl font-semibold ${tone === 'red' && value > 0 ? 'text-destructive' : ''}`}>
             {value}

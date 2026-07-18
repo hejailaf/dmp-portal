@@ -1,5 +1,6 @@
 import { getProvider } from '@/data'
-import { Wrench } from 'lucide-react'
+import logoLight from '@/assets/logo-header.png'
+import logoDark from '@/assets/logo-header-dark.png'
 import { useAsync } from './hooks'
 import { href, useRoute } from './router'
 import { S } from './strings'
@@ -17,7 +18,7 @@ function NavLink({ to, label, active }: { to: string; label: string; active: boo
   return (
     <a
       href={href(to)}
-      className={`rounded-md px-3 py-1.5 text-sm font-medium ${active ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+      className={`flex h-full items-center border-b-[2.5px] px-3 text-sm font-semibold transition-colors ${active ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
     >
       {label}
     </a>
@@ -35,14 +36,13 @@ function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-30 border-b bg-card">
-        <div className="flex h-14 items-center gap-4 px-4">
-          <a href={href('/')} className="flex items-center gap-2 font-semibold">
-            <span className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <Wrench className="h-4 w-4" />
-            </span>
-            {S.appName}
+        <div className="flex h-16 items-stretch gap-4 px-4">
+          <a href={href('/')} className="flex items-center">
+            {/* light/dark lockups swap on the `.dark` html class */}
+            <img src={logoLight} alt={S.appName} className="h-[34px] w-auto dark:hidden" />
+            <img src={logoDark} alt={S.appName} className="hidden h-[34px] w-auto dark:block" />
           </a>
-          <nav className="flex items-center gap-1">
+          <nav className="flex items-stretch gap-1">
             <NavLink to="/" label={S.nav.home} active={route.path === '/'} />
             {isRequester && (
               <NavLink to="/requests?scope=mine" label={S.nav.myRequests} active={route.path === '/requests' && scope === 'mine'} />

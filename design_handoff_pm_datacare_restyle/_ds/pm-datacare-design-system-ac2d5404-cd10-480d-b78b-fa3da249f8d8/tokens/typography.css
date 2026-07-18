@@ -1,0 +1,12 @@
+@import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap");
+:root{
+--font-ui:"Open Sans","Segoe UI",system-ui,sans-serif;
+--font-display:"Open Sans","Segoe UI",system-ui,sans-serif;
+--text-xs:12px;--text-sm:13px;--text-base:14px;--text-md:16px;--text-lg:18px;--text-xl:22px;--text-2xl:28px;--text-3xl:34px;
+--leading-tight:1.2;--leading-normal:1.5;--leading-relaxed:1.65;
+--weight-regular:400;--weight-semibold:600;--weight-bold:700;--weight-extrabold:800;
+--tracking-caps:0.06em;
+}
+body{font-family:var(--font-ui);color:var(--text-body);font-size:var(--text-base);line-height:var(--leading-normal)}
+a{color:var(--text-link);text-decoration:none}
+a:hover{color:var(--text-link-hover);text-decoration:underline}

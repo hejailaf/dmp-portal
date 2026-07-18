@@ -113,8 +113,8 @@ function FieldCell(info: EditorCell) {
     title: error,
     className: cn(
       flatField,
-      needed && !error && 'bg-amber-50 ring-1 ring-inset ring-amber-200 dark:bg-amber-950/40 dark:ring-amber-800',
-      error && 'bg-red-50 ring-1 ring-inset ring-destructive dark:bg-red-950/40',
+      needed && !error && 'bg-[var(--warning-tint)] ring-1 ring-inset ring-[rgba(225,154,47,.4)] dark:ring-[rgba(233,170,75,.45)]',
+      error && 'bg-[var(--danger-tint)] ring-1 ring-inset ring-destructive',
     ),
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       // number fields hard-stop non-digits (typed or pasted); Zod stays the backstop
@@ -358,7 +358,7 @@ function EditorGrid({
   return (
     <div className="space-y-3">
       {tabErrors.length > 0 && (
-        <div className="rounded-md border border-destructive/40 bg-red-50 p-3 text-sm dark:bg-red-950/30 text-destructive">
+        <div className="rounded-md border border-destructive/40 bg-[var(--danger-tint)] p-3 text-sm text-destructive">
           <div className="font-medium">{S.editor.lineErrorsTitle}</div>
           <ul className="mt-1 list-inside list-disc">
             {tabErrors.map((e, i) => (
@@ -560,7 +560,7 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
           <h1 className="text-2xl font-semibold">{title}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {/* the word carries the exact same highlight as the mandatory cells */}
-            <span className="rounded bg-amber-50 px-1.5 py-0.5 text-foreground ring-1 ring-inset ring-amber-200 dark:bg-amber-950/40 dark:ring-amber-800">
+            <span className="rounded bg-[var(--warning-tint)] px-1.5 py-0.5 text-foreground ring-1 ring-inset ring-[rgba(225,154,47,.4)] dark:ring-[rgba(233,170,75,.45)]">
               {S.editor.requiredHintHighlighted}
             </span>
             {S.editor.requiredHintRest}
@@ -579,9 +579,9 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
         </div>
       </div>
 
-      {banner && <p className="rounded-md border border-destructive/40 bg-red-50 p-3 text-sm dark:bg-red-950/30 text-destructive">{banner}</p>}
+      {banner && <p className="rounded-md border border-destructive/40 bg-[var(--danger-tint)] p-3 text-sm text-destructive">{banner}</p>}
       {requestErrors.map((e, i) => (
-        <p key={i} className="rounded-md border border-destructive/40 bg-red-50 p-3 text-sm dark:bg-red-950/30 text-destructive">
+        <p key={i} className="rounded-md border border-destructive/40 bg-[var(--danger-tint)] p-3 text-sm text-destructive">
           {e}
         </p>
       ))}

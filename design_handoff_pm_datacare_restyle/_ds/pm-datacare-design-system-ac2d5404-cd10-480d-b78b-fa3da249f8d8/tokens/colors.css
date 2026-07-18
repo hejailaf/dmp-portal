@@ -1,0 +1,19 @@
+:root{
+/* brand palette (from PM DataCare brand guide) */
+--navy:#0D3B66;--blue:#1E63D6;--sky:#38A9E0;--teal:#00A79D;--light-blue:#E6F2FA;--surface:#F2F6FA;--slate:#607D8B;
+/* derived tints/shades */
+--blue-hover:#1854B8;--blue-active:#134497;--teal-hover:#00907F;--sky-tint:#EAF6FC;--teal-tint:#E0F5F3;--navy-tint:#E7EDF4;
+/* semantic: text */
+--text-heading:var(--navy);--text-body:#33475B;--text-muted:var(--slate);--text-inverse:#FFFFFF;--text-link:var(--blue);--text-link-hover:var(--navy);
+/* semantic: surfaces */
+--surface-page:var(--surface);--surface-card:#FFFFFF;--surface-tint:var(--light-blue);--surface-header:#FFFFFF;--surface-inverse:var(--navy);
+/* semantic: interactive */
+--accent:var(--blue);--accent-hover:var(--blue-hover);--accent-active:var(--blue-active);--focus-ring:var(--sky);
+/* borders */
+--border:#D6E2ED;--border-strong:#B9CDDD;--border-input:#C3D4E2;
+/* status (workflow) */
+--status-new:var(--sky);--status-in-progress:var(--blue);--status-completed:var(--teal);--status-on-hold:var(--slate);--status-rejected:#D6455A;
+/* feedback — warning/danger are intentional additions, see readme */
+--success:var(--teal);--info:var(--sky);--warning:#E19A2F;--danger:#D6455A;
+--success-tint:var(--teal-tint);--info-tint:var(--sky-tint);--warning-tint:#FBF1DE;--danger-tint:#FBE7EA;
+}

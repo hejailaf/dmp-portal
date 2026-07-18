@@ -219,10 +219,10 @@ export function RequestDetailPage({ id }: { id: string }) {
       </div>
 
       {banner && (
-        <p className="rounded-md border border-destructive/40 bg-red-50 p-3 text-sm dark:bg-red-950/30 text-destructive">{banner}</p>
+        <p className="rounded-md border border-destructive/40 bg-[var(--danger-tint)] p-3 text-sm text-destructive">{banner}</p>
       )}
       {req.status === 'Rejected' && req.rejectReason && (
-        <p className="rounded-md border border-destructive/40 bg-red-50 p-3 text-sm dark:bg-red-950/30">
+        <p className="rounded-md border border-destructive/40 bg-[var(--danger-tint)] p-3 text-sm">
           <span className="font-semibold text-destructive">{S.detail.rejectReason}: </span>
           {req.rejectReason}
         </p>

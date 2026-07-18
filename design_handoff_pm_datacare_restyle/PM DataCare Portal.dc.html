@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/pm-datacare-design-system-ac2d5404-cd10-480d-b78b-fa3da249f8d8/tokens/typography.css">
+  <link rel="stylesheet" href="_ds/pm-datacare-design-system-ac2d5404-cd10-480d-b78b-fa3da249f8d8/tokens/colors.css">
+  <link rel="stylesheet" href="_ds/pm-datacare-design-system-ac2d5404-cd10-480d-b78b-fa3da249f8d8/tokens/spacing.css">
+  <link rel="stylesheet" href="_ds/pm-datacare-design-system-ac2d5404-cd10-480d-b78b-fa3da249f8d8/tokens/effects.css">
+  <link rel="stylesheet" href="_ds/pm-datacare-design-system-ac2d5404-cd10-480d-b78b-fa3da249f8d8/styles.css">
+  <script src="_ds/pm-datacare-design-system-ac2d5404-cd10-480d-b78b-fa3da249f8d8/_ds_bundle.js"></script>
+  <style>
+    body{margin:0;background:var(--surface-page);
+      --font-ui:'Segoe UI',system-ui,-apple-system,sans-serif;
+      --font-display:'Segoe UI',system-ui,-apple-system,sans-serif;}
+    a{color:var(--text-link);text-decoration:none}
+    a:hover{color:var(--text-link-hover);text-decoration:underline}
+    /* derived navy dark palette — token remap only; every inline style reads these vars */
+    body.dark{color-scheme:dark;
+      --surface-page:#0B1E33;--surface-card:#102A44;--surface-header:#0E2438;--surface-tint:#16405F;
+      --navy-tint:#1A3A57;--sky-tint:#12374C;--teal-tint:#0E3A38;--danger-tint:#3D1B24;--warning-tint:#3A2A12;--light-blue:#16405F;
+      --text-heading:#DCE9F5;--text-body:#C2D4E4;--text-muted:#84A0B5;--text-link:#6FA8F0;--text-link-hover:#A5C8F5;
+      --border:#1E3C58;--border-strong:#2A4C6C;--border-input:#2E5170;
+      --accent:#4E8FE8;--accent-hover:#6BA2ED;--accent-active:#3B7BD6;
+      --blue:#4E8FE8;--sky:#4FB8E8;--teal:#2BBFB4;--slate:#8AA5B8;--navy:#DCE9F5;
+      --status-new:#4FB8E8;--status-in-progress:#4E8FE8;--status-completed:#2BBFB4;--status-on-hold:#8AA5B8;--status-rejected:#E36A7B;
+      --warning:#E9AA4B;--danger:#E36A7B;--success:#2BBFB4;
+      --shadow-card:0 1px 2px rgba(0,0,0,.35),0 3px 10px rgba(0,0,0,.3);
+      --shadow-raised:0 4px 16px rgba(0,0,0,.4),0 1px 3px rgba(0,0,0,.3);
+      --shadow-overlay:0 12px 40px rgba(0,0,0,.5);}
+  </style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column;background:var(--surface-page);font-family:var(--font-ui);color:var(--text-body);font-size:14px;line-height:1.5">
+
+  <header style="position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:24px;height:64px;padding:0 24px;background:var(--surface-header);border-bottom:1px solid var(--border);box-sizing:border-box;flex:none">
+    <sc-if value="{{ isLight }}" hint-placeholder-val="{{ true }}">
+      <img src="assets/logo-header.png" alt="PM DataCare" style="height:34px;cursor:pointer" onClick="{{ goHome }}">
+    </sc-if>
+    <sc-if value="{{ isDark }}" hint-placeholder-val="{{ false }}">
+      <img src="assets/logo-header-dark.png" alt="PM DataCare" style="height:34px;cursor:pointer" onClick="{{ goHome }}">
+    </sc-if>
+    <nav style="display:flex;gap:4px;flex:1;height:64px">
+      <sc-for list="{{ navItems }}" as="it" hint-placeholder-count="3">
+        <button onClick="{{ it.go }}" style="padding:8px 14px;font-size:14px;font-family:var(--font-ui);font-weight:600;background:none;border:none;cursor:pointer;height:64px;box-sizing:border-box;color: {{ it.color }};border-bottom:2.5px solid {{ it.borderColor }}">{{ it.label }}</button>
+      </sc-for>
+    </nav>
+    <div style="position:relative;display:flex;align-items:center;flex:none">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
+      <sc-if value="{{ hasNotifications }}" hint-placeholder-val="{{ false }}">
+        <span style="position:absolute;top:-6px;right:-8px;min-width:16px;height:16px;border-radius:var(--radius-pill);background:var(--blue);color:#fff;font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;font-variant-numeric:tabular-nums">{{ notificationCount }}</span>
+      </sc-if>
+    </div>
+    <button onClick="{{ toggleTheme }}" title="{{ themeTitle }}" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface-card);cursor:pointer;color:var(--text-muted);flex:none;transition:background var(--dur-fast) var(--ease)" style-hover="background:var(--surface-tint)">
+      <sc-if value="{{ isLight }}" hint-placeholder-val="{{ true }}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+      </sc-if>
+      <sc-if value="{{ isDark }}" hint-placeholder-val="{{ false }}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg>
+      </sc-if>
+    </button>
+    <span style="font-size:13px;color:var(--text-muted);white-space:nowrap;flex:none">{{ userName }}</span>
+    <div style="width:36px;height:36px;border-radius:50%;background:var(--surface-tint);color:var(--text-heading);font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none">{{ userInitials }}</div>
+  </header>
+
+  <main style="flex:1;width:100%;box-sizing:border-box;padding:24px;max-width: {{ mainMaxWidth }};margin:0 auto">
+
+    <sc-if value="{{ pageHome }}" hint-placeholder-val="{{ true }}">
+      <div data-screen-label="Home" style="display:flex;flex-direction:column;gap:24px">
+        <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px">
+          <div>
+            <h1 style="margin:0;font-size:22px;font-weight:700;color:var(--text-heading)">{{ home.welcome }}</h1>
+            <div style="margin-top:6px;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-muted)">
+              Your roles:
+              <span style="display:inline-flex;align-items:center;gap:7px;height:24px;padding:0 11px;border-radius:var(--radius-pill);font-size:12.5px;font-weight:600;color:var(--blue);background:var(--navy-tint);white-space:nowrap">{{ home.roleLabel }}</span>
+            </div>
+          </div>
+          <sc-if value="{{ home.showCta }}" hint-placeholder-val="{{ true }}">
+            <button onClick="{{ goNew }}" style="display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 18px;font-family:var(--font-ui);font-size:14px;font-weight:600;border-radius:var(--radius-sm);border:1px solid transparent;background:var(--accent);color:#fff;cursor:pointer;transition:background var(--dur-fast) var(--ease);white-space:nowrap" style-hover="background:var(--accent-hover)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
+              Create a new request
+            </button>
+          </sc-if>
+        </div>
+        <sc-for list="{{ home.sections }}" as="sec" hint-placeholder-count="1">
+          <div>
+            <h2 style="margin:0 0 10px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:var(--tracking-caps);color:var(--text-muted)">{{ sec.title }}</h2>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+              <sc-for list="{{ sec.cards }}" as="c" hint-placeholder-count="4">
+                <div onClick="{{ c.go }}" style="background:var(--surface-card);border:1px solid var(--border);border-radius:var(--radius-md);box-shadow:var(--shadow-card);padding:16px 18px;cursor:pointer;transition:border-color var(--dur-fast) var(--ease)" style-hover="border-color:var(--sky)">
+                  <div style="font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;color: {{ c.valueColor }}">{{ c.value }}</div>
+                  <div style="margin-top:4px;font-size:13px;color:var(--text-muted)">{{ c.label }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+        <sc-if value="{{ home.showAdminNote }}" hint-placeholder-val="{{ false }}">
+          <p style="margin:-12px 0 0;font-size:13px;color:var(--text-muted)">Admin dashboard (KPIs and maintainer performance) arrives in Phase 3.</p>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ pageList }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="Request list" style="display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px">
+          <h1 style="margin:0;font-size:22px;font-weight:700;color:var(--text-heading)">{{ list.title }}</h1>
+          <sc-if value="{{ list.showScopes }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:4px;border-radius:var(--radius-pill);background:var(--surface-tint);padding:4px">
+              <sc-for list="{{ list.scopeTabs }}" as="t" hint-placeholder-count="2">
+                <button onClick="{{ t.go }}" style="border:none;cursor:pointer;border-radius:var(--radius-pill);padding:6px 14px;font-family:var(--font-ui);font-size:13px;font-weight:600;background: {{ t.bg }};color: {{ t.color }};box-shadow: {{ t.shadow }};transition:background var(--dur-fast) var(--ease)">{{ t.label }}</button>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px">
+          <input value="{{ list.search }}" onChange="{{ list.setSearch }}" placeholder="Search ref, content, requester…" style="height:40px;width:280px;padding:0 12px;font-family:var(--font-ui);font-size:14px;color:var(--text-body);background:var(--surface-card);border:1px solid var(--border-input);border-radius:var(--radius-sm);outline:none;box-sizing:border-box;transition:box-shadow var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)" style-focus="border-color:var(--focus-ring);box-shadow:var(--shadow-focus)">
+          <select value="{{ list.statusFilter }}" onChange="{{ list.setStatus }}" aria-label="Status" style="height:40px;width:200px;padding:0 32px 0 12px;font-family:var(--font-ui);font-size:14px;color:var(--text-body);background:var(--surface-card);border:1px solid var(--border-input);border-radius:var(--radius-sm);outline:none;cursor:pointer;box-sizing:border-box" style-focus="border-color:var(--focus-ring);box-shadow:var(--shadow-focus)">
+            <option value="">All statuses</option>
+            <sc-for list="{{ list.statusOptions }}" as="s" hint-placeholder-count="5">
+              <option value="{{ s }}">{{ s }}</option>
+            </sc-for>
+          </select>
+          <label style="display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text-body);cursor:pointer">
+            <input type="checkbox" checked="{{ list.overdueOnly }}" onChange="{{ list.toggleOverdue }}" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
+            Overdue only
+          </label>
+        </div>
+        <div style="background:var(--surface-card);border:1px solid var(--border);border-radius:var(--radius-md);box-shadow:var(--shadow-card);overflow:hidden">
+          <sc-if value="{{ list.empty }}" hint-placeholder-val="{{ false }}">
+            <p style="margin:0;padding:24px;font-size:14px;color:var(--text-muted)">No requests match.</p>
+          </sc-if>
+          <sc-if value="{{ list.hasRows }}" hint-placeholder-val="{{ true }}">
+            <div style="overflow-x:auto">
+              <div style="min-width:1060px">
+                <div style="display:flex;background:var(--surface-page);border-bottom:1px solid var(--border)">
+                  <div style="flex:none;width:110px;padding:9px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:var(--tracking-caps);color:var(--text-muted);box-sizing:border-box">Ref</div>
+                  <div style="flex:none;width:180px;padding:9px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:var(--tracking-caps);color:var(--text-muted);box-sizing:border-box">Status</div>
+                  <div style="flex:1;min-width:240px;padding:9px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:var(--tracking-caps);color:var(--text-muted);box-sizing:border-box">Line items</div>
+                  <div style="flex:none;width:160px;padding:9px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:var(--tracking-caps);color:var(--text-muted);box-sizing:border-box">Requester</div>
+                  <div style="flex:none;width:160px;padding:9px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:var(--tracking-caps);color:var(--text-muted);box-sizing:border-box">Assignee</div>
+                  <div style="flex:none;width:220px;padding:9px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:var(--tracking-caps);color:var(--text-muted);box-sizing:border-box">Due</div>
+                  <div style="flex:none;width: {{ list.claimColWidth }};box-sizing:border-box"></div>
+                </div>
+                <sc-for list="{{ list.rows }}" as="r" hint-placeholder-count="6">
+                  <div style="display:flex;align-items:center;border-bottom:1px solid var(--border);transition:background var(--dur-fast) var(--ease)" style-hover="background:var(--surface-tint)">
+                    <div style="flex:none;width:110px;padding:10px 12px;box-sizing:border-box"><a href="#" onClick="{{ r.open }}" style="font-weight:600;font-variant-numeric:tabular-nums">{{ r.ref }}</a></div>
+                    <div style="flex:none;width:180px;padding:10px 12px;box-sizing:border-box">
+                      <span style="display:inline-flex;align-items:center;gap:7px;height:24px;padding:0 11px;border-radius:var(--radius-pill);font-size:12.5px;font-weight:600;white-space:nowrap;color: {{ r.statusColor }};background: {{ r.statusBg }}"><span style="width:7px;height:7px;border-radius:50%;flex:none;background: {{ r.statusColor }}"></span>{{ r.status }}</span>
+                    </div>
+                    <div style="flex:1;min-width:240px;padding:10px 12px;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-muted);font-size:13px" title="{{ r.summary }}">{{ r.summary }}</div>
+                    <div style="flex:none;width:160px;padding:10px 12px;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.requester }}</div>
+                    <div style="flex:none;width:160px;padding:10px 12px;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color: {{ r.assigneeColor }}">{{ r.assignee }}</div>
+                    <div style="flex:none;width:220px;padding:10px 12px;box-sizing:border-box;display:flex;align-items:center;gap:8px;white-space:nowrap;font-variant-numeric:tabular-nums">
+                      {{ r.due }}
+                      <sc-if value="{{ r.hasSla }}" hint-placeholder-val="{{ false }}">
+                        <span style="display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:var(--radius-pill);font-size:12px;font-weight:600;white-space:nowrap;color: {{ r.slaColor }};background: {{ r.slaBg }};border:1px solid {{ r.slaBorder }}">{{ r.sla }}</span>
+                      </sc-if>
+                    </div>
+                    <div style="flex:none;width: {{ list.claimColWidth }};box-sizing:border-box;padding:6px 12px 6px 0">
+                      <sc-if value="{{ r.showClaim }}" hint-placeholder-val="{{ false }}">
+                        <button onClick="{{ r.claim }}" style="display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 14px;font-family:var(--font-ui);font-size:13px;font-weight:600;border-radius:var(--radius-sm);border:1px solid transparent;background:var(--accent);color:#fff;cursor:pointer;transition:background var(--dur-fast) var(--ease)" style-hover="background:var(--accent-hover)">Claim</button>
+                      </sc-if>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ pageDetail }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="Request detail" style="display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:12px">
+          <div>
+            <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px">
+              <h1 style="margin:0;font-size:22px;font-weight:700;color:var(--text-heading);font-variant-numeric:tabular-nums">{{ det.ref }}</h1>
+              <span style="display:inline-flex;align-items:center;gap:7px;height:24px;padding:0 11px;border-radius:var(--radius-pill);font-size:12.5px;font-weight:600;white-space:nowrap;color: {{ det.statusColor }};background: {{ det.statusBg }}"><span style="width:7px;height:7px;border-radius:50%;flex:none;background: {{ det.statusColor }}"></span>{{ det.status }}</span>
+              <sc-if value="{{ det.hasSla }}" hint-placeholder-val="{{ false }}">
+                <span style="display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:var(--radius-pill);font-size:12px;font-weight:600;white-space:nowrap;color: {{ det.slaColor }};background: {{ det.slaBg }};border:1px solid {{ det.slaBorder }}">{{ det.sla }}</span>
+              </sc-if>
+            </div>
+            <p style="margin:6px 0 0;font-size:13px;color:var(--text-muted)">{{ det.summary }}</p>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <sc-for list="{{ det.actions }}" as="a" hint-placeholder-count="2">
+              <button onClick="{{ a.onClick }}" disabled="{{ a.disabled }}" title="{{ a.title }}" style="display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 18px;font-family:var(--font-ui);font-size:14px;font-weight:600;border-radius:var(--radius-sm);cursor: {{ a.cursor }};opacity: {{ a.opacity }};transition:background var(--dur-fast) var(--ease);white-space:nowrap;background: {{ a.bg }};color: {{ a.color }};border:1px solid {{ a.border }}" style-hover="filter:brightness(.96)">{{ a.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+        <sc-if value="{{ det.rejected }}" hint-placeholder-val="{{ false }}">
+          <p style="margin:0;border:1px solid var(--danger);background:var(--danger-tint);border-radius:var(--radius-sm);padding:12px 14px;font-size:14px"><span style="font-weight:700;color:var(--danger)">Reject reason: </span>{{ det.rejectReason }}</p>
+        </sc-if>
+        <div style="background:var(--surface-card);border:1px solid var(--border);border-radius:var(--radius-md);box-shadow:var(--shadow-card);padding:16px 20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px">
+          <sc-for list="{{ det.meta }}" as="m" hint-placeholder-count="6">
+            <div>
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:var(--tracking-caps);color:var(--text-muted)">{{ m.label }}</div>
+              <div style="margin-top:3px;font-size:14px;font-variant-numeric:tabular-nums;color: {{ m.color }}">{{ m.value }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="background:var(--surface-card);border:1px solid var(--border);border-radius:var(--radius-md);box-shadow:var(--shadow-card);overflow:hidden">
+          <div style="padding:14px 20px;border-bottom:1px solid var(--border);font-size:16px;font-weight:700;color:var(--text-heading)">Line items</div>
+          <div style="padding:20px;display:flex;flex-direction:column;gap:20px">
+            <sc-if value="{{ det.noLines }}" hint-placeholder-val="{{ false }}">
+              <p style="margin:0;font-size:13px;color:var(--text-muted)">No line items yet.</p>
+            </sc-if>
+            <sc-for list="{{ det.groups }}" as="g" hint-placeholder-count="1">
+              <div>
+                <h4 style="margin:0 0 8px;font-size:13px;font-weight:700;color:var(--text-muted)">{{ g.label }}</h4>
+                <div style="overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius-sm)">
+                  <div style="min-width: {{ g.minWidth }}">
+                    <div style="display:flex;background:var(--surface-page);border-bottom:1px solid var(--border)">
+                      <sc-for list="{{ g.headers }}" as="h" hint-placeholder-count="5">
+                        <div style="flex:none;padding:7px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:var(--tracking-caps);color:var(--text-muted);box-sizing:border-box;border-right:1px solid var(--border);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width: {{ h.width }}">{{ h.label }}</div>
+                      </sc-for>
+                    </div>
+                    <sc-for list="{{ g.rows }}" as="row" hint-placeholder-count="2">
+                      <div style="display:flex;border-bottom:1px solid var(--border)">
+                        <sc-for list="{{ row.cells }}" as="c" hint-placeholder-count="5">
+                          <div style="flex:none;padding:7px 10px;font-size:13px;box-sizing:border-box;border-right:1px solid var(--border);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums;width: {{ c.width }};color: {{ c.color }};background: {{ c.bg }};font-weight: {{ c.weight }}" title="{{ c.text }}">{{ c.text }}</div>
+                        </sc-for>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:16px;align-items:start">
+          <div style="background:var(--surface-card);border:1px solid var(--border);border-radius:var(--radius-md);box-shadow:var(--shadow-card);overflow:hidden">
+            <div style="padding:14px 20px;border-bottom:1px solid var(--border);font-size:16px;font-weight:700;color:var(--text-heading)">Comments</div>
+            <div style="padding:20px;display:flex;flex-direction:column;gap:12px">
+              <sc-if value="{{ det.noComments }}" hint-placeholder-val="{{ false }}">
+                <p style="margin:0;font-size:13px;color:var(--text-muted)">No comments yet.</p>
+              </sc-if>
+              <sc-for list="{{ det.comments }}" as="c" hint-placeholder-count="1">
+                <div style="background:var(--surface-page);border-radius:var(--radius-sm);padding:12px 14px">
+                  <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
+                    <span style="font-size:13px;font-weight:700;color:var(--text-heading)">{{ c.author }}</span>
+                    <span style="font-size:12px;color:var(--text-muted);font-variant-numeric:tabular-nums">{{ c.at }}</span>
+                  </div>
+                  <p style="margin:4px 0 0;font-size:14px;white-space:pre-wrap">{{ c.body }}</p>
+                </div>
+              </sc-for>
+              <div style="display:flex;flex-direction:column;gap:8px;padding-top:4px">
+                <textarea value="{{ det.commentDraft }}" onChange="{{ det.setCommentDraft }}" placeholder="Write a comment…" style="min-height:72px;padding:10px 12px;font-family:var(--font-ui);font-size:14px;color:var(--text-body);background:var(--surface-card);border:1px solid var(--border-input);border-radius:var(--radius-sm);outline:none;resize:vertical;box-sizing:border-box" style-focus="border-color:var(--focus-ring);box-shadow:var(--shadow-focus)"></textarea>
+                <div>
+                  <button onClick="{{ det.addComment }}" style="display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 14px;font-family:var(--font-ui);font-size:13px;font-weight:600;border-radius:var(--radius-sm);border:1px solid transparent;background:var(--accent);color:#fff;cursor:pointer;transition:background var(--dur-fast) var(--ease)" style-hover="background:var(--accent-hover)">Add comment</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div style="background:var(--surface-card);border:1px solid var(--border);border-radius:var(--radius-md);box-shadow:var(--shadow-card);overflow:hidden">
+              <div style="padding:14px 20px;border-bottom:1px solid var(--border);font-size:16px;font-weight:700;color:var(--text-heading)">Audit trail</div>
+              <div style="padding:20px">
+                <ol style="margin:0;padding:0 0 0 16px;list-style:none;border-left:2px solid var(--border)">
+                  <sc-for list="{{ det.audit }}" as="a" hint-placeholder-count="3">
+                    <li style="position:relative;padding-bottom:14px;font-size:13px">
+                      <span style="position:absolute;left:-21.5px;top:5px;width:10px;height:10px;border-radius:50%;border:2px solid var(--surface-card);background:var(--accent);box-sizing:border-box"></span>
+                      <span style="font-weight:600;color:var(--text-heading)">{{ a.actor }}</span> {{ a.what }}<span style="color:var(--text-muted)">{{ a.extra }}</span>
+                      <div style="font-size:12px;color:var(--text-muted);font-variant-numeric:tabular-nums">{{ a.at }}</div>
+                    </li>
+                  </sc-for>
+                </ol>
+              </div>
+            </div>
+            <div style="background:var(--surface-card);border:1px solid var(--border);border-radius:var(--radius-md);box-shadow:var(--shadow-card);overflow:hidden">
+              <div style="padding:14px 20px;border-bottom:1px solid var(--border);font-size:16px;font-weight:700;color:var(--text-heading)">Attachments</div>
+              <div style="padding:20px"><p style="margin:0;font-size:13px;color:var(--text-muted)">Attachment upload arrives in Phase 3.</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ pageEditor }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="Request editor" style="display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px">
+          <div>
+            <h1 style="margin:0;font-size:22px;font-weight:700;color:var(--text-heading)">{{ ed.title }}</h1>
+            <p style="margin:6px 0 0;font-size:13px;color:var(--text-muted)"><span style="background:var(--warning-tint);border:1px solid var(--warning);border-radius:4px;padding:1px 6px;color:var(--text-body)">Highlighted</span> cells are mandatory for that line's action; grey cells don't apply.</p>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button onClick="{{ ed.cancel }}" style="display:inline-flex;align-items:center;justify-content:center;height:40px;padding:0 18px;font-family:var(--font-ui);font-size:14px;font-weight:600;border-radius:var(--radius-sm);border:1px solid transparent;background:transparent;color:var(--accent);cursor:pointer;transition:background var(--dur-fast) var(--ease)" style-hover="background:var(--surface-tint)">Cancel</button>
+            <button onClick="{{ ed.saveDraft }}" style="display:inline-flex;align-items:center;justify-content:center;height:40px;padding:0 18px;font-family:var(--font-ui);font-size:14px;font-weight:600;border-radius:var(--radius-sm);border:1px solid var(--border-input);background:var(--surface-card);color:var(--accent);cursor:pointer;transition:background var(--dur-fast) var(--ease)" style-hover="background:var(--surface-tint)">Save draft</button>
+            <button onClick="{{ ed.submit }}" style="display:inline-flex;align-items:center;justify-content:center;height:40px;padding:0 18px;font-family:var(--font-ui);font-size:14px;font-weight:600;border-radius:var(--radius-sm);border:1px solid transparent;background:var(--accent);color:#fff;cursor:pointer;transition:background var(--dur-fast) var(--ease)" style-hover="background:var(--accent-hover)">Submit request</button>
+          </div>
+        </div>
+        <sc-if value="{{ ed.hasErrors }}" hint-placeholder-val="{{ false }}">
+          <div style="border:1px solid var(--danger);background:var(--danger-tint);border-radius:var(--radius-sm);padding:12px 14px;font-size:14px;color:var(--danger)">
+            <div style="font-weight:700">Fix these before submitting:</div>
+            <ul style="margin:6px 0 0;padding-left:18px">
+              <sc-for list="{{ ed.errors }}" as="e" hint-placeholder-count="1"><li>{{ e }}</li></sc-for>
+            </ul>
+          </div>
+        </sc-if>
+        <div style="background:var(--surface-card);border:1px solid var(--border);border-radius:var(--radius-md);box-shadow:var(--shadow-card);padding:16px 20px 20px">
+          <div style="display:flex;gap:4px;border-bottom:1px solid var(--border)">
+            <sc-for list="{{ ed.tabs }}" as="t" hint-placeholder-count="4">
+              <button onClick="{{ t.select }}" style="display:inline-flex;align-items:center;gap:7px;padding:10px 14px;font-size:14px;font-family:var(--font-ui);font-weight:600;cursor:pointer;background:none;border:none;margin-bottom:-1px;transition:color var(--dur-fast) var(--ease);color: {{ t.color }};border-bottom:2.5px solid {{ t.borderColor }}">
+                {{ t.label }}
+                <sc-if value="{{ t.hasCount }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-size:11.5px;font-weight:700;padding:1px 7px;border-radius:var(--radius-pill);font-variant-numeric:tabular-nums;background: {{ t.countBg }};color: {{ t.countColor }}">{{ t.count }}</span>
+                </sc-if>
+                <sc-if value="{{ t.hasError }}" hint-placeholder-val="{{ false }}">
+                  <span style="width:8px;height:8px;border-radius:50%;background:var(--danger)"></span>
+                </sc-if>
+              </button>
+            </sc-for>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin:14px 0">
+            <button onClick="{{ ed.addLine }}" style="display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;font-family:var(--font-ui);font-size:13px;font-weight:600;border-radius:var(--radius-sm);border:1px solid var(--border-input);background:var(--surface-card);color:var(--accent);cursor:pointer;transition:background var(--dur-fast) var(--ease)" style-hover="background:var(--surface-tint)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
+              Add line
+            </button>
+            <button onClick="{{ ed.duplicate }}" style="display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;font-family:var(--font-ui);font-size:13px;font-weight:600;border-radius:var(--radius-sm);border:1px solid var(--border-input);background:var(--surface-card);cursor:pointer;transition:background var(--dur-fast) var(--ease);color: {{ ed.selColor }}" style-hover="background:var(--surface-tint)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg>
+              {{ ed.duplicateLabel }}
+            </button>
+            <button onClick="{{ ed.deleteSel }}" style="display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;font-family:var(--font-ui);font-size:13px;font-weight:600;border-radius:var(--radius-sm);border:1px solid var(--border-input);background:var(--surface-card);cursor:pointer;transition:background var(--dur-fast) var(--ease);color: {{ ed.selColor }}" style-hover="background:var(--surface-tint)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+              {{ ed.deleteLabel }}
+            </button>
+            <button onClick="{{ ed.template }}" style="display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;font-family:var(--font-ui);font-size:13px;font-weight:600;border-radius:var(--radius-sm);border:1px solid var(--border-input);background:var(--surface-card);color:var(--accent);cursor:pointer;transition:background var(--dur-fast) var(--ease)" style-hover="background:var(--surface-tint)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" x2="12" y1="15" y2="3"></line></svg>
+              Download Excel template
+            </button>
+            <button onClick="{{ ed.import }}" style="display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;font-family:var(--font-ui);font-size:13px;font-weight:600;border-radius:var(--radius-sm);border:1px solid var(--border-input);background:var(--surface-card);color:var(--accent);cursor:pointer;transition:background var(--dur-fast) var(--ease)" style-hover="background:var(--surface-tint)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" x2="12" y1="3" y2="15"></line></svg>
+              Import from Excel
+            </button>
+          </div>
+          <sc-if value="{{ ed.noLines }}" hint-placeholder-val="{{ false }}">
+            <p style="margin:0;padding:16px 0;font-size:13px;color:var(--text-muted)">No lines yet — click "Add line" to start, or import from an Excel template.</p>
+          </sc-if>
+          <sc-if value="{{ ed.hasLines }}" hint-placeholder-val="{{ true }}">
+            <div style="overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius-sm)">
+              <div style="min-width: {{ ed.minWidth }}">
+                <div style="display:flex;background:var(--surface-page);border-bottom:1px solid var(--border)">
+                  <div style="flex:none;width:36px;display:flex;align-items:center;justify-content:center;box-sizing:border-box;border-right:1px solid var(--border)">
+                    <input type="checkbox" checked="{{ ed.allSelected }}" onChange="{{ ed.toggleAll }}" aria-label="Select all lines" style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer">
+                  </div>
+                  <div style="flex:none;width:40px;padding:7px 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:var(--tracking-caps);color:var(--text-muted);box-sizing:border-box;border-right:1px solid var(--border)">#</div>
+                  <sc-for list="{{ ed.cols }}" as="col" hint-placeholder-count="6">
+                    <div style="flex:none;padding:7px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:var(--tracking-caps);color:var(--text-muted);box-sizing:border-box;border-right:1px solid var(--border);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width: {{ col.width }}" title="{{ col.label }}">{{ col.label }}<span style="color:var(--danger)">{{ col.star }}</span></div>
+                  </sc-for>
+                </div>
+                <sc-for list="{{ ed.rows }}" as="row" hint-placeholder-count="2">
+                  <div style="display:flex;border-bottom:1px solid var(--border);align-items:stretch">
+                    <div style="flex:none;width:36px;display:flex;align-items:center;justify-content:center;box-sizing:border-box;border-right:1px solid var(--border)">
+                      <input type="checkbox" checked="{{ row.checked }}" onChange="{{ row.toggle }}" aria-label="Select line" style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer">
+                    </div>
+                    <div style="flex:none;width:40px;padding:0 8px;display:flex;align-items:center;font-size:13px;color:var(--text-muted);box-sizing:border-box;border-right:1px solid var(--border);font-variant-numeric:tabular-nums">{{ row.no }}</div>
+                    <sc-for list="{{ row.cells }}" as="c" hint-placeholder-count="6">
+                      <div style="flex:none;box-sizing:border-box;border-right:1px solid var(--border);width: {{ c.width }}">
+                        <sc-if value="{{ c.isSelect }}" hint-placeholder-val="{{ false }}">
+                          <select value="{{ c.value }}" onChange="{{ c.onChange }}" style="height:34px;width:100%;border:none;outline:none;padding:0 8px;font-family:var(--font-ui);font-size:13.5px;color:var(--text-body);box-sizing:border-box;cursor:pointer;background: {{ c.bg }}" style-focus="box-shadow:inset 0 0 0 2px var(--focus-ring)">
+                            <sc-for list="{{ c.options }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.label }}</option></sc-for>
+                          </select>
+                        </sc-if>
+                        <sc-if value="{{ c.isText }}" hint-placeholder-val="{{ true }}">
+                          <input value="{{ c.value }}" onChange="{{ c.onChange }}" placeholder="{{ c.ph }}" title="{{ c.error }}" style="height:34px;width:100%;border:none;outline:none;padding:0 8px;font-family:var(--font-ui);font-size:13.5px;color:var(--text-body);box-sizing:border-box;background: {{ c.bg }}" style-focus="box-shadow:inset 0 0 0 2px var(--focus-ring)">
+                        </sc-if>
+                        <sc-if value="{{ c.isNa }}" hint-placeholder-val="{{ false }}">
+                          <div style="height:34px;display:flex;align-items:center;padding:0 8px;font-size:12px;color:var(--text-muted);background:var(--surface-page);box-sizing:border-box">n/a</div>
+                        </sc-if>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+  </main>
+
+  <footer style="border-top:1px solid var(--border);padding:16px 24px;text-align:center;font-size:12px;color:var(--text-muted);flex:none">
+    Developed by Abdullah F. Alharbi · Support: <a href="mailto:abdullah.hejaili@aramco.com">abdullah.hejaili@aramco.com</a>
+  </footer>
+
+  <sc-if value="{{ showRoleSwitcher }}" hint-placeholder-val="{{ true }}">
+    <div style="position:fixed;right:16px;bottom:16px;z-index:40;background:var(--surface-card);border:1px solid var(--border);border-radius:var(--radius-md);box-shadow:var(--shadow-raised);padding:12px 14px;width:220px">
+      <div style="font-size:12px;font-weight:700;color:var(--text-heading)">Demo role switcher</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Mock data only — not part of the real app</div>
+      <div style="display:flex;flex-direction:column;gap:4px;margin-top:10px">
+        <sc-for list="{{ roleOptions }}" as="r" hint-placeholder-count="3">
+          <button onClick="{{ r.select }}" style="display:flex;align-items:center;justify-content:space-between;border:none;cursor:pointer;text-align:left;border-radius:var(--radius-sm);padding:7px 10px;font-family:var(--font-ui);font-size:13px;font-weight:600;transition:background var(--dur-fast) var(--ease);background: {{ r.bg }};color: {{ r.color }}">
+            {{ r.label }}
+            <span style="font-size:11px;font-weight:400;color: {{ r.subColor }}">{{ r.userName }}</span>
+          </button>
+        </sc-for>
+      </div>
+      <button onClick="{{ resetDemo }}" style="margin-top:10px;width:100%;border:1px solid var(--border-input);background:var(--surface-card);color:var(--text-muted);border-radius:var(--radius-sm);padding:6px 0;font-family:var(--font-ui);font-size:12px;font-weight:600;cursor:pointer;transition:background var(--dur-fast) var(--ease)" style-hover="background:var(--surface-tint)">Reset demo data</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ rejectOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeDialogs }}" style="position:fixed;inset:0;z-index:50;background:rgba(13,59,102,.45);display:flex;align-items:center;justify-content:center;padding:24px">
+      <div onClick="{{ stop }}" style="background:var(--surface-card);border-radius:var(--radius-lg);box-shadow:var(--shadow-overlay);padding:24px;width:440px;max-width:100%;box-sizing:border-box">
+        <h3 style="margin:0 0 14px;font-size:18px;font-weight:700;color:var(--text-heading)">Reject request</h3>
+        <label style="display:block;margin-bottom:6px;font-size:13px;font-weight:600;color:var(--text-heading)">Reason (required — the requester will see this)</label>
+        <textarea value="{{ dlg.rejectReason }}" onChange="{{ dlg.setRejectReason }}" style="width:100%;min-height:88px;padding:10px 12px;font-family:var(--font-ui);font-size:14px;color:var(--text-body);background:var(--surface-card);border:1px solid var(--border-input);border-radius:var(--radius-sm);outline:none;resize:vertical;box-sizing:border-box" style-focus="border-color:var(--focus-ring);box-shadow:var(--shadow-focus)"></textarea>
+        <div style="margin-top:16px;display:flex;justify-content:flex-end;gap:8px">
+          <button onClick="{{ closeDialogs }}" style="display:inline-flex;align-items:center;height:40px;padding:0 18px;font-family:var(--font-ui);font-size:14px;font-weight:600;border-radius:var(--radius-sm);border:1px solid transparent;background:transparent;color:var(--accent);cursor:pointer" style-hover="background:var(--surface-tint)">Cancel</button>
+          <button onClick="{{ dlg.confirmReject }}" style="display:inline-flex;align-items:center;height:40px;padding:0 18px;font-family:var(--font-ui);font-size:14px;font-weight:600;border-radius:var(--radius-sm);border:1px solid transparent;background:var(--danger);color:#fff;cursor:pointer;opacity: {{ dlg.rejectOpacity }}" style-hover="filter:brightness(.94)">Reject</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ assignOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeDialogs }}" style="position:fixed;inset:0;z-index:50;background:rgba(13,59,102,.45);display:flex;align-items:center;justify-content:center;padding:24px">
+      <div onClick="{{ stop }}" style="background:var(--surface-card);border-radius:var(--radius-lg);box-shadow:var(--shadow-overlay);padding:24px;width:440px;max-width:100%;box-sizing:border-box">
+        <h3 style="margin:0 0 14px;font-size:18px;font-weight:700;color:var(--text-heading)">Assign to maintainer</h3>
+        <label style="display:block;margin-bottom:6px;font-size:13px;font-weight:600;color:var(--text-heading)">Choose a maintainer</label>
+        <select value="{{ dlg.assigneeId }}" onChange="{{ dlg.setAssignee }}" style="height:40px;width:100%;padding:0 32px 0 12px;font-family:var(--font-ui);font-size:14px;color:var(--text-body);background:var(--surface-card);border:1px solid var(--border-input);border-radius:var(--radius-sm);outline:none;cursor:pointer;box-sizing:border-box" style-focus="border-color:var(--focus-ring);box-shadow:var(--shadow-focus)">
+          <sc-for list="{{ dlg.maintainers }}" as="m" hint-placeholder-count="2"><option value="{{ m.id }}">{{ m.name }}</option></sc-for>
+        </select>
+        <div style="margin-top:16px;display:flex;justify-content:flex-end;gap:8px">
+          <button onClick="{{ closeDialogs }}" style="display:inline-flex;align-items:center;height:40px;padding:0 18px;font-family:var(--font-ui);font-size:14px;font-weight:600;border-radius:var(--radius-sm);border:1px solid transparent;background:transparent;color:var(--accent);cursor:pointer" style-hover="background:var(--surface-tint)">Cancel</button>
+          <button onClick="{{ dlg.confirmAssign }}" style="display:inline-flex;align-items:center;height:40px;padding:0 18px;font-family:var(--font-ui);font-size:14px;font-weight:600;border-radius:var(--radius-sm);border:1px solid transparent;background:var(--accent);color:#fff;cursor:pointer" style-hover="background:var(--accent-hover)">Assign</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;background:var(--surface-inverse);color:#fff;border-radius:var(--radius-sm);box-shadow:var(--shadow-raised);padding:10px 18px;font-size:13px;font-weight:600;white-space:nowrap">{{ toast }}</div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;defaultRole&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;requester&quot;,&quot;maintainer&quot;,&quot;admin&quot;],&quot;default&quot;:&quot;requester&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Demo&quot;},&quot;showDemoTools&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Demo&quot;}}">
+class Component extends DCLogic {
+  state = this.initState()
+
+  initState() {
+    return {
+      role: null, theme: 'light',
+      route: { page: 'home', scope: null, status: '', overdue: false, id: null },
+      search: '', commentDraft: '',
+      rejectOpen: false, rejectReason: '', assignOpen: false, assigneeId: '',
+      toast: '',
+      ed: { reqId: null, lines: [], tab: 'EQUIPMENT', selected: {}, errors: [], cellErr: {} },
+      data: this.seed(),
+    }
+  }
+
+  // ── domain config (mirrors src/domain/field-map) ─────────────────────────
+  get EQ_TYPES() {
+    return {
+      'Centrifugal Pump': ['M', 'PUMP', 'PUMP01'], 'Reciprocating Compressor': ['M', 'COMPR', 'COMP01'],
+      'Electric Motor': ['M', 'MOTOR', 'ELEC01'], 'Heat Exchanger': ['M', 'HEATX', 'HEXC01'],
+      'Pressure Vessel': ['M', 'VESSEL', 'VESS01'], 'Control Valve': ['M', 'VALVE', 'VALV01'],
+      'Storage Tank': ['M', 'TANK', 'TANK01'],
+    }
+  }
+  get CONFIGS() {
+    const AC = ['ADD', 'CHANGE'], CD = ['CHANGE', 'DELETE'], D = ['DELETE'], A = ['ADD'], C = ['CHANGE']
+    return [
+      { objectType: 'EQUIPMENT', label: 'Equipment', actions: ['ADD', 'CHANGE', 'DELETE'],
+        actionLabels: { ADD: 'Add', CHANGE: 'Change', DELETE: 'Delete' },
+        fields: [
+          { key: 'equipmentNumber', label: 'Equipment Number', input: 'text', appliesTo: CD, requiredFor: CD, identifier: true },
+          { key: 'description', label: 'Description', input: 'text', appliesTo: AC, requiredFor: A },
+          { key: 'equipmentType', label: 'Equipment Type', input: 'choice', options: Object.keys(this.EQ_TYPES), appliesTo: AC, requiredFor: A },
+          { key: 'equipmentCategory', label: 'Equipment Category', input: 'text', appliesTo: AC, derived: true },
+          { key: 'technicalObjectType', label: 'Object Type', input: 'text', appliesTo: AC, derived: true },
+          { key: 'catalogProfile', label: 'Catalog Profile', input: 'text', appliesTo: AC, derived: true },
+          { key: 'manufacturer', label: 'Manufacturer', input: 'text', appliesTo: AC, requiredFor: A },
+          { key: 'model', label: 'Model Number', input: 'text', appliesTo: AC, requiredFor: A },
+          { key: 'serialNumber', label: 'Serial Number', input: 'text', appliesTo: AC },
+          { key: 'planningPlant', label: 'Planning Plant', input: 'text', appliesTo: AC, requiredFor: A },
+          { key: 'functionalLocation', label: 'Functional Location', input: 'text', appliesTo: AC, requiredFor: A },
+          { key: 'costCenter', label: 'Cost Center', input: 'text', appliesTo: AC, requiredFor: A },
+          { key: 'plannerGroup', label: 'Planner Group', input: 'text', appliesTo: AC, requiredFor: A },
+          { key: 'mainWorkCenter', label: 'Work Center', input: 'text', appliesTo: AC, requiredFor: A },
+          { key: 'startupDate', label: 'Start-up Date', input: 'date', appliesTo: AC, requiredFor: A },
+          { key: 'engTagNo', label: 'Eng. Tag no.', input: 'text', appliesTo: AC },
+          { key: 'pidNo', label: 'P&ID no.', input: 'text', appliesTo: AC },
+          { key: 'deletionReason', label: 'Reason for Deletion', input: 'text', appliesTo: D, requiredFor: D },
+        ] },
+      { objectType: 'FLOC', label: 'Functional Locations', actions: ['ADD', 'CHANGE', 'DELETE'],
+        actionLabels: { ADD: 'Add', CHANGE: 'Change', DELETE: 'Delete' },
+        fields: [
+          { key: 'functionalLocation', label: 'Functional Location', input: 'text', appliesTo: CD, requiredFor: CD, identifier: true },
+          { key: 'description', label: 'FLoc Description', input: 'text', appliesTo: AC, requiredFor: A },
+          { key: 'superiorFunctionalLocation', label: 'Superior Functional Location', input: 'text', appliesTo: AC, requiredFor: A },
+          { key: 'costCenter', label: 'Cost Center', input: 'text', appliesTo: AC },
+          { key: 'startupDate', label: 'Start-up Date', input: 'date', appliesTo: AC, requiredFor: A },
+          { key: 'deletionReason', label: 'Reason for Deletion', input: 'text', appliesTo: D, requiredFor: D },
+        ] },
+      { objectType: 'BOM_LINKAGE', label: 'BOM Linkage', actions: ['ADD', 'DELETE'],
+        actionLabels: { ADD: 'Add', CHANGE: 'Change', DELETE: 'Delete' },
+        fields: [
+          { key: 'parentNumber', label: 'Equipment', input: 'text', requiredFor: ['ADD', 'DELETE'], identifier: true },
+          { key: 'material', label: 'Material (9BOM | 9CAT)', input: 'text', requiredFor: A },
+          { key: 'deletionReason', label: 'Reason for Deletion', input: 'text', appliesTo: D, requiredFor: D },
+        ] },
+      { objectType: 'PM', label: 'PM', actions: ['ADD', 'CHANGE', 'DELETE'],
+        actionLabels: { ADD: 'Add PM to equipment', CHANGE: 'Change task list', DELETE: 'Delete PM' },
+        fields: [
+          { key: 'equipmentNumber', label: 'Equipment Number', input: 'text', requiredFor: A, identifier: true },
+          { key: 'taskListNumber', label: 'Task List Number', input: 'text', appliesTo: AC, requiredFor: A, identifier: true },
+          { key: 'maintenancePlanNumber', label: 'Maintenance Plan', input: 'text', identifier: true },
+          { key: 'maintenanceItem', label: 'Maintenance Item', input: 'text', requiredFor: CD, identifier: true },
+          { key: 'cycleFrequency', label: 'Cycle (Months)', input: 'text', appliesTo: AC },
+          { key: 'plannerGroup', label: 'Planner Group', input: 'text', appliesTo: AC },
+          { key: 'mainWorkCenter', label: 'Work Center', input: 'text', appliesTo: AC, requiredFor: A },
+          { key: 'startDate', label: 'Cycle Start Date', input: 'date', appliesTo: AC },
+          { key: 'changeDetails', label: 'Change Remarks', input: 'text', appliesTo: C, requiredFor: C },
+          { key: 'deletionReason', label: 'Reason for Deletion', input: 'text', appliesTo: D, requiredFor: D },
+        ] },
+    ]
+  }
+  cfg(t) { return this.CONFIGS.find((c) => c.objectType === t) }
+  applies(f, a) { return !f.appliesTo || f.appliesTo.includes(a) }
+  required(f, a) { return !!(f.requiredFor && f.requiredFor.includes(a)) && this.applies(f, a) }
+
+  // ── seed data ─────────────────────────────────────────────────────────────
+  seed() {
+    const users = [
+      { id: 'u1', name: 'Khalid Al-Zahrani', role: 'requester' },
+      { id: 'u2', name: 'Sara Al-Otaibi', role: 'maintainer' },
+      { id: 'u3', name: 'Mohammed Nasser', role: 'maintainer' },
+      { id: 'u4', name: 'Abdullah F. Alharbi', role: 'admin' },
+      { id: 'f1', name: 'Faisal Al-Dossary', role: 'requester' },
+      { id: 'n1', name: 'Noura Al-Qahtani', role: 'requester' },
+    ]
+    const L = (objectType, action, fieldData) => ({ key: Math.random().toString(36).slice(2), objectType, action, fieldData })
+    const requests = [
+      { id: 'r7', ref: 'DCR-260007', status: 'Draft', requesterId: 'u1', createdAt: '2026-07-17T09:12:00',
+        lines: [
+          L('EQUIPMENT', 'ADD', { description: 'Air compressor K-1102', equipmentType: 'Reciprocating Compressor', equipmentCategory: 'M', technicalObjectType: 'COMPR', catalogProfile: 'COMP01', manufacturer: 'Atlas Copco', model: 'ZR-160', planningPlant: '2101', functionalLocation: 'SA-201-K-002' }),
+          L('EQUIPMENT', 'ADD', { description: 'Standby unit K-1102B' }),
+        ] },
+      { id: 'r6', ref: 'DCR-260006', status: 'Waiting to be started', requesterId: 'u1', createdAt: '2026-07-15T14:02:00', submittedAt: '2026-07-16T08:30:00', slaDays: 5, dueDate: '2026-07-21T08:30:00',
+        lines: [
+          L('PM', 'ADD', { equipmentNumber: '10201455', taskListNumber: '30012877', cycleFrequency: '6', mainWorkCenter: 'MECH01', startDate: '2026-08-01' }),
+          L('PM', 'CHANGE', { maintenanceItem: '145200098', taskListNumber: '30012901', changeDetails: 'Extend cycle from 3 to 6 months per RCM review' }),
+        ] },
+      { id: 'r5', ref: 'DCR-260005', status: 'In process', requesterId: 'u1', assigneeId: 'u2', createdAt: '2026-07-11T11:40:00', submittedAt: '2026-07-12T10:05:00', slaDays: 3, dueDate: '2026-07-15T10:05:00',
+        lines: [
+          L('EQUIPMENT', 'ADD', { description: 'Centrifugal pump P-4021A', equipmentType: 'Centrifugal Pump', equipmentCategory: 'M', technicalObjectType: 'PUMP', catalogProfile: 'PUMP01', manufacturer: 'Sulzer', model: 'ZA200-400', serialNumber: 'SZ-99812', planningPlant: '2101', functionalLocation: 'SA-201-P-001', costCenter: '4020112', plannerGroup: '210', mainWorkCenter: 'ROTEQ', startupDate: '2026-08-01', engTagNo: 'P-4021A' }),
+          L('EQUIPMENT', 'ADD', { description: 'Centrifugal pump P-4021B', equipmentType: 'Centrifugal Pump', equipmentCategory: 'M', technicalObjectType: 'PUMP', catalogProfile: 'PUMP01', manufacturer: 'Sulzer', model: 'ZA200-400', serialNumber: 'SZ-99813', planningPlant: '2101', functionalLocation: 'SA-201-P-002', costCenter: '4020112', plannerGroup: '210', mainWorkCenter: 'ROTEQ', startupDate: '2026-08-01', engTagNo: 'P-4021B' }),
+          L('EQUIPMENT', 'CHANGE', { equipmentNumber: '10453987', description: 'Update cost center after area handover', costCenter: '4020118' }),
+        ] },
+      { id: 'r4', ref: 'DCR-260004', status: 'In process', requesterId: 'f1', assigneeId: 'u2', createdAt: '2026-07-13T09:00:00', submittedAt: '2026-07-14T07:45:00', slaDays: 5, dueDate: '2026-07-19T07:45:00',
+        lines: [
+          L('FLOC', 'ADD', { description: 'Injection water booster skid', superiorFunctionalLocation: 'SA-201', costCenter: '4020112', startupDate: '2026-09-01' }),
+          L('FLOC', 'CHANGE', { functionalLocation: 'SA-201-P-003', description: 'Rename after unit split' }),
+        ] },
+      { id: 'r8', ref: 'DCR-260008', status: 'Waiting to be started', requesterId: 'n1', createdAt: '2026-07-17T13:10:00', submittedAt: '2026-07-17T13:40:00', slaDays: 5, dueDate: '2026-07-22T13:40:00',
+        lines: [
+          L('BOM_LINKAGE', 'ADD', { parentNumber: '10453987', material: '900112344' }),
+          L('BOM_LINKAGE', 'DELETE', { parentNumber: '10222901', deletionReason: 'Material superseded by 900118821' }),
+        ] },
+      { id: 'r3', ref: 'DCR-260003', status: 'Completed', requesterId: 'n1', assigneeId: 'u3', createdAt: '2026-07-05T10:00:00', submittedAt: '2026-07-06T09:15:00', slaDays: 2, dueDate: '2026-07-08T09:15:00',
+        lines: [ L('EQUIPMENT', 'DELETE', { equipmentNumber: '10098231', deletionReason: 'Physically scrapped during T&I 2026' }) ] },
+      { id: 'r2', ref: 'DCR-260002', status: 'Rejected', requesterId: 'u1', createdAt: '2026-07-09T15:30:00', submittedAt: '2026-07-10T08:00:00', slaDays: 5, dueDate: '2026-07-15T08:00:00',
+        rejectReason: 'Equipment already exists as 10453991 under FLoc SA-201-P-001 — verify the tag in IE03 and resubmit.',
+        lines: [ L('EQUIPMENT', 'ADD', { description: 'Charge pump P-4019A', equipmentType: 'Centrifugal Pump', equipmentCategory: 'M', technicalObjectType: 'PUMP', catalogProfile: 'PUMP01', functionalLocation: 'SA-201-P-001' }) ] },
+      { id: 'r1', ref: 'DCR-260001', status: 'Completed', requesterId: 'f1', assigneeId: 'u2', createdAt: '2026-06-30T08:20:00', submittedAt: '2026-07-01T10:30:00', slaDays: 2, dueDate: '2026-07-03T10:30:00',
+        lines: [ L('PM', 'DELETE', { maintenanceItem: '145200011', deletionReason: 'Equipment decommissioned' }) ] },
+    ]
+    const comments = {
+      r5: [
+        { author: 'Sara Al-Otaibi', at: '2026-07-14T09:22:00', body: 'Equipment type maps to object type PUMP — confirming the catalog profile before keying. The FLoc is valid as shown in IE03.' },
+        { author: 'Khalid Al-Zahrani', at: '2026-07-15T07:48:00', body: 'Confirmed with operations — please proceed.' },
+      ],
+    }
+    const audit = {
+      r7: [ ['Khalid Al-Zahrani', 'created the request', '', '2026-07-17T09:12:00'] ],
+      r6: [ ['Khalid Al-Zahrani', 'created the request', '', '2026-07-15T14:02:00'], ['Khalid Al-Zahrani', 'submitted the request', '', '2026-07-16T08:30:00'] ],
+      r5: [ ['Khalid Al-Zahrani', 'created the request', '', '2026-07-11T11:40:00'], ['Khalid Al-Zahrani', 'submitted the request', '', '2026-07-12T10:05:00'], ['Sara Al-Otaibi', 'changed the assignee', ' (Sara Al-Otaibi)', '2026-07-12T11:20:00'], ['Sara Al-Otaibi', 'changed the status', ' (Waiting to be started → In process)', '2026-07-13T08:05:00'], ['Sara Al-Otaibi', 'added a comment', '', '2026-07-14T09:22:00'] ],
+      r4: [ ['Faisal Al-Dossary', 'created the request', '', '2026-07-13T09:00:00'], ['Faisal Al-Dossary', 'submitted the request', '', '2026-07-14T07:45:00'], ['Abdullah F. Alharbi', 'changed the assignee', ' (Sara Al-Otaibi)', '2026-07-14T09:30:00'], ['Sara Al-Otaibi', 'changed the status', ' (Waiting to be started → In process)', '2026-07-15T10:00:00'] ],
+      r8: [ ['Noura Al-Qahtani', 'created the request', '', '2026-07-17T13:10:00'], ['Noura Al-Qahtani', 'submitted the request', '', '2026-07-17T13:40:00'] ],
+      r3: [ ['Noura Al-Qahtani', 'created the request', '', '2026-07-05T10:00:00'], ['Noura Al-Qahtani', 'submitted the request', '', '2026-07-06T09:15:00'], ['Mohammed Nasser', 'changed the assignee', ' (Mohammed Nasser)', '2026-07-06T10:00:00'], ['Mohammed Nasser', 'changed the status', ' (In process → Completed)', '2026-07-07T15:12:00'] ],
+      r2: [ ['Khalid Al-Zahrani', 'created the request', '', '2026-07-09T15:30:00'], ['Khalid Al-Zahrani', 'submitted the request', '', '2026-07-10T08:00:00'], ['Abdullah F. Alharbi', 'rejected the request', '', '2026-07-11T09:40:00'] ],
+      r1: [ ['Faisal Al-Dossary', 'created the request', '', '2026-06-30T08:20:00'], ['Faisal Al-Dossary', 'submitted the request', '', '2026-07-01T10:30:00'], ['Sara Al-Otaibi', 'changed the assignee', ' (Sara Al-Otaibi)', '2026-07-01T11:00:00'], ['Sara Al-Otaibi', 'changed the status', ' (In process → Completed)', '2026-07-02T14:25:00'] ],
+    }
+    return { users, requests, comments, audit, nextRef: 9 }
+  }
+
+  // ── helpers ───────────────────────────────────────────────────────────────
+  user(id) { return this.state.data.users.find((u) => u.id === id) }
+  get role() { return this.state.role || this.props.defaultRole || 'requester' }
+  get cu() {
+    const map = { requester: 'u1', maintainer: 'u2', admin: 'u4' }
+    return this.user(map[this.role])
+  }
+  fmtD(iso) { if (!iso) return '—'; const d = new Date(iso); return `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}/${d.getFullYear()}` }
+  fmtDT(iso) { if (!iso) return '—'; const d = new Date(iso); let h = d.getHours(); const am = h < 12 ? 'AM' : 'PM'; h = h % 12 || 12; return `${this.fmtD(iso)}, ${String(h).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')} ${am}` }
+  fmtVal(v) { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v || ''); return m ? `${m[2]}/${m[3]}/${m[1]}` : (v || '') }
+  daysUntil(due) { return Math.ceil((new Date(due).getTime() - Date.now()) / 86400000) }
+  isOverdue(r) { return !!r.dueDate && (r.status === 'Waiting to be started' || r.status === 'In process') && new Date(r.dueDate).getTime() < Date.now() }
+  statusStyle(s) {
+    return {
+      'Draft': ['var(--status-on-hold)', 'var(--navy-tint)'],
+      'Waiting to be started': ['var(--warning)', 'var(--warning-tint)'],
+      'In process': ['var(--status-in-progress)', 'var(--sky-tint)'],
+      'Completed': ['var(--status-completed)', 'var(--teal-tint)'],
+      'Rejected': ['var(--status-rejected)', 'var(--danger-tint)'],
+    }[s]
+  }
+  slaBadge(r) {
+    if (!r.dueDate || r.status === 'Completed' || r.status === 'Rejected' || r.status === 'Draft') return null
+    const d = this.daysUntil(r.dueDate)
+    if (this.isOverdue(r)) return { text: `Overdue by ${-d} ${-d === 1 ? 'day' : 'days'}`, color: 'var(--danger)', bg: 'var(--danger-tint)', border: 'transparent' }
+    if (d <= 0) return { text: 'Due today', color: 'var(--warning)', bg: 'var(--warning-tint)', border: 'transparent' }
+    if (d <= 1) return { text: `Due in ${d} day`, color: 'var(--warning)', bg: 'var(--warning-tint)', border: 'transparent' }
+    return { text: `Due in ${d} days`, color: 'var(--text-muted)', bg: 'transparent', border: 'var(--border-strong)' }
+  }
+  summarize(lines) {
+    const parts = []
+    for (const cfg of this.CONFIGS) {
+      const of = lines.filter((l) => l.objectType === cfg.objectType)
+      if (!of.length) continue
+      const by = ['ADD', 'CHANGE', 'DELETE'].map((a) => ({ a, n: of.filter((l) => l.action === a).length })).filter((x) => x.n > 0).map((x) => `${x.n} ${cfg.actionLabels[x.a]}`)
+      parts.push(`${cfg.label}: ${by.join(', ')}`)
+    }
+    return parts.join(' · ')
+  }
+  scopeRequests(scope) {
+    const rs = this.state.data.requests
+    if (scope === 'mine') return rs.filter((r) => r.requesterId === this.cu.id)
+    if (scope === 'queue') return rs.filter((r) => r.assigneeId === this.cu.id)
+    if (scope === 'unassigned') return rs.filter((r) => !r.assigneeId && r.status === 'Waiting to be started')
+    return rs
+  }
+  scopesFor() {
+    if (this.role === 'admin') return ['all', 'unassigned']
+    if (this.role === 'maintainer') return ['queue', 'unassigned']
+    return ['mine']
+  }
+  scopeTitle(s) { return { mine: 'My requests', queue: 'My queue', unassigned: 'Unassigned requests', all: 'All requests' }[s] }
+
+  nav(route) { this.setState({ route, search: '', commentDraft: '', rejectOpen: false, assignOpen: false }) }
+  goList(scope, extra) { this.nav({ page: 'list', scope, status: (extra && extra.status) || '', overdue: !!(extra && extra.overdue), id: null }) }
+  openEditor(reqId) {
+    let lines = [], tab = 'EQUIPMENT'
+    if (reqId) {
+      const r = this.state.data.requests.find((x) => x.id === reqId)
+      lines = r.lines.map((l) => ({ ...l, fieldData: { ...l.fieldData } }))
+      if (lines.length) tab = lines[0].objectType
+    }
+    this.setState({ route: { page: 'editor', id: reqId || null }, ed: { reqId: reqId || null, lines, tab, selected: {}, errors: [], cellErr: {} }, rejectOpen: false, assignOpen: false })
+  }
+  showToast(msg) {
+    this.setState({ toast: msg })
+    clearTimeout(this._tt)
+    this._tt = setTimeout(() => this.setState({ toast: '' }), 2600)
+  }
+  addAudit(reqId, what, extra) {
+    const a = this.state.data.audit
+    a[reqId] = [...(a[reqId] || []), [this.cu.name, what, extra || '', new Date().toISOString()]]
+  }
+  mutateReq(id, patch) {
+    this.setState((s) => ({ data: { ...s.data, requests: s.data.requests.map((r) => (r.id === id ? { ...r, ...patch } : r)) } }))
+  }
+
+  componentDidMount() { document.body.classList.toggle('dark', this.state.theme === 'dark') }
+
+  // ── editor ops ────────────────────────────────────────────────────────────
+  edPatch(patch) { this.setState((s) => ({ ed: { ...s.ed, ...patch } })) }
+  edUpdLine(key, fieldKey, value) {
+    this.setState((s) => {
+      const lines = s.ed.lines.map((l) => {
+        if (l.key !== key) return l
+        const fd = { ...l.fieldData, [fieldKey]: value }
+        if (l.objectType === 'EQUIPMENT' && fieldKey === 'equipmentType') {
+          const d = this.EQ_TYPES[value]
+          fd.equipmentCategory = d ? d[0] : ''
+          fd.technicalObjectType = d ? d[1] : ''
+          fd.catalogProfile = d ? d[2] : ''
+        }
+        return { ...l, fieldData: fd }
+      })
+      const cellErr = { ...s.ed.cellErr }
+      delete cellErr[key + ':' + fieldKey]
+      return { ed: { ...s.ed, lines, cellErr } }
+    })
+  }
+  edSetAction(key, action) {
+    this.setState((s) => ({ ed: { ...s.ed, lines: s.ed.lines.map((l) => (l.key === key ? { ...l, action } : l)) } }))
+  }
+  edValidate(kept) {
+    const errors = [], cellErr = {}
+    for (const cfg of this.CONFIGS) {
+      const of = kept.filter((l) => l.objectType === cfg.objectType)
+      of.forEach((l, i) => {
+        for (const f of cfg.fields) {
+          if (f.derived) continue
+          if (this.required(f, l.action) && !(l.fieldData[f.key] || '').trim()) {
+            errors.push(`${cfg.label} line ${i + 1}: ${f.label} is required`)
+            cellErr[l.key + ':' + f.key] = `${f.label} is required`
+          }
+        }
+        if (l.action === 'CHANGE') {
+          const filled = cfg.fields.some((f) => !f.identifier && !f.derived && this.applies(f, 'CHANGE') && (l.fieldData[f.key] || '').trim())
+          if (!filled) errors.push(`${cfg.label} line ${i + 1}: change lines must fill at least one field to change`)
+        }
+      })
+    }
+    return { errors, cellErr }
+  }
+  edPersist(kept, submit) {
+    const s = this.state
+    const summary = this.summarize(kept)
+    if (s.ed.reqId) {
+      const patch = { lines: kept }
+      if (submit) Object.assign(patch, this.submitPatch(kept))
+      this.mutateReq(s.ed.reqId, patch)
+      this.addAudit(s.ed.reqId, submit ? 'submitted the request' : 'updated the draft')
+      this.nav({ page: 'detail', id: s.ed.reqId })
+    } else {
+      const n = s.data.nextRef
+      const id = 'r' + (100 + n)
+      const req = { id, ref: 'DCR-26' + String(n).padStart(4, '0'), status: 'Draft', requesterId: this.cu.id, createdAt: new Date().toISOString(), lines: kept }
+      if (submit) Object.assign(req, this.submitPatch(kept))
+      this.setState((st) => ({ data: { ...st.data, nextRef: n + 1, requests: [req, ...st.data.requests] } }))
+      this.addAudit(id, 'created the request')
+      if (submit) this.addAudit(id, 'submitted the request')
+      this.nav({ page: 'detail', id })
+    }
+    this.showToast(submit ? `Request ${summary ? 'submitted' : 'submitted'} — our team will pick it up from the unassigned pool.` : 'Draft saved.')
+  }
+  submitPatch(kept) {
+    const SLA = { ADD: 5, CHANGE: 3, DELETE: 2 }
+    const sla = Math.max(...kept.map((l) => SLA[l.action]))
+    const now = new Date()
+    return { status: 'Waiting to be started', submittedAt: now.toISOString(), slaDays: sla, dueDate: new Date(now.getTime() + sla * 86400000).toISOString() }
+  }
+
+  // ── detail transitions (mirrors src/domain/status) ────────────────────────
+  transitionsFor(req) {
+    const isAdmin = this.role === 'admin'
+    const owner = req.requesterId === this.cu.id
+    const assignee = req.assigneeId === this.cu.id
+    const owning = isAdmin || (this.role === 'requester' && owner)
+    const assigned = isAdmin || (this.role === 'maintainer' && assignee)
+    const T = [
+      ['Draft', 'Waiting to be started', 'Submit', owning],
+      ['Waiting to be started', 'In process', 'Start work', assigned],
+      ['In process', 'Completed', 'Mark completed', assigned],
+      ['Waiting to be started', 'Rejected', 'Reject', isAdmin],
+      ['In process', 'Rejected', 'Reject', isAdmin],
+      ['Rejected', 'Draft', 'Reopen as draft', owning],
+    ]
+    return T.filter((t) => t[0] === req.status && t[3])
+  }
+  doTransition(req, to, label) {
+    if (to === 'Rejected') { this.setState({ rejectOpen: true, rejectReason: '' }); return }
+    const patch = { status: to }
+    if (to === 'Waiting to be started' && req.status === 'Draft') Object.assign(patch, this.submitPatch(req.lines))
+    if (to === 'Draft' && req.status === 'Rejected') { patch.rejectReason = undefined; patch.submittedAt = undefined; patch.dueDate = undefined; patch.slaDays = undefined }
+    this.mutateReq(req.id, patch)
+    this.addAudit(req.id, to === 'Draft' ? 'reopened the request as a draft' : (to === 'Waiting to be started' ? 'submitted the request' : 'changed the status'), to === 'Draft' || to === 'Waiting to be started' ? '' : ` (${req.status} → ${to})`)
+  }
+
+  // ── render ────────────────────────────────────────────────────────────────
+  renderVals() {
+    const s = this.state, role = this.role, cu = this.cu, route = s.route
+    const isDark = s.theme === 'dark'
+    const page = route.page
+
+    // header
+    const navDefs = []
+    navDefs.push({ label: 'Home', active: page === 'home', go: () => this.nav({ page: 'home' }) })
+    if (role === 'requester') navDefs.push({ label: 'My requests', active: page === 'list' && route.scope === 'mine', go: () => this.goList('mine') })
+    if (role === 'maintainer') navDefs.push({ label: 'My queue', active: page === 'list' && route.scope === 'queue', go: () => this.goList('queue') })
+    if (role === 'maintainer' || role === 'admin') navDefs.push({ label: 'Unassigned', active: page === 'list' && route.scope === 'unassigned', go: () => this.goList('unassigned') })
+    if (role === 'admin') navDefs.push({ label: 'All requests', active: page === 'list' && route.scope === 'all', go: () => this.goList('all') })
+    if (role === 'requester' || role === 'admin') navDefs.push({ label: 'New request', active: page === 'editor' && !route.id, go: () => this.openEditor(null) })
+    const navItems = navDefs.map((n) => ({ ...n, color: n.active ? 'var(--accent)' : 'var(--text-muted)', borderColor: n.active ? 'var(--accent)' : 'transparent' }))
+
+    const relevantScope = role === 'admin' ? 'all' : role === 'maintainer' ? 'queue' : 'mine'
+    const notifCount = this.scopeRequests(relevantScope).filter((r) => this.isOverdue(r)).length
+
+    // home
+    const open = (rs) => rs.filter((r) => r.status === 'Waiting to be started' || r.status === 'In process')
+    const overdue = (rs) => rs.filter((r) => this.isOverdue(r))
+    const mkCard = (label, value, go, red) => ({ label, value, go, valueColor: red && value > 0 ? 'var(--danger)' : 'var(--text-heading)' })
+    const sections = []
+    if (role === 'requester') {
+      const mine = this.scopeRequests('mine')
+      sections.push({ title: 'As a Requester', cards: [
+        mkCard('My requests', mine.length, () => this.goList('mine')),
+        mkCard('Drafts', mine.filter((r) => r.status === 'Draft').length, () => this.goList('mine', { status: 'Draft' })),
+        mkCard('Open', open(mine).length, () => this.goList('mine')),
+        mkCard('Overdue', overdue(mine).length, () => this.goList('mine', { overdue: true }), true),
+      ] })
+    }
+    if (role === 'maintainer') {
+      const queue = this.scopeRequests('queue'), un = this.scopeRequests('unassigned')
+      sections.push({ title: 'As a Data Maintainer', cards: [
+        mkCard('Assigned to me', open(queue).length, () => this.goList('queue')),
+        mkCard('Overdue', overdue(queue).length, () => this.goList('queue', { overdue: true }), true),
+        mkCard('Unassigned pool', un.length, () => this.goList('unassigned')),
+        mkCard('Completed', queue.filter((r) => r.status === 'Completed').length, () => this.goList('queue', { status: 'Completed' })),
+      ] })
+    }
+    if (role === 'admin') {
+      const all = this.scopeRequests('all'), un = this.scopeRequests('unassigned')
+      sections.push({ title: 'As an Admin', cards: [
+        mkCard('All requests', all.length, () => this.goList('all')),
+        mkCard('Overdue', overdue(all).length, () => this.goList('all', { overdue: true }), true),
+        mkCard('Unassigned pool', un.length, () => this.goList('unassigned')),
+        mkCard('Completed', all.filter((r) => r.status === 'Completed').length, () => this.goList('all', { status: 'Completed' })),
+      ] })
+    }
+    const roleNames = { requester: 'Requester', maintainer: 'Data Maintainer', admin: 'Admin' }
+
+    // list
+    let list = {}
+    if (page === 'list') {
+      const scope = route.scope || this.scopesFor()[0]
+      let rows = this.scopeRequests(scope).slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      if (route.status) rows = rows.filter((r) => r.status === route.status)
+      if (route.overdue) rows = rows.filter((r) => this.isOverdue(r))
+      if (s.search.trim()) {
+        const q = s.search.trim().toLowerCase()
+        rows = rows.filter((r) => [r.ref, this.summarize(r.lines), (this.user(r.requesterId) || {}).name, r.assigneeId ? (this.user(r.assigneeId) || {}).name : ''].join(' ').toLowerCase().includes(q))
+      }
+      const showClaim = scope === 'unassigned' && role === 'maintainer'
+      const scopes = this.scopesFor()
+      list = {
+        title: this.scopeTitle(scope),
+        showScopes: scopes.length > 1,
+        scopeTabs: scopes.map((sc) => ({ label: this.scopeTitle(sc), go: () => this.goList(sc), bg: sc === scope ? 'var(--surface-card)' : 'transparent', color: sc === scope ? 'var(--text-heading)' : 'var(--text-muted)', shadow: sc === scope ? 'var(--shadow-card)' : 'none' })),
+        search: s.search, setSearch: (e) => this.setState({ search: e.target.value }),
+        statusFilter: route.status,
+        setStatus: (e) => this.setState({ route: { ...route, status: e.target.value } }),
+        statusOptions: ['Draft', 'Waiting to be started', 'In process', 'Completed', 'Rejected'],
+        overdueOnly: route.overdue,
+        toggleOverdue: (e) => this.setState({ route: { ...route, overdue: e.target.checked } }),
+        empty: rows.length === 0, hasRows: rows.length > 0,
+        claimColWidth: showClaim ? '96px' : '12px',
+        rows: rows.map((r) => {
+          const [sc, sb] = this.statusStyle(r.status)
+          const sla = this.slaBadge(r)
+          return {
+            ref: r.ref, open: (e) => { e.preventDefault(); this.nav({ page: 'detail', id: r.id }) },
+            status: r.status, statusColor: sc, statusBg: sb,
+            summary: this.summarize(r.lines),
+            requester: (this.user(r.requesterId) || {}).name,
+            assignee: r.assigneeId ? (this.user(r.assigneeId) || {}).name : 'Unassigned',
+            assigneeColor: r.assigneeId ? 'var(--text-body)' : 'var(--text-muted)',
+            due: this.fmtD(r.dueDate),
+            hasSla: !!sla, sla: sla ? sla.text : '', slaColor: sla ? sla.color : '', slaBg: sla ? sla.bg : '', slaBorder: sla ? sla.border : 'transparent',
+            showClaim, claim: () => { this.mutateReq(r.id, { assigneeId: cu.id }); this.addAudit(r.id, 'changed the assignee', ` (${cu.name})`); this.showToast(`${r.ref} claimed — it is now in your queue.`) },
+          }
+        }),
+      }
+    }
+
+    // detail
+    let det = {}
+    if (page === 'detail') {
+      const req = s.data.requests.find((r) => r.id === route.id)
+      if (req) {
+        const [sc, sb] = this.statusStyle(req.status)
+        const sla = this.slaBadge(req)
+        const isAdmin = role === 'admin', owner = req.requesterId === cu.id
+        const actions = []
+        const btn = (label, kind, onClick, opts) => actions.push({
+          label, onClick: onClick || (() => {}),
+          disabled: !!(opts && opts.disabled), title: (opts && opts.title) || '',
+          cursor: opts && opts.disabled ? 'not-allowed' : 'pointer', opacity: opts && opts.disabled ? '.5' : '1',
+          bg: kind === 'primary' ? 'var(--accent)' : kind === 'danger' ? 'var(--danger)' : 'var(--surface-card)',
+          color: kind === 'primary' || kind === 'danger' ? '#fff' : 'var(--accent)',
+          border: kind === 'secondary' ? 'var(--border-input)' : 'transparent',
+        })
+        btn('Export to Excel', 'secondary', null, { disabled: true, title: 'Excel export arrives in Phase 3' })
+        if (req.status === 'Draft' && (owner || isAdmin)) btn('Edit draft', 'secondary', () => this.openEditor(req.id))
+        if (role === 'maintainer' && !req.assigneeId && req.status === 'Waiting to be started') btn('Claim this request', 'primary', () => { this.mutateReq(req.id, { assigneeId: cu.id }); this.addAudit(req.id, 'changed the assignee', ` (${cu.name})`) })
+        if (isAdmin && (req.status === 'Waiting to be started' || req.status === 'In process')) btn(req.assigneeId ? 'Reassign' : 'Assign', 'secondary', () => this.setState({ assignOpen: true, assigneeId: req.assigneeId || 'u2' }))
+        for (const t of this.transitionsFor(req)) btn(t[2], t[2] === 'Reject' ? 'danger' : 'primary', () => this.doTransition(req, t[1], t[2]))
+        const groups = this.CONFIGS.map((cfg) => {
+          const glines = req.lines.filter((l) => l.objectType === cfg.objectType)
+          if (!glines.length) return null
+          const present = new Set(glines.map((l) => l.action))
+          const fields = cfg.fields.filter((f) => [...present].some((a) => this.applies(f, a)) && glines.some((l) => (l.fieldData[f.key] || '').trim() !== ''))
+          const w = (label, vals) => Math.min(300, Math.max(90, Math.max(label.length * 7.2, ...vals.map((v) => (v || '').length * 7.2)) + 24)) + 'px'
+          const headers = [
+            { label: '#', width: '44px' },
+            { label: 'Action', width: w('Action', glines.map((l) => cfg.actionLabels[l.action])) },
+            ...fields.map((f) => ({ label: f.label, width: w(f.label, glines.map((l) => this.fmtVal(l.fieldData[f.key] || ''))) })),
+          ]
+          const rows = glines.map((l, i) => ({ cells: [
+            { text: String(i + 1), width: '44px', color: 'var(--text-muted)', bg: 'transparent', weight: '400' },
+            { text: cfg.actionLabels[l.action], width: headers[1].width, color: 'var(--text-heading)', bg: 'transparent', weight: '600' },
+            ...fields.map((f, fi) => {
+              const na = !this.applies(f, l.action)
+              return { text: na ? 'n/a' : this.fmtVal(l.fieldData[f.key] || '') || '—', width: headers[fi + 2].width, color: na ? 'var(--text-muted)' : 'var(--text-body)', bg: na ? 'var(--surface-page)' : 'transparent', weight: '400' }
+            }),
+          ] }))
+          const minWidth = headers.reduce((acc, h) => acc + parseFloat(h.width), 0) + 'px'
+          return { label: cfg.label, headers, rows, minWidth }
+        }).filter(Boolean)
+        const comments = s.data.comments[req.id] || []
+        det = {
+          ref: req.ref, status: req.status, statusColor: sc, statusBg: sb,
+          hasSla: !!sla, sla: sla ? sla.text : '', slaColor: sla ? sla.color : '', slaBg: sla ? sla.bg : '', slaBorder: sla ? sla.border : 'transparent',
+          summary: this.summarize(req.lines), actions,
+          rejected: req.status === 'Rejected' && !!req.rejectReason, rejectReason: req.rejectReason || '',
+          meta: [
+            { label: 'Requester', value: (this.user(req.requesterId) || {}).name, color: 'var(--text-body)' },
+            { label: 'Assignee', value: req.assigneeId ? (this.user(req.assigneeId) || {}).name : 'Unassigned', color: req.assigneeId ? 'var(--text-body)' : 'var(--text-muted)' },
+            { label: 'Created', value: this.fmtD(req.createdAt), color: 'var(--text-body)' },
+            { label: 'Submitted', value: this.fmtD(req.submittedAt), color: 'var(--text-body)' },
+            { label: 'Due date', value: this.fmtD(req.dueDate), color: 'var(--text-body)' },
+            { label: 'SLA days', value: req.slaDays != null ? String(req.slaDays) : '—', color: 'var(--text-body)' },
+          ],
+          noLines: groups.length === 0, groups,
+          noComments: comments.length === 0,
+          comments: comments.map((c) => ({ author: c.author, at: this.fmtDT(c.at), body: c.body })),
+          commentDraft: s.commentDraft,
+          setCommentDraft: (e) => this.setState({ commentDraft: e.target.value }),
+          addComment: () => {
+            const body = s.commentDraft.trim()
+            if (!body) return
+            this.setState((st) => ({ commentDraft: '', data: { ...st.data, comments: { ...st.data.comments, [req.id]: [...(st.data.comments[req.id] || []), { author: cu.name, at: new Date().toISOString(), body }] } } }))
+            this.addAudit(req.id, 'added a comment')
+          },
+          audit: (s.data.audit[req.id] || []).map((a) => ({ actor: a[0], what: a[1], extra: a[2], at: this.fmtDT(a[3]) })),
+        }
+      } else {
+        det = { ref: 'Request not found', status: '', statusColor: 'var(--text-muted)', statusBg: 'transparent', hasSla: false, summary: '', actions: [], rejected: false, meta: [], noLines: true, groups: [], noComments: true, comments: [], audit: [], commentDraft: '', setCommentDraft: () => {}, addComment: () => {} }
+      }
+    }
+
+    // editor
+    let ed = {}
+    if (page === 'editor') {
+      const st = s.ed
+      const cfg = this.cfg(st.tab)
+      const tabLines = st.lines.filter((l) => l.objectType === st.tab)
+      const selCount = tabLines.filter((l) => st.selected[l.key]).length
+      const present = new Set(tabLines.map((l) => l.action))
+      const visFields = cfg.fields.filter((f) => !f.derived && [...present].some((a) => this.applies(f, a)))
+      const w = (f) => {
+        const vals = tabLines.map((l) => l.fieldData[f.key] || '')
+        return Math.min(300, Math.max(110, Math.max(f.label.length * 7.4, ...vals.map((v) => v.length * 7.2)) + 30)) + 'px'
+      }
+      const actionW = Math.max(...cfg.actions.map((a) => cfg.actionLabels[a].length * 7.4 + 46), 100) + 'px'
+      const cols = [
+        { label: 'Action', width: actionW, star: '' },
+        ...visFields.map((f) => ({ label: f.label, width: w(f), star: f.requiredFor && f.requiredFor.length ? ' *' : '' })),
+      ]
+      const rows = tabLines.map((l, i) => {
+        const cells = [{
+          isSelect: true, isText: false, isNa: false, width: actionW, value: l.action, bg: 'transparent', error: '', ph: '',
+          options: cfg.actions.map((a) => ({ v: a, label: cfg.actionLabels[a] })),
+          onChange: (e) => this.edSetAction(l.key, e.target.value),
+        }]
+        for (const f of visFields) {
+          const idx = visFields.indexOf(f)
+          const width = cols[idx + 1].width
+          if (!this.applies(f, l.action)) { cells.push({ isNa: true, isText: false, isSelect: false, width, value: '', bg: 'transparent', error: '', ph: '', options: [], onChange: () => {} }); continue }
+          const val = l.fieldData[f.key] || ''
+          const err = st.cellErr[l.key + ':' + f.key]
+          const needed = this.required(f, l.action) && !val.trim()
+          const bg = err ? 'var(--danger-tint)' : needed ? 'var(--warning-tint)' : 'transparent'
+          if (f.input === 'choice') {
+            cells.push({ isSelect: true, isText: false, isNa: false, width, value: val, bg, error: err || '', ph: '',
+              options: [{ v: '', label: '—' }, ...(f.options || []).map((o) => ({ v: o, label: o }))],
+              onChange: (e) => this.edUpdLine(l.key, f.key, e.target.value) })
+          } else {
+            cells.push({ isText: true, isSelect: false, isNa: false, width, value: f.input === 'date' ? this.fmtVal(val) : val, bg, error: err || '',
+              ph: f.input === 'date' ? 'MM/DD/YYYY' : f.label,
+              onChange: (e) => {
+                let v = e.target.value
+                if (f.input === 'date') { const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(v); if (m) v = `${m[3]}-${m[1].padStart(2, '0')}-${m[2].padStart(2, '0')}` }
+                this.edUpdLine(l.key, f.key, v)
+              } })
+          }
+        }
+        return { no: i + 1, checked: !!st.selected[l.key], toggle: () => this.setState((x) => ({ ed: { ...x.ed, selected: { ...x.ed.selected, [l.key]: !x.ed.selected[l.key] } } })), cells }
+      })
+      const minWidth = 76 + cols.reduce((a, c) => a + parseFloat(c.width), 0) + 'px'
+      const isEmptyLine = (l) => !Object.values(l.fieldData).some((v) => (v || '').trim())
+      ed = {
+        title: st.reqId ? `Edit draft ${(s.data.requests.find((r) => r.id === st.reqId) || {}).ref}` : 'New request',
+        cancel: () => this.nav(st.reqId ? { page: 'detail', id: st.reqId } : { page: 'home' }),
+        saveDraft: () => {
+          if (!st.lines.length) { this.showToast('Add at least one line before saving.'); return }
+          this.edPersist(st.lines, false)
+        },
+        submit: () => {
+          const kept = st.lines.filter((l) => !isEmptyLine(l))
+          if (!kept.length) { this.showToast('Add at least one line before submitting.'); return }
+          const v = this.edValidate(kept)
+          if (v.errors.length) {
+            const firstBad = kept.find((l) => Object.keys(v.cellErr).some((k) => k.startsWith(l.key + ':')))
+            this.edPatch({ lines: kept, errors: v.errors, cellErr: v.cellErr, tab: firstBad ? firstBad.objectType : st.tab })
+            return
+          }
+          this.edPersist(kept, true)
+        },
+        hasErrors: st.errors.length > 0, errors: st.errors,
+        tabs: this.CONFIGS.map((c) => {
+          const count = st.lines.filter((l) => l.objectType === c.objectType).length
+          const hasError = st.lines.some((l) => l.objectType === c.objectType && Object.keys(st.cellErr).some((k) => k.startsWith(l.key + ':')))
+          const active = c.objectType === st.tab
+          return { label: c.label, select: () => this.edPatch({ tab: c.objectType }), hasCount: count > 0, count,
+            hasError, color: active ? 'var(--accent)' : 'var(--text-muted)', borderColor: active ? 'var(--accent)' : 'transparent',
+            countBg: active ? 'var(--surface-tint)' : 'var(--surface-page)', countColor: active ? 'var(--accent)' : 'var(--text-muted)' }
+        }),
+        addLine: () => this.edPatch({ lines: [...st.lines, { key: Math.random().toString(36).slice(2), objectType: st.tab, action: 'ADD', fieldData: {} }] }),
+        duplicate: () => {
+          if (!selCount) return
+          const next = []
+          for (const l of st.lines) { next.push(l); if (l.objectType === st.tab && st.selected[l.key]) next.push({ ...l, key: Math.random().toString(36).slice(2), fieldData: { ...l.fieldData } }) }
+          this.edPatch({ lines: next, selected: {} })
+        },
+        deleteSel: () => {
+          if (!selCount) return
+          this.edPatch({ lines: st.lines.filter((l) => !(l.objectType === st.tab && st.selected[l.key])), selected: {} })
+        },
+        duplicateLabel: selCount ? `Duplicate (${selCount})` : 'Duplicate',
+        deleteLabel: selCount ? `Delete (${selCount})` : 'Delete',
+        selColor: selCount ? 'var(--accent)' : 'var(--text-muted)',
+        template: () => this.showToast('Excel template download is stubbed in this prototype.'),
+        import: () => this.showToast('Excel import is stubbed in this prototype.'),
+        noLines: tabLines.length === 0, hasLines: tabLines.length > 0,
+        allSelected: tabLines.length > 0 && selCount === tabLines.length,
+        toggleAll: () => {
+          const all = tabLines.length > 0 && selCount === tabLines.length
+          const selected = { ...st.selected }
+          for (const l of tabLines) selected[l.key] = !all
+          this.edPatch({ selected })
+        },
+        cols, rows, minWidth,
+      }
+    }
+
+    // dialogs
+    const req = page === 'detail' ? s.data.requests.find((r) => r.id === route.id) : null
+    const dlg = {
+      rejectReason: s.rejectReason,
+      setRejectReason: (e) => this.setState({ rejectReason: e.target.value }),
+      rejectOpacity: s.rejectReason.trim() ? '1' : '.5',
+      confirmReject: () => {
+        if (!s.rejectReason.trim() || !req) return
+        this.mutateReq(req.id, { status: 'Rejected', rejectReason: s.rejectReason.trim() })
+        this.addAudit(req.id, 'rejected the request')
+        this.setState({ rejectOpen: false })
+      },
+      assigneeId: s.assigneeId,
+      setAssignee: (e) => this.setState({ assigneeId: e.target.value }),
+      maintainers: s.data.users.filter((u) => u.role === 'maintainer').map((u) => ({ id: u.id, name: u.name })),
+      confirmAssign: () => {
+        if (!s.assigneeId || !req) return
+        this.mutateReq(req.id, { assigneeId: s.assigneeId })
+        this.addAudit(req.id, 'changed the assignee', ` (${(this.user(s.assigneeId) || {}).name})`)
+        this.setState({ assignOpen: false })
+      },
+    }
+
+    const roleUsers = { requester: 'Khalid Al-Zahrani', maintainer: 'Sara Al-Otaibi', admin: 'Abdullah F. Alharbi' }
+    return {
+      isLight: !isDark, isDark,
+      themeTitle: isDark ? 'Switch to light mode' : 'Switch to dark mode',
+      toggleTheme: () => {
+        const theme = isDark ? 'light' : 'dark'
+        document.body.classList.toggle('dark', theme === 'dark')
+        this.setState({ theme })
+      },
+      goHome: () => this.nav({ page: 'home' }),
+      goNew: () => this.openEditor(null),
+      navItems,
+      hasNotifications: notifCount > 0, notificationCount: notifCount,
+      userName: cu.name, userInitials: cu.name.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase(),
+      mainMaxWidth: page === 'home' ? 'var(--container-max)' : 'none',
+      pageHome: page === 'home', pageList: page === 'list', pageDetail: page === 'detail', pageEditor: page === 'editor',
+      home: {
+        welcome: `Welcome, ${cu.name}`, roleLabel: roleNames[role],
+        showCta: role === 'requester' || role === 'admin',
+        sections, showAdminNote: role === 'admin',
+      },
+      list, det, ed, dlg,
+      rejectOpen: s.rejectOpen, assignOpen: s.assignOpen,
+      closeDialogs: () => this.setState({ rejectOpen: false, assignOpen: false }),
+      stop: (e) => e.stopPropagation(),
+      showRoleSwitcher: this.props.showDemoTools !== false,
+      roleOptions: ['requester', 'maintainer', 'admin'].map((r) => ({
+        label: roleNames[r], userName: roleUsers[r],
+        select: () => this.setState({ role: r, route: { page: 'home' }, search: '', rejectOpen: false, assignOpen: false }),
+        bg: r === role ? 'var(--accent)' : 'var(--surface-page)',
+        color: r === role ? '#fff' : 'var(--text-body)',
+        subColor: r === role ? 'rgba(255,255,255,.75)' : 'var(--text-muted)',
+      })),
+      resetDemo: () => { this.setState({ data: this.seed(), route: { page: 'home' } }); this.showToast('Demo data restored.') },
+      hasToast: !!s.toast, toast: s.toast,
+    }
+  }
+}
+</script>
+</body>
+</html>

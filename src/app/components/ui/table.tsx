@@ -24,14 +24,14 @@ export function TableBody(props: HTMLAttributes<HTMLTableSectionElement>) {
 }
 
 export function TableRow({ className, ...props }: HTMLAttributes<HTMLTableRowElement>) {
-  return <tr className={cn('transition-colors hover:bg-muted/50', className)} {...props} />
+  return <tr className={cn('transition-colors hover:bg-accent/50', className)} {...props} />
 }
 
 export function TableHead({ className, ...props }: ThHTMLAttributes<HTMLTableCellElement>) {
   return (
     <th
       className={cn(
-        'h-7 border-b border-r bg-muted px-1 text-left align-middle text-xs font-semibold uppercase tracking-wide text-muted-foreground',
+        'h-7 border-b border-r bg-muted px-1 text-left align-middle text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground',
         className,
       )}
       {...props}

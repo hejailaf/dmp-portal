@@ -2,7 +2,9 @@
 
 Display name: **PM DataCare** — "Caring for your SAP PM master data"
 (renamed 2026-07-18 from "Data Maintenance Portal"). Internal `DMP_*`
-lists, `DMP *` groups, and `REQ-` refs keep the DMP naming.
+lists and `DMP *` groups keep the DMP naming. Request refs are
+`DCR-YYNNNN` (brand restyle of 2026-07-18; legacy `REQ-` refs are ignored
+by `nextRef`).
 
 Full specification: `docs/DMP_FROM_SCRATCH_PROMPT.md`. Approved plan &
 decisions: this file. Read both before changing anything.
@@ -71,7 +73,7 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
   Add 5 / Change 3 / Delete 2 (config in `src/domain/sla.ts`). Overdue is
   DERIVED at render time — no scheduled jobs anywhere. Resubmit after reopen
   recomputes SLA and clears the old reject reason.
-- Refs `REQ-YYYY-NNNN` are computed client-side from existing refs (create
+- Refs `DCR-YYNNNN` are computed client-side from existing refs (create
   time); tiny collision window accepted + re-check/retry planned for the SP
   provider (plan decision).
 - Line SAP fields live in one JSON blob (`FieldData`) validated by Zod —
@@ -155,6 +157,15 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
   has NOT yet deployed the newest UI build (dark mode etc.) nor run the §5
   closeout: full vertical slice + the colleague-with-only-Requester test
   (also proves non-owner page rendering).
+- **Brand restyle applied** (2026-07-18, from
+  `design_handoff_pm_datacare_restyle/README.md` §1–5): PM DataCare tokens
+  in styles.css (light + dark, plus plain hex brand vars for badges/cells),
+  badge dots, 64px header with logo PNGs (`src/assets/`, swap on `.dark`),
+  underline nav, DCR-YYNNNN refs, card/dialog/input polish, favicon
+  (`public/assets/logo-icon.png` — inside assets/ so package-sp's
+  dist/assets copy picks it up). Bell + overdue pill deliberately deferred
+  to Phase 3. Deploy note: upload now ALSO includes three PNGs in
+  `assets/`: logo-header, logo-header-dark, logo-icon.
 - **Recent UI additions** (all pushed): dark mode (system-following +
   header toggle, `color-scheme` for native scrollbars/pickers), footer
   credit (Abdullah F. Alharbi / abdullah.hejaili@aramco.com), editor hint

@@ -2,17 +2,19 @@ import type { HTMLAttributes } from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
+// PM DataCare badge: 24px pill, 12.5px/600, 7px status dot in the text color.
+// Tint/text pairs come from the brand vars in styles.css (they flip in .dark).
 const badgeVariants = cva(
-  'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap',
+  'inline-flex h-6 items-center gap-[7px] whitespace-nowrap rounded-full px-[11px] text-[12.5px] font-semibold',
   {
     variants: {
       variant: {
-        neutral: 'bg-secondary text-secondary-foreground',
-        blue: 'bg-accent text-accent-foreground',
-        green: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
-        amber: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
-        red: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300',
-        outline: 'border border-input text-foreground',
+        neutral: 'bg-secondary text-[#607D8B] dark:text-[#8AA5B8]',
+        blue: 'bg-[var(--sky-tint)] text-primary',
+        green: 'bg-[var(--teal-tint)] text-[var(--teal)]',
+        amber: 'bg-[var(--warning-tint)] text-[var(--warning)]',
+        red: 'bg-[var(--danger-tint)] text-destructive',
+        outline: 'border border-[var(--border-strong)] bg-transparent text-muted-foreground',
       },
     },
     defaultVariants: { variant: 'neutral' },
@@ -21,6 +23,11 @@ const badgeVariants = cva(
 
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement>, VariantProps<typeof badgeVariants> {}
 
-export function Badge({ className, variant, ...props }: BadgeProps) {
-  return <span className={cn(badgeVariants({ variant }), className)} {...props} />
+export function Badge({ className, variant, children, ...props }: BadgeProps) {
+  return (
+    <span className={cn(badgeVariants({ variant }), className)} {...props}>
+      {variant !== 'outline' && <span aria-hidden className="h-[7px] w-[7px] flex-none rounded-full bg-current" />}
+      {children}
+    </span>
+  )
 }

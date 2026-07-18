@@ -28,7 +28,7 @@ export interface User {
 
 export interface Request {
   id: string
-  ref: string // REQ-YYYY-NNNN
+  ref: string // DCR-YYNNNN
   status: RequestStatus
   requesterId: string
   requesterName: string
