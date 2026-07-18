@@ -163,10 +163,15 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
   badge dots, 64px header with logo PNGs (`src/assets/`, swap on `.dark`),
   underline nav, DCR-YYNNNN refs, card/dialog/input polish, favicon
   (`public/assets/logo-icon.png` — inside assets/ so package-sp's
-  dist/assets copy picks it up). Header logos + home-page horizontal lockup (dark variant DERIVED from
-  the light SVG via the designer's fill map — navy→#E6F2FA, blue→#5B9BE8,
-  teal→#2BC0AE, slate→#84A0B5) are SVGs inlined as data URIs into
-  index.js (`assetsInlineLimit: 65536` in vite.config.ts) — no logo files in uploads; the header PNGs uploaded
+  dist/assets copy picks it up). Header logos + home-page lockup are SVGs inlined as data URIs into
+  index.js (`assetsInlineLimit: 65536` in vite.config.ts). Home page
+  shows the icon mark in the header (works both themes — emblem colors
+  don't change) + a TEXT-ONLY horizontal lockup banner; other pages show
+  the full logo-header pair. Derived assets (scripted edits of the
+  designer's files, in src/assets/): dark variants via the fill map
+  navy→#E6F2FA, blue→#5B9BE8, teal→#2BC0AE, slate→#84A0B5; text-only
+  lockups = nested emblem `<svg>` removed + viewBox cropped to
+  "229 70 547 126" — no logo files in uploads; the header PNGs uploaded
   earlier to SharePoint are harmless orphans. Bell + overdue pill
   deliberately deferred to Phase 3. Deploy note: usual three files plus
   `assets/logo-icon.png` (favicon) if not already uploaded.

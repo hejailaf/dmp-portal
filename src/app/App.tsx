@@ -1,6 +1,7 @@
 import { getProvider } from '@/data'
 import logoLight from '@/assets/logo-header.svg'
 import logoDark from '@/assets/logo-header-dark.svg'
+import logoIcon from '@/assets/logo-icon.svg'
 import { useAsync } from './hooks'
 import { href, useRoute } from './router'
 import { S } from './strings'
@@ -38,9 +39,16 @@ function Shell({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-30 border-b bg-card">
         <div className="flex h-16 items-stretch gap-4 px-4">
           <a href={href('/')} className="flex items-center">
-            {/* light/dark lockups swap on the `.dark` html class */}
-            <img src={logoLight} alt={S.appName} className="h-[34px] w-auto dark:hidden" />
-            <img src={logoDark} alt={S.appName} className="hidden h-[34px] w-auto dark:block" />
+            {/* home shows the icon mark (the banner carries the wordmark);
+                other pages get the full lockup, swapping on `.dark` */}
+            {route.path === '/' ? (
+              <img src={logoIcon} alt={S.appName} className="h-10 w-auto" />
+            ) : (
+              <>
+                <img src={logoLight} alt={S.appName} className="h-[34px] w-auto dark:hidden" />
+                <img src={logoDark} alt={S.appName} className="hidden h-[34px] w-auto dark:block" />
+              </>
+            )}
           </a>
           <nav className="flex items-stretch gap-1">
             <NavLink to="/" label={S.nav.home} active={route.path === '/'} />
