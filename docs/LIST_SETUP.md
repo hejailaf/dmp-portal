@@ -76,7 +76,16 @@ NewValue (Multi plain).
 
 ### 4a. Two custom permission levels (create once)
 
-Gear → Site settings → **Site permissions** → ribbon **Permission Levels**:
+Gear → Site settings → **Site permissions**.
+
+> **If the ribbon has no "Permission Levels" button** and a yellow banner
+> says *"This Web site inherits permissions from its parent"*: click
+> **Stop Inheriting Permissions** (Inheritance group) → confirm. The page
+> reloads with unique permissions and the **Permission Levels** button
+> appears. (Required on an inheriting subsite; on a top-level team site the
+> button is already present.) Direct URL once unique: `…/_layouts/15/role.aspx`.
+
+Then click ribbon **Permission Levels**:
 
 1. **`DMP Contribute (no delete)`** — click **Contribute** → Copy Permission
    Level → name it as above → UNTICK **Delete Items** and **Delete
