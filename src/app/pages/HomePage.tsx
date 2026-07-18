@@ -62,8 +62,8 @@ export function HomePage() {
       {/* text-only brand lockup (the header shows the icon on this page);
           variants swap on the `.dark` html class */}
       <div className="flex justify-center pb-2 pt-4">
-        <img src={lockupLight} alt={S.appName} className="h-12 w-auto dark:hidden" />
-        <img src={lockupDark} alt={S.appName} className="hidden h-12 w-auto dark:block" />
+        <img src={lockupLight} alt={S.appName} className="h-16 w-auto dark:hidden" />
+        <img src={lockupDark} alt={S.appName} className="hidden h-16 w-auto dark:block" />
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
