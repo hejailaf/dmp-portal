@@ -90,10 +90,13 @@ Then click ribbon **Permission Levels**:
 1. **`DMP Contribute (no delete)`** — click **Contribute** → Copy Permission
    Level → name it as above → UNTICK **Delete Items** and **Delete
    Versions** → Create. (Requesters can add/edit but never delete.)
-2. **`DMP Add only`** — Add a Permission Level → name it → tick ONLY these
-   four (all under **List Permissions**): **Add Items, View Items, Open
-   Items, View Application Pages** → Create. Leave Edit/Delete unticked —
-   that is what makes the audit log tamper-proof (everyone adds rows as
+2. **`DMP Add only`** — Add a Permission Level → name it → tick these:
+   under **List Permissions** — **Add Items, View Items, Open Items, View
+   Application Pages**; under **Site Permissions** — **Use Remote
+   Interfaces** (REQUIRED — the app's REST writes to the audit log fail for
+   non-admins without it). SharePoint auto-adds **View Pages** and **Open**
+   as dependencies — leave those ticked. Leave Edit/Delete unticked — that
+   is what makes the audit log tamper-proof (everyone adds rows as
    themselves; nobody edits or deletes history).
 
 ### 4b. Per-list assignments
