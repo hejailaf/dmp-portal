@@ -5,6 +5,7 @@ import { href, useRoute } from './router'
 import { S } from './strings'
 import { UserContext, useCurrentUser } from './user-context'
 import { RoleSwitcher } from './components/RoleSwitcher'
+import { ThemeToggle } from './components/ThemeToggle'
 import { Button } from './components/ui/button'
 import { HomePage } from './pages/HomePage'
 import { ProvisionPage } from './pages/ProvisionPage'
@@ -68,13 +69,22 @@ function Shell({ children }: { children: React.ReactNode }) {
               <NavLink to="/admin/provision" label={S.nav.setup} active={route.path === '/admin/provision'} />
             )}
           </nav>
-          <div className="ml-auto text-sm text-muted-foreground">{user.displayName}</div>
+          <div className="ml-auto flex items-center gap-2">
+            <ThemeToggle />
+            <span className="text-sm text-muted-foreground">{user.displayName}</span>
+          </div>
         </div>
       </header>
       {/* home stays centered/capped; data pages use the full monitor width */}
       <main className={`mx-auto px-4 py-6 ${route.path === '/' ? 'max-w-7xl' : 'max-w-none'}`}>
         {children}
       </main>
+      <footer className="border-t px-4 py-4 text-center text-xs text-muted-foreground">
+        {S.footer.developedBy} · {S.footer.supportLabel}:{' '}
+        <a href={`mailto:${S.footer.supportEmail}`} className="text-primary hover:underline">
+          {S.footer.supportEmail}
+        </a>
+      </footer>
     </div>
   )
 }

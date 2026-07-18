@@ -4,9 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Data Maintenance Portal</title>
-    <script type="module" crossorigin src="./assets/index.js?v=202607181222"></script>
-    <link rel="modulepreload" crossorigin href="./assets/client.js?v=202607181222">
-    <link rel="stylesheet" crossorigin href="./assets/index.css?v=202607181222">
+    <script>
+      // apply the saved (or OS-preferred) theme before first paint — no flash
+      try {
+        var t = localStorage.getItem('dmp-theme')
+        if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches))
+          document.documentElement.classList.add('dark')
+      } catch (e) {}
+    </script>
+    <script type="module" crossorigin src="./assets/index.js?v=202607181247"></script>
+    <link rel="modulepreload" crossorigin href="./assets/client.js?v=202607181247">
+    <link rel="stylesheet" crossorigin href="./assets/index.css?v=202607181247">
   </head>
   <body>
     <div id="root"></div>

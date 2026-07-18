@@ -175,6 +175,17 @@ export const S = {
     adminOnly: 'Site setup is only available to DMP Admins.',
   },
 
+  theme: {
+    toDark: 'Switch to dark mode',
+    toLight: 'Switch to light mode',
+  },
+
+  footer: {
+    developedBy: 'Developed by Abdullah F. Alharbi',
+    supportLabel: 'Support',
+    supportEmail: 'abdullah.hejaili@aramco.com',
+  },
+
   roleSwitcher: {
     title: 'Demo role switcher',
     subtitle: 'Mock data only — not part of the real app',
