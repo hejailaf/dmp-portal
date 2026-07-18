@@ -558,7 +558,13 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">{title}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{S.editor.requiredHint}</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {/* the word carries the exact same highlight as the mandatory cells */}
+            <span className="rounded bg-amber-50 px-1.5 py-0.5 text-foreground ring-1 ring-inset ring-amber-200 dark:bg-amber-950/40 dark:ring-amber-800">
+              {S.editor.requiredHintHighlighted}
+            </span>
+            {S.editor.requiredHintRest}
+          </p>
         </div>
         <div className="flex gap-2">
           <Button variant="ghost" onClick={() => window.history.back()}>
