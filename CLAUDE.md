@@ -164,10 +164,10 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
   underline nav, DCR-YYNNNN refs, card/dialog/input polish, favicon
   (`public/assets/logo-icon.png` — inside assets/ so package-sp's
   dist/assets copy picks it up). Header logos + home-page lockup are SVGs inlined as data URIs into
-  index.js (`assetsInlineLimit: 65536` in vite.config.ts). Home page
-  shows the icon mark in the header (works both themes — emblem colors
-  don't change) + a TEXT-ONLY horizontal lockup banner; other pages show
-  the full logo-header pair. Derived assets (scripted edits of the
+  index.js (`assetsInlineLimit: 65536` in vite.config.ts). All pages (incl.
+  home) show the full logo-header pair in the header; the home banner is
+  a TEXT-ONLY horizontal lockup (user decision after trying an icon-only
+  home header). Derived assets (scripted edits of the
   designer's files, in src/assets/): dark variants via the fill map
   navy→#E6F2FA, blue→#5B9BE8, teal→#2BC0AE, slate→#84A0B5; text-only
   lockups = nested emblem `<svg>` removed + viewBox cropped to
