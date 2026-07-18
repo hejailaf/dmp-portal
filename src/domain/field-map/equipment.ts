@@ -14,7 +14,9 @@ export const equipmentConfig: ObjectTypeConfig = {
     {
       key: 'equipmentNumber',
       label: 'Equipment Number',
-      input: 'text',
+      // numeric like the PM tab's Equipment Number and BOM's Equipment —
+      // was 'text' by omission, letting letters through (bug, 2026-07-19)
+      input: 'number',
       appliesTo: ['CHANGE', 'DELETE'],
       requiredFor: ['CHANGE', 'DELETE'],
       identifier: true,

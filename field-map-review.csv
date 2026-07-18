@@ -1,5 +1,5 @@
 ﻿"Tab","Field Key (do not edit)","Label","Input Type","Choice Options (| separated)","Shown For Actions","Required For Actions","Max Length","Keep? (YES/NO)","Notes"
-"Equipment","equipmentNumber","Equipment Number","text","","Change | Delete","Change | Delete","18","YES",""
+"Equipment","equipmentNumber","Equipment Number","number","","Change | Delete","Change | Delete","18","YES",""
 "Equipment","description","Description","text","","Add | Change","Add","40","YES",""
 "Equipment","equipmentType","Equipment Type","choice","(58 types — edit docs/tech_object_types.xlsx)","Add | Change","Add","","YES",""
 "Equipment","equipmentCategory","Equipment Category","text","","Add | Change","","1","YES","Auto-filled from Equipment Type table — hidden in editor/template"
