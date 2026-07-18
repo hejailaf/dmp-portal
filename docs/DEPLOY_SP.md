@@ -1,11 +1,12 @@
 # DEPLOY_SP.md — Browser-only deployment guide
 
 Everything here happens in the browser at work. No terminal, no admin center
-beyond site-owner rights on the **dmp subsite** (created 2026-07-19, unique
-permissions — Phase 0 verified everything renders and writes there).
+beyond site-owner rights on the **PM DataCare subsite** (created 2026-07-19,
+unique permissions — Phase 0 verified everything renders and writes there;
+URL segment renamed `dmp` → `pmdc` on 2026-07-19).
 
 > **Note on location:** the site currently lives under a personal site
-> collection (`/personal/<you>/dmp`). That's fine for the pilot but tied to
+> collection (`/personal/<you>/pmdc`). That's fine for the pilot but tied to
 > your account — before broad rollout, ask IT for a small team site and
 > repeat this first-time setup there (re-upload + re-provision; moving
 > existing list data across is a separate exercise).

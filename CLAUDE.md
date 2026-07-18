@@ -111,7 +111,9 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
   create, MERGE — no `__metadata`/verbose needed); digest timeout **1800s**;
   claims-style login names (`i:0#.w|domain\user`); site is a **subsite with
   unique permissions under the user's personal site collection**
-  (`/personal/<user>/dmp`) — works, but flagged to migrate to a team site
+  (`/personal/<user>/pmdc` — user renamed the subsite URL segment from
+  `dmp` on 2026-07-19; display names now "PM DataCare" / "PM DataCare
+  App") — works, but flagged to migrate to a team site
   before broad rollout (personal site collections are tied to the owner's
   account). Rendering blocked on the parent site was permission-level, not
   farm-level; untested: person-field writes (avoided — see Phase 2 notes).
@@ -146,7 +148,7 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
   opens `stackblitz.com/github/hejailaf/dmp-portal` (anonymous; GitHub
   itself is blocked there), downloads the project zip, uploads `dist-sp/`
   files into the `DMPApp` library on the SharePoint subsite
-  (`/personal/<user>/dmp`, unique permissions). Typical update = replace
+  (`/personal/<user>/pmdc`, unique permissions). Typical update = replace
   `index.aspx` + `assets/index.js` + `assets/index.css`. ALWAYS
   `npm run package:sp` + commit + push after user-visible changes.
 - **On-site state**: Phase 2 verified (provision green, self-test incl.
