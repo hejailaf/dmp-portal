@@ -118,6 +118,13 @@ Also grant all three groups **Read** on the **subsite itself** (Site
 settings → Site permissions → Grant Permissions) so members can reach the
 library at all.
 
+> At the SITE level, Requesters and Maintainers only need **Read** — all
+> their write access comes from the list-level grants above. The "Set Up
+> Groups" step maps Members → **Edit**, which over-grants Maintainers on
+> still-inheriting content (e.g. the app files in DMPApp). Optional but
+> cleaner: change DMP Maintainers' site-level level from Edit to Read.
+> Admins stay Full Control.
+
 **"Limited Access" is normal** — SharePoint auto-adds it (greyed out, can't
 be assigned/removed by hand) so members can traverse to content they're
 allowed to use; it grants nothing on its own. Just confirm each group ALSO
