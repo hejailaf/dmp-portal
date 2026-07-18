@@ -1,6 +1,8 @@
 import { getProvider } from '@/data'
 import { isOverdue } from '@/domain/sla'
 import type { Request } from '@/domain/types'
+import lockupLight from '@/assets/logo-horizontal.svg'
+import lockupDark from '@/assets/logo-horizontal-dark.svg'
 import { Plus } from 'lucide-react'
 import { useAsync } from '../hooks'
 import { href } from '../router'
@@ -57,6 +59,11 @@ export function HomePage() {
 
   return (
     <div className="space-y-6">
+      {/* brand lockup with tagline; variants swap on the `.dark` html class */}
+      <div className="flex justify-center pb-2 pt-4">
+        <img src={lockupLight} alt={S.appName} className="h-20 w-auto dark:hidden" />
+        <img src={lockupDark} alt={S.appName} className="hidden h-20 w-auto dark:block" />
+      </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">{S.home.welcome(user.displayName)}</h1>

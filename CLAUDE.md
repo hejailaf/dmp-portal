@@ -163,9 +163,10 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
   badge dots, 64px header with logo PNGs (`src/assets/`, swap on `.dark`),
   underline nav, DCR-YYNNNN refs, card/dialog/input polish, favicon
   (`public/assets/logo-icon.png` — inside assets/ so package-sp's
-  dist/assets copy picks it up). Header logos are SVGs from the handoff
-  bundle, inlined as data URIs into index.js (`assetsInlineLimit: 16384`
-  in vite.config.ts) — no logo files in uploads; the header PNGs uploaded
+  dist/assets copy picks it up). Header logos + home-page horizontal lockup (dark variant DERIVED from
+  the light SVG via the designer's fill map — navy→#E6F2FA, blue→#5B9BE8,
+  teal→#2BC0AE, slate→#84A0B5) are SVGs inlined as data URIs into
+  index.js (`assetsInlineLimit: 65536` in vite.config.ts) — no logo files in uploads; the header PNGs uploaded
   earlier to SharePoint are harmless orphans. Bell + overdue pill
   deliberately deferred to Phase 3. Deploy note: usual three files plus
   `assets/logo-icon.png` (favicon) if not already uploaded.
