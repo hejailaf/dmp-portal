@@ -1,4 +1,8 @@
-# Data Maintenance Portal (DMP)
+# PM DataCare
+
+*Caring for your SAP PM master data* — internally codenamed **DMP**
+(Data Maintenance Portal; the `DMP_*` lists, groups, and refs keep that
+name).
 
 An internal portal where end users submit **change requests for SAP Plant
 Maintenance (PM) master data**, and the Data Maintenance team executes those

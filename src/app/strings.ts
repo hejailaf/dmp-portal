@@ -2,8 +2,8 @@
 // externalized so Arabic/RTL can be added later without touching components).
 
 export const S = {
-  appName: 'Data Maintenance Portal',
-  appTagline: 'SAP PM master data change requests',
+  appName: 'PM DataCare',
+  appTagline: 'Caring for your SAP PM master data',
 
   nav: {
     home: 'Home',

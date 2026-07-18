@@ -1,4 +1,8 @@
-# CLAUDE.md — Data Maintenance Portal (DMP)
+# CLAUDE.md — PM DataCare (internally DMP)
+
+Display name: **PM DataCare** — "Caring for your SAP PM master data"
+(renamed 2026-07-18 from "Data Maintenance Portal"). Internal `DMP_*`
+lists, `DMP *` groups, and `REQ-` refs keep the DMP naming.
 
 Full specification: `docs/DMP_FROM_SCRATCH_PROMPT.md`. Approved plan &
 decisions: this file. Read both before changing anything.
@@ -156,12 +160,9 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
   credit (Abdullah F. Alharbi / abdullah.hejaili@aramco.com), editor hint
   "Highlighted" chip styled like mandatory cells, per-role home section
   headings + Requester tiles hidden for staff.
-- **Pending decisions**: (1) site RENAME — shortlist offered: DataBridge
-  (recommended, tagline "Your bridge to SAP PM master data"), PM Data Desk,
-  keep DMP; user has not chosen yet. Rename = `strings.ts` appName (+
-  tagline) + `index.html` title + README/docs mentions; internal DMP_* list
-  and group names stay. (2) Migration off the personal site collection to a
-  team site before broad rollout.
+- **Pending decisions**: (1) ~~site rename~~ DECIDED 2026-07-18: user chose
+  **PM DataCare** (applied). (2) Migration off the personal site collection
+  to a team site before broad rollout.
 - **Next build phase**: Phase 3 — attachments UI, Excel EXPORT on detail
   page (reuse excel-lines machinery), admin dashboard, polish.
 
