@@ -128,7 +128,7 @@ export function spMerge(path: string, body: unknown): Promise<any> {
   return writeRequest(path, body, { 'X-HTTP-Method': 'MERGE', 'IF-MATCH': '*' })
 }
 
-/** VERIFY-ON-SITE: DELETE was not exercised by Phase 0 — the provision screen's connection self-test covers it. */
+/** Verified on-site 2026-07-19 via the provision screen's connection self-test ("DELETE OK"). */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function spDelete(path: string): Promise<any> {
   return writeRequest(path, undefined, { 'X-HTTP-Method': 'DELETE', 'IF-MATCH': '*' })

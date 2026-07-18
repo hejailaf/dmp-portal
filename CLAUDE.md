@@ -112,7 +112,11 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
 - ✅ Phase 1 built: domain + tests, MockProvider + seed, full UI (home,
   lists, AIW editor, detail with comments/audit). Verified end-to-end in the
   browser across all three roles.
-- ✅ Phase 2 BUILT (2026-07-19), awaiting on-site verification:
+- ✅ Phase 2 VERIFIED ON-SITE (2026-07-19): provisioning all green ("All
+  fields present" ×4), all three groups exist, connection self-test passed
+  incl. DELETE, app runs in production mode with correct role mapping.
+  Remaining Phase-2 closeout: §4 permissions + §5 checks (in progress).
+  Built as:
   `src/data/sp/` (client with digest cache + 403-retry, schema, pure
   mapping w/ tests, full provider — nometadata writes only), Site setup
   screen (`#/admin/provision`: provision/verify lists, groups check,
