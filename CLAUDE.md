@@ -79,10 +79,16 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
 - Line SAP fields live in one JSON blob (`FieldData`) validated by Zod —
   never mirrored as SharePoint columns.
 - Drafts are visible only to their requester and admins.
-- Request `description` (business reason/reference, ≤500 chars): free
-  while drafting, REQUIRED at submit (user decision 2026-07-19) —
-  enforced in `validateForSubmit(lines, description)` and thus in BOTH
-  providers + the editor. Stored as the `Description` note column.
+- Request `description` (business reason/reference): a ONE-LINE title,
+  ≤60 chars (`DESCRIPTION_MAX_LENGTH`), free while drafting, REQUIRED at
+  submit — enforced in `validateForSubmit(lines, description)` and thus
+  in BOTH providers + the editor (single-line Input with counter).
+  Stored as the `Description` note column. Detail header (variant A,
+  2026-07-19): description is the truncating headline, ref is a small
+  label, meta is a divided strip (Requester/Assignee/Submitted/Changed/
+  [Completed]/Due) — "Changed" is DERIVED from the newest audit entry
+  (every action writes one), not a stored column; no Created, no SLA
+  suffix (the SLA badge covers it).
 - Comments: ≤1000 chars (`validateCommentBody`, both providers + composer
   maxLength). Attachments (user decisions 2026-07-19): allow-list
   pdf/images/msg+eml/Office, ≤100 MB, ≤6 per request

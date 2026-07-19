@@ -95,12 +95,14 @@ function DetailLineGrid({ config, lines }: { config: ObjectTypeConfig; lines: Re
   return <DataGrid table={table} />
 }
 
-/** One row of the header meta sidebar: label left, value right. */
-function MetaRow({ label, strong, children }: { label: string; strong?: boolean; children: React.ReactNode }) {
+/** One cell of the header meta strip: tiny uppercase label over the value. */
+function StripItem({ label, strong, children }: { label: string; strong?: boolean; children: React.ReactNode }) {
   return (
-    <div className="flex justify-between gap-3 py-[3px]">
-      <span className="flex-none text-muted-foreground">{label}</span>
-      <span className={`min-w-0 break-words text-right ${strong ? 'font-medium' : ''}`}>{children}</span>
+    <div className="min-w-[100px] flex-1 px-4 py-1 first:pl-0 last:pr-0">
+      <div className="text-[10px] uppercase tracking-[0.06em] text-muted-foreground">{label}</div>
+      <div className={`mt-0.5 text-[13px] ${strong ? 'font-medium text-secondary-foreground' : ''}`}>
+        {children}
+      </div>
     </div>
   )
 }
@@ -315,6 +317,10 @@ export function RequestDetailPage({ id }: { id: string }) {
     lines: visibleLines.filter((l) => l.objectType === cfg.objectType),
   })).filter((g) => g.lines.length > 0)
 
+  // "Changed" = the newest audit entry: every update (edits, status moves,
+  // comments, attachments) writes one, so it tracks true last activity
+  const lastChangedAt = audit.data?.length ? audit.data[audit.data.length - 1].at : req.createdAt
+
   return (
     <div className="space-y-4">
       {/* actions — top right; the document header card follows below */}
@@ -392,50 +398,48 @@ export function RequestDetailPage({ id }: { id: string }) {
         </p>
       )}
 
-      {/* document header: description as headline, ref as small label,
-          meta in a quiet sidebar (approved Option C rev, 2026-07-19) */}
+      {/* document header, variant A (2026-07-19): title headline with the
+          ref as a small label, line-summary chip on the right, meta as a
+          divided strip beneath — fills any screen width with no dead middle */}
       <Card>
-        <CardContent className="flex flex-wrap gap-5 p-5">
-          <div className="min-w-[240px] flex-[2]">
-            <div className="flex flex-wrap items-center gap-3">
-              {req.description ? (
-                <span className="text-sm font-medium tracking-wide text-muted-foreground">{req.ref}</span>
-              ) : (
-                <h1 className="text-2xl font-semibold text-secondary-foreground">{req.ref}</h1>
-              )}
-              <StatusBadge status={req.status} />
-              <SlaBadge request={req} />
-            </div>
-            {req.description && (
-              <h1 className="mt-2 max-w-3xl break-words text-[21px] font-semibold leading-snug text-secondary-foreground">
-                {req.description}
-              </h1>
+        <CardContent className="p-5">
+          <div className="flex flex-wrap items-center gap-3">
+            {req.description ? (
+              <span className="text-sm font-medium tracking-wide text-muted-foreground">{req.ref}</span>
+            ) : (
+              <h1 className="text-2xl font-semibold text-secondary-foreground">{req.ref}</h1>
             )}
+            <StatusBadge status={req.status} />
+            <SlaBadge request={req} />
             {req.lineSummary && (
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                <span className="inline-flex items-center rounded-md bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">
-                  {req.lineSummary}
-                </span>
-              </div>
+              <span className="ml-auto inline-flex items-center rounded-md bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">
+                {req.lineSummary}
+              </span>
             )}
           </div>
-          <div className="min-w-[200px] flex-1 self-start rounded-lg bg-muted/60 px-3.5 py-2.5 text-[12.5px]">
-            <MetaRow label={S.detail.requester} strong>
+          {req.description && (
+            <h1
+              className="mt-1.5 truncate text-[21px] font-semibold leading-snug text-secondary-foreground"
+              title={req.description}
+            >
+              {req.description}
+            </h1>
+          )}
+          <div className="mt-3 flex flex-wrap divide-x divide-border border-t pt-2.5">
+            <StripItem label={S.detail.requester} strong>
               {req.requesterName}
-            </MetaRow>
-            <MetaRow label={S.detail.assignee}>
+            </StripItem>
+            <StripItem label={S.detail.assignee}>
               {req.assigneeName ?? <span className="text-muted-foreground">{S.detail.unassigned}</span>}
-            </MetaRow>
-            <MetaRow label={S.detail.createdAt}>{formatDate(req.createdAt)}</MetaRow>
-            <MetaRow label={S.detail.submittedAt}>{formatDate(req.submittedAt)}</MetaRow>
-            {req.completedAt && <MetaRow label={S.detail.completedAt}>{formatDate(req.completedAt)}</MetaRow>}
-            <div className="mt-1 flex justify-between gap-3 border-t pt-1.5">
-              <span className="flex-none text-muted-foreground">{S.detail.dueDate}</span>
-              <span className="min-w-0 text-right font-medium text-secondary-foreground">
-                {formatDate(req.dueDate)}
-                {req.slaDays != null && ` · ${req.slaDays} ${S.detail.slaDays}`}
-              </span>
-            </div>
+            </StripItem>
+            <StripItem label={S.detail.submittedAt}>{formatDate(req.submittedAt)}</StripItem>
+            <StripItem label={S.detail.changedAt}>{formatDate(lastChangedAt)}</StripItem>
+            {req.completedAt && (
+              <StripItem label={S.detail.completedAt}>{formatDate(req.completedAt)}</StripItem>
+            )}
+            <StripItem label={S.detail.dueDate} strong>
+              {formatDate(req.dueDate)}
+            </StripItem>
           </div>
         </CardContent>
       </Card>

@@ -15,7 +15,13 @@ import {
   OBJECT_TYPE_CONFIGS,
   type ObjectTypeConfig,
 } from '@/domain/field-map'
-import { isEmptyLine, validateForSubmit, validateLine, type LineValidation } from '@/domain/schemas'
+import {
+  DESCRIPTION_MAX_LENGTH,
+  isEmptyLine,
+  validateForSubmit,
+  validateLine,
+  type LineValidation,
+} from '@/domain/schemas'
 import { makeTemplate, parseTemplate } from '@/lib/excel-lines'
 import { LINE_ACTIONS, type LineAction, type ObjectType, type RequestLine } from '@/domain/types'
 import { cn, formatDateValue } from '@/lib/utils'
@@ -24,7 +30,7 @@ import { navigate } from '../router'
 import { S } from '../strings'
 import { Button } from '../components/ui/button'
 import { Card, CardContent } from '../components/ui/card'
-import { Input, Select, Textarea } from '../components/ui/input'
+import { Input, Select } from '../components/ui/input'
 import { autoColumnSize, DataGrid, measureCellWidth, usePersistedColumnSizing } from '../components/DataGrid'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 
@@ -598,19 +604,23 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
           ))}
         </div>
       )}
-      {/* request description — free while drafting, required to submit */}
+      {/* request description — a one-line title; free while drafting, required to submit */}
       <div>
         <label className="mb-1 block text-sm font-medium" htmlFor="req-description">
           {S.editor.descriptionLabel}
         </label>
-        <Textarea
-          id="req-description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder={S.editor.descriptionPlaceholder}
-          maxLength={500}
-          className="max-h-40 min-h-[56px] max-w-3xl"
-        />
+        <div className="flex max-w-3xl items-center gap-2">
+          <Input
+            id="req-description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder={S.editor.descriptionPlaceholder}
+            maxLength={DESCRIPTION_MAX_LENGTH}
+          />
+          <span className="flex-none text-xs tabular-nums text-muted-foreground">
+            {description.length}/{DESCRIPTION_MAX_LENGTH}
+          </span>
+        </div>
       </div>
 
       <input

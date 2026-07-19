@@ -121,6 +121,7 @@ export const S = {
     assignee: 'Assignee',
     unassigned: 'Unassigned',
     createdAt: 'Created',
+    changedAt: 'Changed',
     submittedAt: 'Submitted',
     dueDate: 'Due date',
     slaDays: 'SLA days',

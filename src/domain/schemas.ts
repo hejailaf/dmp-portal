@@ -101,6 +101,7 @@ export interface SubmitValidation {
 }
 
 export const DESCRIPTION_REQUIRED = 'Add a request description (business reason or reference) before submitting'
+export const DESCRIPTION_MAX_LENGTH = 60 // single-line title (user decision 2026-07-19)
 
 export const COMMENT_MAX_LENGTH = 1000
 
@@ -147,6 +148,8 @@ export function validateCommentBody(body: string): string | undefined {
 export function validateForSubmit(lines: RequestLine[], description: string): SubmitValidation {
   const requestErrors: string[] = []
   if (!description.trim()) requestErrors.push(DESCRIPTION_REQUIRED)
+  else if (description.trim().length > DESCRIPTION_MAX_LENGTH)
+    requestErrors.push(`The request description is limited to ${DESCRIPTION_MAX_LENGTH} characters`)
   if (lines.length === 0) requestErrors.push('Add at least one line item before submitting')
   const lineResults: Record<string, LineValidation> = {}
   let allOk = true

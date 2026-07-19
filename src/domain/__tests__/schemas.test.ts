@@ -264,6 +264,14 @@ describe('validateForSubmit', () => {
     expect(validateForSubmit([good], 'MOC-1234 pump replacement').ok).toBe(true)
   })
 
+  it('rejects a description over the single-line limit', () => {
+    const good = line({ id: 'A', objectType: 'EQUIPMENT', action: 'ADD', fieldData: validEquipmentAdd })
+    expect(validateForSubmit([good], 'a'.repeat(60)).ok).toBe(true)
+    const v = validateForSubmit([good], 'a'.repeat(61))
+    expect(v.ok).toBe(false)
+    expect(v.requestErrors.join(' ')).toMatch(/60 characters/i)
+  })
+
   it('reports per-line results keyed by line id', () => {
     const good = line({ id: 'A', objectType: 'EQUIPMENT', action: 'ADD', fieldData: validEquipmentAdd })
     const bad = line({ id: 'B', objectType: 'EQUIPMENT', action: 'DELETE', fieldData: {} })
