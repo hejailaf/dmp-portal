@@ -102,6 +102,16 @@ export interface SubmitValidation {
 
 export const DESCRIPTION_REQUIRED = 'Add a request description (business reason or reference) before submitting'
 
+export const COMMENT_MAX_LENGTH = 1000
+
+/** Returns an error message, or undefined when the comment body is acceptable. */
+export function validateCommentBody(body: string): string | undefined {
+  if (!body.trim()) return 'Comment cannot be empty'
+  if (body.trim().length > COMMENT_MAX_LENGTH)
+    return `Comments are limited to ${COMMENT_MAX_LENGTH.toLocaleString('en-US')} characters`
+  return undefined
+}
+
 /** Everything that must hold before a draft may be submitted. */
 export function validateForSubmit(lines: RequestLine[], description: string): SubmitValidation {
   const requestErrors: string[] = []

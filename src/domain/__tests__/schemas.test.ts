@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isEmptyLine, validateForSubmit, validateLine } from '../schemas'
+import { COMMENT_MAX_LENGTH, isEmptyLine, validateCommentBody, validateForSubmit, validateLine } from '../schemas'
 import { actionsFor, FIELD_MAP, OBJECT_TYPE_CONFIGS } from '../field-map'
 import { LINE_ACTIONS, type RequestLine } from '../types'
 
@@ -201,6 +201,18 @@ describe('isEmptyLine (pruned at submit instead of validated)', () => {
   it('false as soon as any field has a real value', () => {
     expect(isEmptyLine({ fieldData: { description: 'Pump' } })).toBe(false)
     expect(isEmptyLine({ fieldData: { equipmentType: 'Pump' } })).toBe(false)
+  })
+})
+
+describe('validateCommentBody', () => {
+  it('rejects empty and whitespace-only bodies', () => {
+    expect(validateCommentBody('')).toMatch(/empty/i)
+    expect(validateCommentBody('   ')).toMatch(/empty/i)
+  })
+
+  it('accepts up to the limit and rejects beyond it', () => {
+    expect(validateCommentBody('a'.repeat(COMMENT_MAX_LENGTH))).toBeUndefined()
+    expect(validateCommentBody('a'.repeat(COMMENT_MAX_LENGTH + 1))).toMatch(/limited to/i)
   })
 })
 

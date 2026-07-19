@@ -12,7 +12,7 @@ import { assertTransition, TransitionError, type TransitionCtx } from '@/domain/
 import { computeDueDate, slaDaysFor } from '@/domain/sla'
 import { nextRef } from '@/domain/ref'
 import { applyDerivations, summarizeLines } from '@/domain/field-map'
-import { isEmptyLine, validateForSubmit } from '@/domain/schemas'
+import { isEmptyLine, validateCommentBody, validateForSubmit } from '@/domain/schemas'
 import type {
   DataProvider,
   DraftLineInput,
@@ -266,7 +266,8 @@ export class SharePointProvider implements DataProvider {
   }
 
   async addComment(id: string, body: string): Promise<Comment> {
-    if (!body.trim()) throw new Error('Comment cannot be empty')
+    const bodyError = validateCommentBody(body)
+    if (bodyError) throw new Error(bodyError)
     const [me, ref] = await Promise.all([this.me(), this.refOf(id)])
     const created = await spPost(`${listPath(COMMENTS)}/items`, {
       Title: ref,

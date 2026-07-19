@@ -4,7 +4,7 @@ import { FileSpreadsheet, Paperclip, Pencil } from 'lucide-react'
 import { getProvider } from '@/data'
 import { makeRequestExport } from '@/lib/excel-export'
 import { appliesTo, OBJECT_TYPE_CONFIGS, type ObjectTypeConfig } from '@/domain/field-map'
-import { isEmptyLine } from '@/domain/schemas'
+import { COMMENT_MAX_LENGTH, isEmptyLine } from '@/domain/schemas'
 import { availableTransitions, type TransitionCtx } from '@/domain/status'
 import type { Request, RequestLine } from '@/domain/types'
 import { formatDate, formatDateTime, formatDateValue } from '@/lib/utils'
@@ -251,7 +251,7 @@ export function RequestDetailPage({ id }: { id: string }) {
             <StatusBadge status={req.status} />
             <SlaBadge request={req} />
           </div>
-          {req.description && <p className="mt-1 max-w-3xl text-sm">{req.description}</p>}
+          {req.description && <p className="mt-1 max-w-3xl break-words text-sm">{req.description}</p>}
           <p className="mt-1 text-sm text-muted-foreground">{req.lineSummary}</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -358,8 +358,9 @@ export function RequestDetailPage({ id }: { id: string }) {
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        {/* comments */}
-        <Card>
+        {/* comments — min-w-0 on both grid children: grid items default to
+            min-width:auto, letting unbreakable text stretch the column */}
+        <Card className="min-w-0">
           <CardHeader>
             <CardTitle>{S.detail.commentsTitle}</CardTitle>
           </CardHeader>
@@ -375,7 +376,7 @@ export function RequestDetailPage({ id }: { id: string }) {
                     <span className="text-sm font-medium">{c.authorName}</span>
                     <span className="text-xs text-muted-foreground">{formatDateTime(c.createdAt)}</span>
                   </div>
-                  <p className="mt-1 whitespace-pre-wrap text-sm">{c.body}</p>
+                  <p className="mt-1 whitespace-pre-wrap break-words text-sm">{c.body}</p>
                 </div>
               ))}
             </div>
@@ -384,6 +385,7 @@ export function RequestDetailPage({ id }: { id: string }) {
                 value={commentBody}
                 onChange={(e) => setCommentBody(e.target.value)}
                 placeholder={S.detail.commentPlaceholder}
+                maxLength={COMMENT_MAX_LENGTH}
               />
               <Button
                 size="sm"
@@ -402,7 +404,7 @@ export function RequestDetailPage({ id }: { id: string }) {
           </CardContent>
         </Card>
 
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           <AttachmentsCard requestId={req.id} onAdded={() => audit.reload()} />
 
           {/* audit timeline */}
@@ -416,7 +418,7 @@ export function RequestDetailPage({ id }: { id: string }) {
               <div className="max-h-80 overflow-y-auto pl-1.5">
                 <ol className="space-y-0 border-l pl-4">
                 {audit.data?.map((a) => (
-                  <li key={a.id} className="relative pb-3 text-sm">
+                  <li key={a.id} className="relative break-words pb-3 text-sm">
                     <span className="absolute -left-[21.5px] top-1.5 h-2.5 w-2.5 rounded-full border-2 border-card bg-primary" />
                     <span className="font-medium">{a.actorName}</span> {S.audit[a.event]}
                     {a.oldValue && a.newValue && (
