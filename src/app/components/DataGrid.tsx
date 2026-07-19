@@ -91,7 +91,9 @@ export function DataGrid<T>({
         {table.getHeaderGroups().map((hg) => (
           <TableRow key={hg.id} className="hover:bg-transparent">
             {hg.headers.map((h) => (
-              <TableHead key={h.id} style={{ width: h.getSize() }} className="relative">
+              // eslint-disable-next-line -- no className here: `relative` would
+              // tw-merge away the base `sticky`, which already anchors the handle
+              <TableHead key={h.id} style={{ width: h.getSize() }}>
                 <div className="truncate pr-1">
                   {h.isPlaceholder ? null : flexRender(h.column.columnDef.header, h.getContext())}
                 </div>
@@ -108,7 +110,7 @@ export function DataGrid<T>({
                 )}
               </TableHead>
             ))}
-            <th aria-hidden className="border-b bg-muted p-0" />
+            <th aria-hidden className="sticky top-0 z-10 border-b bg-muted p-0" />
           </TableRow>
         ))}
       </TableHeader>

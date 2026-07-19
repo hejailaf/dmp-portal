@@ -364,16 +364,21 @@ export function RequestDetailPage({ id }: { id: string }) {
             <CardTitle>{S.detail.commentsTitle}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {comments.data?.length === 0 && <p className="text-sm text-muted-foreground">{S.detail.noComments}</p>}
-            {comments.data?.map((c) => (
-              <div key={c.id} className="rounded-md bg-muted/60 p-3">
-                <div className="flex items-baseline justify-between gap-2">
-                  <span className="text-sm font-medium">{c.authorName}</span>
-                  <span className="text-xs text-muted-foreground">{formatDateTime(c.createdAt)}</span>
+            {/* the list scrolls; the composer below stays visible */}
+            <div className="max-h-80 space-y-3 overflow-y-auto">
+              {comments.data?.length === 0 && (
+                <p className="text-sm text-muted-foreground">{S.detail.noComments}</p>
+              )}
+              {comments.data?.map((c) => (
+                <div key={c.id} className="rounded-md bg-muted/60 p-3">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <span className="text-sm font-medium">{c.authorName}</span>
+                    <span className="text-xs text-muted-foreground">{formatDateTime(c.createdAt)}</span>
+                  </div>
+                  <p className="mt-1 whitespace-pre-wrap text-sm">{c.body}</p>
                 </div>
-                <p className="mt-1 whitespace-pre-wrap text-sm">{c.body}</p>
-              </div>
-            ))}
+              ))}
+            </div>
             <div className="space-y-2 pt-1">
               <Textarea
                 value={commentBody}
@@ -404,7 +409,10 @@ export function RequestDetailPage({ id }: { id: string }) {
               <CardTitle>{S.detail.auditTitle}</CardTitle>
             </CardHeader>
             <CardContent>
-              <ol className="space-y-0 border-l pl-4">
+              {/* scroll on a wrapper with left padding so the timeline dots
+                  (which overhang the ol) aren't clipped */}
+              <div className="max-h-80 overflow-y-auto pl-1.5">
+                <ol className="space-y-0 border-l pl-4">
                 {audit.data?.map((a) => (
                   <li key={a.id} className="relative pb-3 text-sm">
                     <span className="absolute -left-[21.5px] top-1.5 h-2.5 w-2.5 rounded-full border-2 border-card bg-primary" />
@@ -420,6 +428,7 @@ export function RequestDetailPage({ id }: { id: string }) {
                   </li>
                 ))}
               </ol>
+              </div>
             </CardContent>
           </Card>
 

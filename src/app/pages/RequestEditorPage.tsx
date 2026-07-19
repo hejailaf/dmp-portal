@@ -360,7 +360,7 @@ function EditorGrid({
       {tabErrors.length > 0 && (
         <div className="rounded-md border border-destructive/40 bg-[var(--danger-tint)] p-3 text-sm text-destructive">
           <div className="font-medium">{S.editor.lineErrorsTitle}</div>
-          <ul className="mt-1 list-inside list-disc">
+          <ul className="mt-1 max-h-40 list-inside list-disc overflow-y-auto">
             {tabErrors.map((e, i) => (
               <li key={i}>{e}</li>
             ))}
@@ -609,7 +609,7 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
           onChange={(e) => setDescription(e.target.value)}
           placeholder={S.editor.descriptionPlaceholder}
           maxLength={500}
-          className="min-h-[56px] max-w-3xl"
+          className="max-h-40 min-h-[56px] max-w-3xl"
         />
       </div>
 

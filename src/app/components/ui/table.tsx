@@ -6,7 +6,9 @@ import { cn } from '@/lib/utils'
 // the table draws the outer top+left frame — visually identical gridlines.
 export function Table({ className, ...props }: HTMLAttributes<HTMLTableElement>) {
   return (
-    <div className="relative w-full overflow-x-auto">
+    // tall tables scroll inside the page instead of growing it; the header
+    // row stays pinned (sticky works here because of border-separate)
+    <div className="relative max-h-[60vh] w-full overflow-x-auto overflow-y-auto">
       <table
         className={cn('w-full border-separate border-spacing-0 border-l border-t caption-bottom text-sm', className)}
         {...props}
@@ -31,7 +33,7 @@ export function TableHead({ className, ...props }: ThHTMLAttributes<HTMLTableCel
   return (
     <th
       className={cn(
-        'h-7 border-b border-r bg-muted px-1 text-left align-middle text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground',
+        'sticky top-0 z-10 h-7 border-b border-r bg-muted px-1 text-left align-middle text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground',
         className,
       )}
       {...props}
