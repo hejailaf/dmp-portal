@@ -11,7 +11,7 @@ import { assertTransition, TransitionError, type TransitionCtx } from '@/domain/
 import { computeDueDate, slaDaysFor } from '@/domain/sla'
 import { nextRef } from '@/domain/ref'
 import { applyDerivations, summarizeLines } from '@/domain/field-map'
-import { isEmptyLine, validateCommentBody, validateForSubmit } from '@/domain/schemas'
+import { isEmptyLine, validateAttachment, validateCommentBody, validateForSubmit } from '@/domain/schemas'
 import type {
   DataProvider,
   DraftLineInput,
@@ -279,6 +279,8 @@ export class MockProvider implements DataProvider {
   async addAttachment(id: string, file: File): Promise<Attachment> {
     await sleep()
     this.mustGet(id)
+    const attError = validateAttachment(file.name, file.size, (this.db.attachments[id] ?? []).length)
+    if (attError) throw new Error(attError)
     // ponytail: dataURL in localStorage, 1 MB cap — fine for demo, SP holds real files
     if (file.size > 1_000_000) throw new Error('Mock attachments are capped at 1 MB')
     const url = await new Promise<string>((resolve, reject) => {

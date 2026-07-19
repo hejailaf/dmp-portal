@@ -1,10 +1,16 @@
 import { useRef, useState } from 'react'
 import { createColumnHelper, getCoreRowModel, useReactTable } from '@tanstack/react-table'
-import { FileSpreadsheet, Paperclip, Pencil } from 'lucide-react'
+import { FileSpreadsheet, Paperclip, Pencil, X } from 'lucide-react'
 import { getProvider } from '@/data'
 import { makeRequestExport } from '@/lib/excel-export'
 import { appliesTo, OBJECT_TYPE_CONFIGS, type ObjectTypeConfig } from '@/domain/field-map'
-import { COMMENT_MAX_LENGTH, isEmptyLine } from '@/domain/schemas'
+import {
+  ATTACHMENT_ACCEPT,
+  ATTACHMENT_MAX_COUNT,
+  COMMENT_MAX_LENGTH,
+  isEmptyLine,
+  validateAttachment,
+} from '@/domain/schemas'
 import { availableTransitions, type TransitionCtx } from '@/domain/status'
 import type { Request, RequestLine } from '@/domain/types'
 import { formatDate, formatDateTime, formatDateValue } from '@/lib/utils'
@@ -102,22 +108,51 @@ function AttachmentsCard({ requestId, onAdded }: { requestId: string; onAdded: (
   const provider = getProvider()
   const attachments = useAsync(() => provider.listAttachments(requestId), [requestId])
   const fileRef = useRef<HTMLInputElement>(null)
+  // staged picks live ONLY in the browser until the user hits Upload — the
+  // single commit point; removing a pending file means it never left the PC
+  const [pending, setPending] = useState<File[]>([])
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string>()
 
-  const upload = async (file: File) => {
+  const uploadedCount = attachments.data?.length ?? 0
+  const totalCount = uploadedCount + pending.length
+  const full = totalCount >= ATTACHMENT_MAX_COUNT
+
+  const stageFiles = (files: FileList) => {
+    setError(undefined)
+    const next = [...pending]
+    for (const file of files) {
+      const err = validateAttachment(file.name, file.size, uploadedCount + next.length)
+      if (err) {
+        setError(err) // show the first problem; valid siblings still stage
+        continue
+      }
+      next.push(file)
+    }
+    setPending(next)
+  }
+
+  const uploadPending = async () => {
     setUploading(true)
     setError(undefined)
+    let queue = [...pending]
     try {
-      await provider.addAttachment(requestId, file)
-      attachments.reload()
+      while (queue.length > 0) {
+        await provider.addAttachment(requestId, queue[0])
+        queue = queue.slice(1)
+        setPending(queue)
+      }
       onAdded()
     } catch (e) {
+      // the failed file (and everything after it) stays pending
       setError(e instanceof Error ? e.message : String(e))
     } finally {
       setUploading(false)
+      attachments.reload()
     }
   }
+
+  const kb = (size: number) => `${Math.max(1, Math.round(size / 1024))} KB`
 
   return (
     <Card>
@@ -127,46 +162,84 @@ function AttachmentsCard({ requestId, onAdded }: { requestId: string; onAdded: (
       <CardContent className="space-y-3">
         {attachments.loading && <p className="text-sm text-muted-foreground">{S.detail.loading}</p>}
         {attachments.error && <p className="text-sm text-destructive">{attachments.error}</p>}
-        {attachments.data &&
-          (attachments.data.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{S.detail.attachmentsEmpty}</p>
-          ) : (
-            <ul className="space-y-1">
-              {attachments.data.map((a) => (
-                <li key={a.fileName} className="flex items-center gap-2 text-sm">
-                  <Paperclip className="h-4 w-4 flex-none text-muted-foreground" />
-                  <a
-                    href={a.url}
-                    download={a.fileName}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="break-all text-primary hover:underline"
-                  >
-                    {a.fileName}
-                  </a>
-                  {a.size != null && (
-                    <span className="flex-none text-xs text-muted-foreground">
-                      {Math.max(1, Math.round(a.size / 1024))} KB
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          ))}
+        {attachments.data && attachments.data.length === 0 && pending.length === 0 && (
+          <p className="text-sm text-muted-foreground">{S.detail.attachmentsEmpty}</p>
+        )}
+        {attachments.data && attachments.data.length > 0 && (
+          <ul className="space-y-1">
+            {attachments.data.map((a) => (
+              <li key={a.fileName} className="flex items-center gap-2 text-sm">
+                <Paperclip className="h-4 w-4 flex-none text-muted-foreground" />
+                <a
+                  href={a.url}
+                  download={a.fileName}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="break-all text-primary hover:underline"
+                >
+                  {a.fileName}
+                </a>
+                {a.size != null && (
+                  <span className="flex-none text-xs text-muted-foreground">{kb(a.size)}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+        {pending.length > 0 && (
+          <ul className="space-y-1">
+            {pending.map((f, i) => (
+              <li key={`${f.name}-${i}`} className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Paperclip className="h-4 w-4 flex-none opacity-60" />
+                <span className="break-all">{f.name}</span>
+                <span className="flex-none text-xs">
+                  {kb(f.size)} · {S.detail.attachmentPendingNote}
+                </span>
+                <button
+                  type="button"
+                  aria-label={S.detail.attachmentRemove}
+                  title={S.detail.attachmentRemove}
+                  className="flex-none rounded p-0.5 text-muted-foreground hover:bg-accent hover:text-destructive"
+                  disabled={uploading}
+                  onClick={() => setPending((p) => p.filter((_, j) => j !== i))}
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
         {error && <p className="text-sm text-destructive">{error}</p>}
         <input
           ref={fileRef}
           type="file"
+          multiple
+          accept={ATTACHMENT_ACCEPT}
           className="hidden"
           onChange={(e) => {
-            const file = e.target.files?.[0]
+            const files = e.target.files
+            if (files && files.length > 0) stageFiles(files)
             e.target.value = '' // allow re-picking the same file
-            if (file) void upload(file)
           }}
         />
-        <Button variant="outline" size="sm" disabled={uploading} onClick={() => fileRef.current?.click()}>
-          <Paperclip className="h-4 w-4" /> {uploading ? S.detail.attachmentUploading : S.detail.attachmentAdd}
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={uploading || full}
+            onClick={() => fileRef.current?.click()}
+          >
+            <Paperclip className="h-4 w-4" /> {S.detail.attachmentAdd}
+          </Button>
+          {pending.length > 0 && (
+            <Button size="sm" disabled={uploading} onClick={() => void uploadPending()}>
+              {uploading ? S.detail.attachmentUploading : S.detail.attachmentUpload(pending.length)}
+            </Button>
+          )}
+          <span className="text-xs text-muted-foreground">
+            {S.detail.attachmentCount(totalCount, ATTACHMENT_MAX_COUNT)}
+          </span>
+        </div>
       </CardContent>
     </Card>
   )

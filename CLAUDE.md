@@ -83,6 +83,13 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
   while drafting, REQUIRED at submit (user decision 2026-07-19) —
   enforced in `validateForSubmit(lines, description)` and thus in BOTH
   providers + the editor. Stored as the `Description` note column.
+- Comments: ≤1000 chars (`validateCommentBody`, both providers + composer
+  maxLength). Attachments (user decisions 2026-07-19): allow-list
+  pdf/images/msg+eml/Office, ≤100 MB, ≤6 per request
+  (`validateAttachment`, both providers + UI); STAGED uploads — picks
+  live in browser state with a remove ✕ until the explicit Upload
+  button commits them (reload discards pending; no server-side delete —
+  would need delete rights requesters intentionally lack).
 - Empty (never-filled) lines are pruned at submit — in the editor AND in
   the provider (`isEmptyLine`); the Phase-2 SharePointProvider must prune
   on submit too. Drafts keep scratch rows.

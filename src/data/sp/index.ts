@@ -12,7 +12,7 @@ import { assertTransition, TransitionError, type TransitionCtx } from '@/domain/
 import { computeDueDate, slaDaysFor } from '@/domain/sla'
 import { nextRef } from '@/domain/ref'
 import { applyDerivations, summarizeLines } from '@/domain/field-map'
-import { isEmptyLine, validateCommentBody, validateForSubmit } from '@/domain/schemas'
+import { isEmptyLine, validateAttachment, validateCommentBody, validateForSubmit } from '@/domain/schemas'
 import type {
   DataProvider,
   DraftLineInput,
@@ -293,6 +293,8 @@ export class SharePointProvider implements DataProvider {
   }
 
   async addAttachment(id: string, file: File): Promise<Attachment> {
+    const attError = validateAttachment(file.name, file.size, (await this.listAttachments(id)).length)
+    if (attError) throw new Error(attError)
     const safe = file.name.replace(/[\\/:*?"<>|#%&~]/g, '-')
     const created = await spPostRaw(
       `${item(REQUESTS, id)}/AttachmentFiles/add(FileName='${encodeURIComponent(safe.replace(/'/g, "''"))}')`,

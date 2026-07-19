@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { COMMENT_MAX_LENGTH, isEmptyLine, validateCommentBody, validateForSubmit, validateLine } from '../schemas'
+import {
+  ATTACHMENT_MAX_COUNT,
+  ATTACHMENT_MAX_SIZE,
+  COMMENT_MAX_LENGTH,
+  isEmptyLine,
+  validateAttachment,
+  validateCommentBody,
+  validateForSubmit,
+  validateLine,
+} from '../schemas'
 import { actionsFor, FIELD_MAP, OBJECT_TYPE_CONFIGS } from '../field-map'
 import { LINE_ACTIONS, type RequestLine } from '../types'
 
@@ -213,6 +222,30 @@ describe('validateCommentBody', () => {
   it('accepts up to the limit and rejects beyond it', () => {
     expect(validateCommentBody('a'.repeat(COMMENT_MAX_LENGTH))).toBeUndefined()
     expect(validateCommentBody('a'.repeat(COMMENT_MAX_LENGTH + 1))).toMatch(/limited to/i)
+  })
+})
+
+describe('validateAttachment', () => {
+  it('accepts allowed types case-insensitively', () => {
+    expect(validateAttachment('scan.PDF', 1000, 0)).toBeUndefined()
+    expect(validateAttachment('photo.jpeg', 1000, 3)).toBeUndefined()
+    expect(validateAttachment('mail.msg', 1000, 5)).toBeUndefined()
+  })
+
+  it('rejects disallowed or missing extensions', () => {
+    expect(validateAttachment('notes.txt', 1000, 0)).toMatch(/not an allowed type/i)
+    expect(validateAttachment('script.exe', 1000, 0)).toMatch(/not an allowed type/i)
+    expect(validateAttachment('README', 1000, 0)).toMatch(/not an allowed type/i)
+  })
+
+  it('enforces the 100 MB size boundary', () => {
+    expect(validateAttachment('big.pdf', ATTACHMENT_MAX_SIZE, 0)).toBeUndefined()
+    expect(validateAttachment('big.pdf', ATTACHMENT_MAX_SIZE + 1, 0)).toMatch(/100 MB/i)
+  })
+
+  it('enforces the per-request count', () => {
+    expect(validateAttachment('a.pdf', 1000, ATTACHMENT_MAX_COUNT - 1)).toBeUndefined()
+    expect(validateAttachment('a.pdf', 1000, ATTACHMENT_MAX_COUNT)).toMatch(/at most 6/i)
   })
 })
 

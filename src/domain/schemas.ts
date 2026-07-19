@@ -104,6 +104,37 @@ export const DESCRIPTION_REQUIRED = 'Add a request description (business reason 
 
 export const COMMENT_MAX_LENGTH = 1000
 
+// Attachment rules (user decision 2026-07-19): PDF, common images, emails,
+// and common Office files; 100 MB; at most 6 per request. The farm's own
+// upload limit and blocked-extension list still apply beneath these.
+export const ATTACHMENT_MAX_SIZE = 100 * 1024 * 1024
+export const ATTACHMENT_MAX_COUNT = 6
+export const ATTACHMENT_ALLOWED_EXTENSIONS = [
+  'pdf',
+  'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp',
+  'msg', 'eml',
+  'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
+] as const
+
+/** `accept` attribute value for file pickers, derived from the allow-list. */
+export const ATTACHMENT_ACCEPT = ATTACHMENT_ALLOWED_EXTENSIONS.map((e) => `.${e}`).join(',')
+
+/** Returns an error message, or undefined when the file may be attached. */
+export function validateAttachment(
+  fileName: string,
+  size: number,
+  existingCount: number,
+): string | undefined {
+  if (existingCount >= ATTACHMENT_MAX_COUNT)
+    return `A request can have at most ${ATTACHMENT_MAX_COUNT} attachments`
+  const ext = fileName.includes('.') ? fileName.split('.').pop()!.toLowerCase() : ''
+  if (!(ATTACHMENT_ALLOWED_EXTENSIONS as readonly string[]).includes(ext))
+    return `"${fileName}" is not an allowed type — attach PDF, image, email, or Office files`
+  if (size > ATTACHMENT_MAX_SIZE)
+    return `"${fileName}" is larger than the 100 MB attachment limit`
+  return undefined
+}
+
 /** Returns an error message, or undefined when the comment body is acceptable. */
 export function validateCommentBody(body: string): string | undefined {
   if (!body.trim()) return 'Comment cannot be empty'
