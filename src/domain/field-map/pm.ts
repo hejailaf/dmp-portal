@@ -8,11 +8,9 @@ import type { ObjectTypeConfig } from './field-def'
 export const pmConfig: ObjectTypeConfig = {
   objectType: 'PM',
   label: 'PM',
-  actionLabels: {
-    ADD: 'Add PM to equipment',
-    CHANGE: 'Change task list',
-    DELETE: 'Delete PM',
-  },
+  // plain Add/Change/Delete to match the other tabs (user decision
+  // 2026-07-19); the identifier scheme in the note above is unchanged
+  actionLabels: { ADD: 'Add', CHANGE: 'Change', DELETE: 'Delete' },
   fields: [
     {
       key: 'equipmentNumber',

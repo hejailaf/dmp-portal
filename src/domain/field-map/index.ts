@@ -59,7 +59,7 @@ export function actionLabel(objectType: ObjectType, action: LineAction): string 
   return FIELD_MAP[objectType].actionLabels[action]
 }
 
-/** Denormalized one-line summary for list views, e.g. "Equipment: 2 Add, 1 Change · PM: 1 Add PM to equipment". */
+/** Denormalized one-line summary for list views, e.g. "Equipment: 2 Add, 1 Change · PM: 1 Add". */
 export function summarizeLines(lines: Pick<RequestLine, 'objectType' | 'action'>[]): string {
   const parts: string[] = []
   for (const cfg of OBJECT_TYPE_CONFIGS) {
