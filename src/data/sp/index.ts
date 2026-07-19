@@ -25,6 +25,7 @@ import { DMP_GROUPS, LIST_SPECS } from './schema'
 import {
   filterByScope,
   mapAudit,
+  hasAddListItems,
   mapComment,
   mapLine,
   mapRequest,
@@ -58,11 +59,23 @@ export class SharePointProvider implements DataProvider {
       const u = await spGet(
         '/_api/web/currentuser?$expand=Groups&$select=Id,Title,Email,LoginName,Groups/Title',
       )
+      const roles = rolesFromGroups(((u.Groups ?? []) as { Title: string }[]).map((g) => g.Title))
+      if (roles.length === 0) {
+        // no direct DMP group membership — the user may still be a requester
+        // via a nested AD security group (invisible to the Groups API, but
+        // the authorization engine expands it). Never fail login over this.
+        try {
+          const perms = await spGet(`${listPath(REQUESTS)}/EffectiveBasePermissions`)
+          if (hasAddListItems(Number(perms.Low))) roles.push('requester')
+        } catch {
+          // permission probe failed — fall back to group-derived roles only
+        }
+      }
       return {
         id: u.LoginName as string,
         displayName: u.Title as string,
         email: (u.Email as string) ?? '',
-        roles: rolesFromGroups(((u.Groups ?? []) as { Title: string }[]).map((g) => g.Title)),
+        roles,
       }
     })())
   }
@@ -427,5 +440,16 @@ export async function runConnectionSelfTest(): Promise<string[]> {
   log.push('Attachment OK')
   await spDelete(item('DMP_Spike', created.Id))
   log.push('DELETE OK — all verbs verified on this site')
+  try {
+    const perms = await spGet(`${listPath(REQUESTS)}/EffectiveBasePermissions`)
+    log.push(
+      `Effective permissions on ${REQUESTS}: High=${perms.High} Low=${perms.Low} — ` +
+        (hasAddListItems(Number(perms.Low))
+          ? 'AddListItems OK (requester-by-permission works for AD-group users)'
+          : 'NO AddListItems — this account could not create requests'),
+    )
+  } catch (e) {
+    log.push(`EffectiveBasePermissions probe failed: ${e instanceof Error ? e.message : String(e)}`)
+  }
   return log
 }

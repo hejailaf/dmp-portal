@@ -143,3 +143,23 @@ settings → "Read access / Create and Edit access" must remain **All items**
   nowhere offered.
 - As a `DMP Maintainers` member: unassigned pool shows the submitted
   request; claim → start → complete works; audit trail fills in.
+
+## §6 Access at scale — AD security groups (added 2026-07-19)
+
+For large requester populations (e.g. a 1,000-member department), do NOT
+add people one by one:
+
+1. Open People and groups → `DMP Requesters` → New → Add Users → enter
+   the **AD security group** name → OK. Permissions flow to every member
+   automatically (SharePoint expands AD groups for authorization).
+2. Role detection for these users works via a permission probe, not group
+   membership: the app treats "may add items to DMP_Requests"
+   (EffectiveBasePermissions, AddListItems bit) as the Requester role.
+   Verified on-site 2026-07-19 (AD member: High=432, Low=1011028583 =
+   contribute, no delete). The probe only runs for users with no direct
+   DMP group membership.
+3. Maintainers and Admins must remain DIRECT members of their groups —
+   the app maps those roles by group name only. They are few; keep it so.
+4. Group settings for all three DMP groups: "Who can view the membership
+   of the group" = **Everyone** — otherwise directly-added members show
+   "No DMP role" (the membership API hides groups the caller cannot view).

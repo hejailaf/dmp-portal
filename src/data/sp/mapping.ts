@@ -105,6 +105,17 @@ export function mapAudit(item: AuthoredItem): AuditEntry {
   }
 }
 
+/**
+ * AddListItems is bit 0x2 of the Low permission mask. Users granted access
+ * through a nested AD security group are invisible to the group-membership
+ * API, but EffectiveBasePermissions sees through AD groups — so "may add
+ * items to DMP_Requests" identifies requesters (verified on-site 2026-07-19:
+ * AD member Low=1011028583 → add/edit, no delete/manage).
+ */
+export function hasAddListItems(low: number): boolean {
+  return (low & 2) === 2
+}
+
 /** Roles from SharePoint group titles — exact names from docs/LIST_SETUP.md. */
 export function rolesFromGroups(groupTitles: string[]): Role[] {
   const roles: Role[] = []

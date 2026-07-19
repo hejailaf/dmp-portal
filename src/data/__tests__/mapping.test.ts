@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   filterByScope,
+  hasAddListItems,
   mapAudit,
   mapComment,
   mapLine,
@@ -91,6 +92,16 @@ describe('mapComment / mapAudit author fields', () => {
     expect(c.authorName).toBe('Aya A')
     const a = mapAudit({ Id: 1, RequestId: 2, Created: '2026-07-10T08:00:00Z', Author: { Title: 'Aya A' }, Event: 'Submitted', OldValue: 'Draft', NewValue: 'Waiting to be started' })
     expect(a).toMatchObject({ event: 'Submitted', actorName: 'Aya A', oldValue: 'Draft' })
+  })
+})
+
+describe('hasAddListItems (requester-by-permission for AD-group users)', () => {
+  it('detects the AddListItems bit', () => {
+    expect(hasAddListItems(1011028583)).toBe(true) // real on-site value: contribute, no delete
+    expect(hasAddListItems(4294967295)).toBe(true) // full control (owner)
+    expect(hasAddListItems(3)).toBe(true) // view + add
+    expect(hasAddListItems(1)).toBe(false) // view only
+    expect(hasAddListItems(0)).toBe(false)
   })
 })
 

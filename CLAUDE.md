@@ -69,6 +69,13 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
   if maintainers should reject).
 - Assignment: admins assign anyone; maintainers may self-claim unassigned
   requests (user decision). Enforced in providers, not just UI.
+- Roles: groups first; if a user has NO direct DMP group, the SP provider
+  probes EffectiveBasePermissions on DMP_Requests and grants `requester`
+  when the AddListItems bit is set — this is how 1,000-member AD security
+  groups nested in `DMP Requesters` work (on-site verified 2026-07-19;
+  see LIST_SETUP.md §6). Maintainer/admin stay group-name-only. All three
+  groups need "view membership: Everyone" or direct members read as
+  role-less.
 - SLA: `DueDate = SubmittedAt + max(SlaDays per line action)`; defaults
   Add 5 / Change 3 / Delete 2 (config in `src/domain/sla.ts`). Overdue is
   DERIVED at render time — no scheduled jobs anywhere. Resubmit after reopen
