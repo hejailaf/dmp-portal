@@ -95,11 +95,12 @@ function DetailLineGrid({ config, lines }: { config: ObjectTypeConfig; lines: Re
   return <DataGrid table={table} />
 }
 
-function Meta({ label, children }: { label: string; children: React.ReactNode }) {
+/** One row of the header meta sidebar: label left, value right. */
+function MetaRow({ label, strong, children }: { label: string; strong?: boolean; children: React.ReactNode }) {
   return (
-    <div>
-      <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</div>
-      <div className="mt-0.5 text-sm">{children}</div>
+    <div className="flex justify-between gap-3 py-[3px]">
+      <span className="flex-none text-muted-foreground">{label}</span>
+      <span className={`min-w-0 break-words text-right ${strong ? 'font-medium' : ''}`}>{children}</span>
     </div>
   )
 }
@@ -316,17 +317,8 @@ export function RequestDetailPage({ id }: { id: string }) {
 
   return (
     <div className="space-y-4">
-      {/* header */}
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-semibold">{req.ref}</h1>
-            <StatusBadge status={req.status} />
-            <SlaBadge request={req} />
-          </div>
-          {req.description && <p className="mt-1 max-w-3xl break-words text-sm">{req.description}</p>}
-          <p className="mt-1 text-sm text-muted-foreground">{req.lineSummary}</p>
-        </div>
+      {/* actions — top right; the document header card follows below */}
+      <div className="flex flex-wrap items-start justify-end gap-3">
         <div className="flex flex-wrap gap-2">
           <Button
             variant="outline"
@@ -400,17 +392,51 @@ export function RequestDetailPage({ id }: { id: string }) {
         </p>
       )}
 
+      {/* document header: description as headline, ref as small label,
+          meta in a quiet sidebar (approved Option C rev, 2026-07-19) */}
       <Card>
-        <CardContent className="grid grid-cols-2 gap-4 p-4 md:grid-cols-6">
-          <Meta label={S.detail.requester}>{req.requesterName}</Meta>
-          <Meta label={S.detail.assignee}>
-            {req.assigneeName ?? <span className="text-muted-foreground">{S.detail.unassigned}</span>}
-          </Meta>
-          <Meta label={S.detail.createdAt}>{formatDate(req.createdAt)}</Meta>
-          <Meta label={S.detail.submittedAt}>{formatDate(req.submittedAt)}</Meta>
-          <Meta label={S.detail.dueDate}>{formatDate(req.dueDate)}</Meta>
-          <Meta label={S.detail.slaDays}>{req.slaDays ?? '—'}</Meta>
-          {req.completedAt && <Meta label={S.detail.completedAt}>{formatDate(req.completedAt)}</Meta>}
+        <CardContent className="flex flex-wrap gap-5 p-5">
+          <div className="min-w-[240px] flex-[2]">
+            <div className="flex flex-wrap items-center gap-3">
+              {req.description ? (
+                <span className="text-sm font-medium tracking-wide text-muted-foreground">{req.ref}</span>
+              ) : (
+                <h1 className="text-2xl font-semibold text-secondary-foreground">{req.ref}</h1>
+              )}
+              <StatusBadge status={req.status} />
+              <SlaBadge request={req} />
+            </div>
+            {req.description && (
+              <h1 className="mt-2 max-w-3xl break-words text-[21px] font-semibold leading-snug text-secondary-foreground">
+                {req.description}
+              </h1>
+            )}
+            {req.lineSummary && (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                <span className="inline-flex items-center rounded-md bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">
+                  {req.lineSummary}
+                </span>
+              </div>
+            )}
+          </div>
+          <div className="min-w-[200px] flex-1 self-start rounded-lg bg-muted/60 px-3.5 py-2.5 text-[12.5px]">
+            <MetaRow label={S.detail.requester} strong>
+              {req.requesterName}
+            </MetaRow>
+            <MetaRow label={S.detail.assignee}>
+              {req.assigneeName ?? <span className="text-muted-foreground">{S.detail.unassigned}</span>}
+            </MetaRow>
+            <MetaRow label={S.detail.createdAt}>{formatDate(req.createdAt)}</MetaRow>
+            <MetaRow label={S.detail.submittedAt}>{formatDate(req.submittedAt)}</MetaRow>
+            {req.completedAt && <MetaRow label={S.detail.completedAt}>{formatDate(req.completedAt)}</MetaRow>}
+            <div className="mt-1 flex justify-between gap-3 border-t pt-1.5">
+              <span className="flex-none text-muted-foreground">{S.detail.dueDate}</span>
+              <span className="min-w-0 text-right font-medium text-secondary-foreground">
+                {formatDate(req.dueDate)}
+                {req.slaDays != null && ` · ${req.slaDays} ${S.detail.slaDays}`}
+              </span>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
