@@ -174,7 +174,14 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
   DMP_Requests list gains CompletedAt AND Description (added same day). Note: the formerly listed
   "digest-expiry retry" was already implemented in Phase 2
   (client.ts 403 → refresh digest → retry once) — not a Phase-3 item.
-- ⬜ Phase 4: WORKFLOW_RECIPE.md (SharePoint Designer emails), pilot.
+- ✅ Phase 4 AUTHORED (2026-07-19): WORKFLOW_RECIPE.md (SPD 2013,
+  "core four" emails — submitted→Maintainers, assigned→assignee,
+  rejected/completed→requester; loop-safe via LastNotifiedStatus/
+  LastNotifiedAssignee scratch columns now in LIST_SPECS; Step-0 check
+  for claims-login email resolution), SMOKE_TEST.md (pre-pilot
+  checklist), README demo script, DEPLOY_SP pilot note. ON-SITE
+  EXECUTION PENDING: provision re-run (adds 4 columns now), workflow
+  built per recipe, smoke test run, then pilot.
 
 ## Session handoff (2026-07-18) — read before continuing
 

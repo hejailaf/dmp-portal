@@ -28,6 +28,18 @@ The **role switcher** (bottom-right in dev) lets you use the app as a
 Requester, Data Maintainer, or Admin against seeded demo data. "Reset demo
 data" restores the seed.
 
+## Demo script (mock data)
+
+The seed contains ten requests covering every status: two drafts, three
+waiting (one unassigned/claimable, one overdue), two in process, two
+completed (one on-time, one late — so the dashboard shows both 100% and
+0% on-time rows), one rejected (reopenable). A 5-minute demo: as Rana
+(Requester) create + submit a request; as Malik (Maintainer) claim,
+start, and complete it; as Aya (Admin) tour the dashboard and reject the
+spare request with a reason; back as Rana, reopen it. Pilot checklists
+and the email-workflow recipe live in `docs/SMOKE_TEST.md` and
+`docs/WORKFLOW_RECIPE.md`.
+
 ## Current status
 
 | Phase | State |

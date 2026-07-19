@@ -57,6 +57,10 @@ export const LIST_SPECS: ListSpec[] = [
       dateTime('CompletedAt'), // Phase 3 — provision re-run adds it to existing lists
       number('SlaDays'),
       note('Description'), // request purpose/reference — provision re-run adds it too
+      // Phase 4: scratch columns for the SPD email workflow's "already
+      // notified" guards (docs/WORKFLOW_RECIPE.md) — the app never reads them
+      text('LastNotifiedStatus'),
+      text('LastNotifiedAssignee'),
       note('RejectReason'),
       note('LineSummary'),
     ],

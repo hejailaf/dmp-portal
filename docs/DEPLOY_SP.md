@@ -58,3 +58,8 @@ setting it back to SitePages/Home.aspx (ask Claude, or use the same REST
 call). Note: the LIBRARY URL (…/pmdc/DMPApp) cannot be redirected -
 SharePoint hardwires it to the file list; users landing there click
 index.aspx.
+
+## Pilot
+
+Before inviting pilot users, run docs/SMOKE_TEST.md top to bottom, and
+execute docs/WORKFLOW_RECIPE.md once for the email notifications.
