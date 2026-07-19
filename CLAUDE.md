@@ -188,12 +188,13 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
   `npm run package:sp` + commit + push after user-visible changes.
 - **On-site state**: Phase 2 verified (provision green, self-test incl.
   DELETE green, roles map correctly). §4 permissions applied per
-  LIST_SETUP.md (incl. on-site learnings already folded into that doc:
-  Stop-Inheriting needed before Permission Levels appears; "DMP Add only"
-  must include Use Remote Interfaces; Limited Access is normal). The user
-  has NOT yet deployed the newest UI build (dark mode etc.) nor run the §5
-  closeout: full vertical slice + the colleague-with-only-Requester test
-  (also proves non-owner page rendering).
+  LIST_SETUP.md. VERIFIED ON-SITE 2026-07-19: requester colleagues open
+  the app as non-owners with correct roles (after setting group
+  "view membership: Everyone" — the no-role fix), AND the 1,000-member
+  AD security group flow works "flawlessly" (permission-probe requester
+  role, LIST_SETUP.md §6). Still to confirm on-site: one full vertical
+  slice (submit → assign → complete) with real data, and a "Verify &
+  provision" re-run so DMP_Requests gains CompletedAt + Description.
 - **Brand restyle applied** (2026-07-18, from
   `design_handoff_pm_datacare_restyle/README.md` §1–5): PM DataCare tokens
   in styles.css (light + dark, plus plain hex brand vars for badges/cells),
