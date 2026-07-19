@@ -4,3 +4,4 @@ dist/
 # at the workplace via stackblitz.com/github/... (no GitHub access there)
 dmp-sp.zip
 *.local
+~$*
