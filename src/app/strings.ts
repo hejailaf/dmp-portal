@@ -88,7 +88,7 @@ export const S = {
     newTitle: 'New request',
     editTitle: (ref: string) => `Edit draft ${ref}`,
     descriptionLabel: 'Request description',
-    descriptionPlaceholder: 'Replace feed pump P-101 per MOC-2201',
+    descriptionPlaceholder: 'e.g. Create SCBA Equipment at WIP Area',
     addLine: 'Add line',
     selectLine: 'Select line',
     selectAll: 'Select all lines',
