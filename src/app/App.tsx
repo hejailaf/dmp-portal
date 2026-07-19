@@ -37,8 +37,8 @@ function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-30 border-b bg-card">
-        {/* site content is centered and capped at 1700px (user decision) */}
-        <div className="mx-auto flex h-16 w-full max-w-[1700px] items-stretch gap-4 px-4">
+        {/* site content is centered and capped at 1920px (user decision) */}
+        <div className="mx-auto flex h-16 w-full max-w-[1920px] items-stretch gap-4 px-4">
           <a href={href('/')} className="flex items-center">
             {/* light/dark lockups swap on the `.dark` html class */}
             <img src={logoLight} alt={S.appName} className="h-[34px] w-auto dark:hidden" />
@@ -80,8 +80,8 @@ function Shell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </header>
-      {/* home stays a bit tighter; data pages center under the 1700px site cap */}
-      <main className={`mx-auto px-4 py-6 ${route.path === '/' ? 'max-w-7xl' : 'max-w-[1700px]'}`}>
+      {/* home stays a bit tighter; data pages center under the 1920px site cap */}
+      <main className={`mx-auto px-4 py-6 ${route.path === '/' ? 'max-w-7xl' : 'max-w-[1920px]'}`}>
         {children}
       </main>
       <footer className="border-t px-4 py-4 text-center text-xs text-muted-foreground">
