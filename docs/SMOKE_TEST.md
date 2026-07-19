@@ -80,3 +80,6 @@ Everything is browser-only. Tick as you go.
       picks are lost on page reload.
 - [ ] Backlog reminder: migrate off the personal site collection to a
       team site before broad (post-pilot) rollout — DEPLOY_SP.md note.
+
+Training collateral: docs/PM-DataCare-Requester-Guide.pptx (annotated
+walkthrough for pilot requesters).
