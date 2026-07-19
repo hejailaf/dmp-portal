@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { getProvider, PROVIDER_NAME } from '@/data'
 import type { ProvisionResult } from '@/data/provider'
-import { checkDmpGroups, runConnectionSelfTest } from '@/data/sp'
+import { checkDmpGroups, runConnectionSelfTest, setAppAsSiteHome } from '@/data/sp'
 import { S } from '../strings'
 import { useCurrentUser } from '../user-context'
 import { Badge } from '../components/ui/badge'
@@ -17,6 +17,7 @@ export function ProvisionPage() {
   const [results, setResults] = useState<ProvisionResult[]>()
   const [groups, setGroups] = useState<{ name: string; exists: boolean }[]>()
   const [selfTest, setSelfTest] = useState<string[]>()
+  const [homeResult, setHomeResult] = useState<string>()
   const [busy, setBusy] = useState<string>()
   const [error, setError] = useState<string>()
 
@@ -62,7 +63,18 @@ export function ProvisionPage() {
             {busy === 'selftest' ? S.provision.running : S.provision.selfTest}
           </Button>
         )}
+        {isSharePoint && (
+          <Button
+            variant="outline"
+            disabled={!!busy}
+            onClick={run('sethome', async () => setHomeResult(S.provision.setHomeDone(await setAppAsSiteHome())))}
+          >
+            {busy === 'sethome' ? S.provision.running : S.provision.setHome}
+          </Button>
+        )}
       </div>
+
+      {homeResult && <p className="rounded-md border bg-accent/50 p-3 text-sm">{homeResult}</p>}
 
       {error && (
         <p className="rounded-md border border-destructive/40 bg-[var(--danger-tint)] p-3 text-sm text-destructive">{error}</p>

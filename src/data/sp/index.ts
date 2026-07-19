@@ -418,6 +418,18 @@ export async function checkDmpGroups(): Promise<{ name: string; exists: boolean 
  * Provision-screen extra: spike-style write cycle on the scratch list —
  * including DELETE, the one verb Phase 0 did not exercise.
  */
+/**
+ * Point the site's welcome page at the app, so opening the bare site URL
+ * (…/pmdc) serves index.aspx directly. Path is web-root-relative.
+ * VERIFY-ON-SITE: rootfolder MERGE is standard REST but untested on this
+ * farm — the Site setup button surfaces success/failure.
+ */
+export async function setAppAsSiteHome(): Promise<string> {
+  await spMerge('/_api/web/rootfolder', { WelcomePage: 'DMPApp/index.aspx' })
+  const check = await spGet('/_api/web/rootfolder?$select=WelcomePage')
+  return String(check.WelcomePage ?? '')
+}
+
 export async function runConnectionSelfTest(): Promise<string[]> {
   const log: string[] = []
   try {

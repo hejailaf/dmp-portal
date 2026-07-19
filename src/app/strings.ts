@@ -175,6 +175,9 @@ export const S = {
       'Creates and verifies the four DMP lists on this SharePoint site, checks the role groups, and runs a write self-test. Safe to run repeatedly.',
     provisionNow: 'Verify & provision lists',
     selfTest: 'Run connection self-test',
+    setHome: 'Make the app the site home page',
+    setHomeDone: (page: string) =>
+      `Site welcome page is now "${page}" — opening the bare site URL serves the app. (Revert: set it back to SitePages/Home.aspx the same way.)`,
     running: 'Working…',
     listsTitle: 'Lists',
     groupsTitle: 'Role groups',

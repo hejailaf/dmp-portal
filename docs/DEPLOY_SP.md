@@ -48,3 +48,13 @@ clean in-place replace — no orphaned files accumulate.
 
 Document libraries keep version history: select the file → Version history →
 restore the previous version of `index.aspx` and the `assets` files.
+
+## Friendly URL: the app as the site home page (added 2026-07-19)
+
+Site setup screen -> "Make the app the site home page" points the site
+welcome page at DMPApp/index.aspx, so the bare site URL (…/pmdc) opens
+the app directly - that is the link to share with users. Revert by
+setting it back to SitePages/Home.aspx (ask Claude, or use the same REST
+call). Note: the LIBRARY URL (…/pmdc/DMPApp) cannot be redirected -
+SharePoint hardwires it to the file list; users landing there click
+index.aspx.
