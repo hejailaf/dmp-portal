@@ -403,6 +403,8 @@ export function RequestDetailPage({ id }: { id: string }) {
         </Card>
 
         <div className="space-y-4">
+          <AttachmentsCard requestId={req.id} onAdded={() => audit.reload()} />
+
           {/* audit timeline */}
           <Card>
             <CardHeader>
@@ -431,8 +433,6 @@ export function RequestDetailPage({ id }: { id: string }) {
               </div>
             </CardContent>
           </Card>
-
-          <AttachmentsCard requestId={req.id} onAdded={() => audit.reload()} />
         </div>
       </div>
 
