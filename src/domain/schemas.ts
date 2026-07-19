@@ -100,7 +100,7 @@ export interface SubmitValidation {
   lineResults: Record<string, LineValidation>
 }
 
-export const DESCRIPTION_REQUIRED = 'Add a request description (business reason or reference) before submitting'
+export const DESCRIPTION_REQUIRED = 'Write a description of your request before submitting.'
 export const DESCRIPTION_MAX_LENGTH = 60 // single-line title (user decision 2026-07-19)
 
 export const COMMENT_MAX_LENGTH = 1000
