@@ -107,7 +107,7 @@ export const S = {
     lineError: (tab: string, n: number, msg: string) => `${tab} line ${n}: ${msg}`,
     noLines: 'No lines yet — click "Add line" to start, or import from an Excel template.',
     requiredHintHighlighted: 'Highlighted',
-    requiredHintRest: " cells are mandatory for that line's action; grey cells don't apply.",
+    requiredHintRest: ' fields are mandatory.',
     downloadTemplate: 'Download Excel template',
     importExcel: 'Import from Excel',
     imported: (n: number) => `Imported ${n} ${n === 1 ? 'line' : 'lines'} from Excel.`,
