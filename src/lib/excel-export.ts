@@ -56,6 +56,10 @@ export async function makeRequestExport(req: Request, lines: RequestLine[]): Pro
         i + 1,
         cfg.actionLabels[line.action],
         ...cfg.fields.map((f) => {
+          // never print a value the action doesn't use, even if one somehow
+          // reached storage — this sheet is keyed into SAP, so it defends
+          // itself rather than trusting the read-boundary normalization
+          if (!appliesTo(f, line.action)) return ''
           const v = line.fieldData[f.key] ?? ''
           if (f.input === 'date' && /^\d{4}-\d{2}-\d{2}$/.test(v)) {
             // real Date via UTC so the stored calendar day never shifts
@@ -68,8 +72,10 @@ export async function makeRequestExport(req: Request, lines: RequestLine[]): Pro
       cfg.fields.forEach((f, c) => {
         const cell = row.getCell(c + 3)
         if (!appliesTo(f, line.action)) {
-          // identifiers stay readable even where the action doesn't use them
-          if (!f.identifier) cell.fill = fill(GREY)
+          // line data is normalized on read, so such a cell is always empty —
+          // grey it like any other inapplicable cell (identifiers included: an
+          // ungreyed blank would read as "you still need to fill this in")
+          cell.fill = fill(GREY)
         } else if (isRequired(f, line.action)) {
           cell.fill = fill(AMBER)
         }
@@ -80,7 +86,9 @@ export async function makeRequestExport(req: Request, lines: RequestLine[]): Pro
     ws.getColumn(2).width = Math.max(10, ...typeLines.map((l) => cfg.actionLabels[l.action].length + 2))
     cfg.fields.forEach((f, i) => {
       const col = ws.getColumn(i + 3)
-      const valueLengths = typeLines.map((l) => (l.fieldData[f.key] ?? '').length + 2)
+      const valueLengths = typeLines.map((l) =>
+        appliesTo(f, l.action) ? (l.fieldData[f.key] ?? '').length + 2 : 0,
+      )
       col.width = Math.min(50, Math.max(12, f.label.length + 3, ...valueLengths))
       if (f.input === 'date') col.numFmt = 'mm/dd/yyyy'
     })

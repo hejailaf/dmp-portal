@@ -100,13 +100,27 @@ describe('makeRequestExport', () => {
     expect((delCell.fill as ExcelJS.FillPattern)?.fgColor?.argb).toBe('FFE9E9E9')
   })
 
-  it('never greys identifier fields', async () => {
+  it('never prints a value in a cell the action does not use', async () => {
+    // even if stale data reached storage: the sheet is keyed into SAP
+    const stale: RequestLine = {
+      ...LINES[1],
+      id: 'l-stale',
+      fieldData: { ...LINES[1].fieldData, description: 'STALE typed under Add', manufacturer: 'STALE' },
+    }
+    const wb = await load(REQ, [stale])
+    const ws = wb.getWorksheet(FIELD_MAP.EQUIPMENT.label)!
+    const cell = ws.getRow(2).getCell(colOf('EQUIPMENT', 'description'))
+    expect(cell.value ?? '').toBe('')
+    expect((cell.fill as ExcelJS.FillPattern)?.fgColor?.argb).toBe('FFE9E9E9')
+  })
+
+  it('greys inapplicable identifier cells too (they are always empty)', async () => {
     const wb = await load(REQ, LINES)
     const ws = wb.getWorksheet(FIELD_MAP.EQUIPMENT.label)!
     // equipmentNumber is the identifier, appliesTo CHANGE/DELETE — on the ADD
-    // row it is inapplicable but must NOT be greyed
+    // row it does not apply, so it reads as "not for this action", not "empty"
     const idCell = ws.getRow(2).getCell(colOf('EQUIPMENT', 'equipmentNumber'))
-    expect((idCell.fill as ExcelJS.FillPattern)?.fgColor?.argb).toBeUndefined()
+    expect((idCell.fill as ExcelJS.FillPattern)?.fgColor?.argb).toBe('FFE9E9E9')
   })
 
   it('writes date cells as real dates with US number format', async () => {

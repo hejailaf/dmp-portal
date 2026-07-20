@@ -10,7 +10,7 @@ import type {
 import { assertTransition, TransitionError, type TransitionCtx } from '@/domain/status'
 import { computeDueDate, slaDaysFor } from '@/domain/sla'
 import { nextRef } from '@/domain/ref'
-import { applyDerivations, summarizeLines } from '@/domain/field-map'
+import { normalizeFieldData, summarizeLines } from '@/domain/field-map'
 import { isEmptyLine, validateAttachment, validateCommentBody, validateForSubmit } from '@/domain/schemas'
 import type {
   DataProvider,
@@ -35,7 +35,15 @@ function loadDb(): MockDb {
   const raw = localStorage.getItem(DB_KEY)
   if (raw) {
     try {
-      return JSON.parse(raw) as MockDb
+      const db = JSON.parse(raw) as MockDb
+      // read boundary (mirrors mapLine in the SharePoint provider): drop values
+      // for fields the line's action doesn't use, so data stored before this
+      // fix never surfaces in the grids or the Excel export
+      db.lines = db.lines.map((l) => ({
+        ...l,
+        fieldData: normalizeFieldData(l.objectType, l.action, l.fieldData),
+      }))
+      return db
     } catch {
       // corrupted — reseed
     }
@@ -147,14 +155,15 @@ export class MockProvider implements DataProvider {
   private replaceLines(requestId: string, lines: DraftLineInput[]) {
     this.db.lines = this.db.lines.filter((l) => l.requestId !== requestId)
     this.db.lines.push(
-      // derivations re-applied on save so stored data is always consistent
-      // with the correlation table, even if a client bypassed the UI
+      // write boundary: derivations re-applied and values for fields the
+      // action doesn't use dropped, so stored data is always consistent with
+      // the field map even if a client bypassed the UI
       ...lines.map((l, i) => ({
         ...l,
         id: newId(),
         requestId,
         order: i + 1,
-        fieldData: applyDerivations(l.objectType, l.fieldData),
+        fieldData: normalizeFieldData(l.objectType, l.action, l.fieldData),
       })),
     )
   }
@@ -177,16 +186,18 @@ export class MockProvider implements DataProvider {
   async submitRequest(id: string): Promise<Request> {
     await sleep()
     const req = this.mustGet(id)
-    // empty (never-filled) lines are pruned at submit, not validated
+    // empty (never-filled) lines are pruned at submit, not validated. Validate
+    // and check the transition BEFORE dropping anything (same order as the
+    // SharePoint provider): a rejected submit must not destroy rows.
     const lines = this.db.lines
       .filter((l) => l.requestId === id && !isEmptyLine(l))
       .map((l, i) => ({ ...l, order: i + 1 }))
-    this.db.lines = [...this.db.lines.filter((l) => l.requestId !== id), ...lines]
-    req.lineSummary = summarizeLines(lines)
     const validation = validateForSubmit(lines, req.description)
     if (!validation.ok)
       throw new Error(validation.requestErrors[0] ?? 'Request has validation errors — fix the lines first')
     const t = assertTransition(this.ctxFor(req), req.status, 'Waiting to be started')
+    this.db.lines = [...this.db.lines.filter((l) => l.requestId !== id), ...lines]
+    req.lineSummary = summarizeLines(lines)
     req.status = 'Waiting to be started'
     req.submittedAt = new Date().toISOString()
     req.slaDays = slaDaysFor(lines)

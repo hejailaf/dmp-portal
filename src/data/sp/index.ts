@@ -11,7 +11,7 @@ import type {
 import { assertTransition, TransitionError, type TransitionCtx } from '@/domain/status'
 import { computeDueDate, slaDaysFor } from '@/domain/sla'
 import { nextRef } from '@/domain/ref'
-import { applyDerivations, summarizeLines } from '@/domain/field-map'
+import { normalizeFieldData, summarizeLines } from '@/domain/field-map'
 import { isEmptyLine, validateAttachment, validateCommentBody, validateForSubmit } from '@/domain/schemas'
 import type {
   DataProvider,
@@ -38,7 +38,7 @@ import {
 // SharePointProvider — Phase 2, built to the Phase-0 findings (nometadata
 // writes only, on-demand digest). Enforces the SAME domain guards as the
 // MockProvider: transition permissions, self-claim rule, empty-line pruning
-// at submit, and applyDerivations on every line write.
+// at submit, and normalizeFieldData on every line read and write.
 
 const REQUESTS = 'DMP_Requests'
 const LINES = 'DMP_RequestLines'
@@ -161,7 +161,7 @@ export class SharePointProvider implements DataProvider {
         ObjectType: l.objectType,
         LineAction: l.action,
         LineOrder: order,
-        FieldData: JSON.stringify(applyDerivations(l.objectType, l.fieldData)),
+        FieldData: JSON.stringify(normalizeFieldData(l.objectType, l.action, l.fieldData)),
       })
     }
   }
@@ -216,14 +216,17 @@ export class SharePointProvider implements DataProvider {
 
   async submitRequest(id: string): Promise<Request> {
     const [me, req] = await Promise.all([this.me(), this.fetchRequest(id)])
-    let lines = await this.fetchLines(id)
-    // empty (never-filled) lines are pruned at submit, not validated
-    for (const l of lines.filter(isEmptyLine)) await spDelete(item(LINES, l.id))
-    lines = lines.filter((l) => !isEmptyLine(l))
+    const allLines = await this.fetchLines(id)
+    // empty (never-filled) lines are pruned at submit, not validated. Validate
+    // and check the transition BEFORE deleting anything: a rejected submit must
+    // not destroy rows the requester can still fix.
+    const empties = allLines.filter(isEmptyLine)
+    const lines = allLines.filter((l) => !isEmptyLine(l))
     const validation = validateForSubmit(lines, req.description)
     if (!validation.ok)
       throw new Error(validation.requestErrors[0] ?? 'Request has validation errors — fix the lines first')
     const t = assertTransition(this.ctxFor(me, req), req.status, 'Waiting to be started')
+    for (const l of empties) await spDelete(item(LINES, l.id))
     const submittedAt = new Date().toISOString()
     const slaDays = slaDaysFor(lines)
     await spMerge(item(REQUESTS, id), {

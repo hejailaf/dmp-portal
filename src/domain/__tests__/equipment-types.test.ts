@@ -23,13 +23,21 @@ describe('equipment type derivation', () => {
     expect(derived).toMatchObject({ equipmentCategory: 'E', technicalObjectType: '60X', catalogProfile: 'PM060X' })
   })
 
-  it('leaves existing values untouched for empty or unknown types (legacy lines)', () => {
-    const legacy = { equipmentCategory: 'M', technicalObjectType: 'COMP' }
-    expect(applyDerivations('EQUIPMENT', legacy)).toEqual(legacy)
-    expect(applyDerivations('EQUIPMENT', { ...legacy, equipmentType: 'No Such Type' })).toEqual({
-      ...legacy,
-      equipmentType: 'No Such Type',
+  it('clears the classification when no type is chosen', () => {
+    // the derived trio has no source then — leaving a previous selection's
+    // values behind would show and export them as if they were true
+    const stale = { equipmentCategory: 'M', technicalObjectType: 'COMP', catalogProfile: 'PM0X' }
+    expect(applyDerivations('EQUIPMENT', stale)).toEqual({})
+    expect(applyDerivations('EQUIPMENT', { ...stale, equipmentType: '' })).toEqual({ equipmentType: '' })
+    expect(applyDerivations('EQUIPMENT', { ...stale, description: 'keep me' })).toEqual({
+      description: 'keep me',
     })
+  })
+
+  it('keeps existing values for a present-but-unknown type (renamed in a later import)', () => {
+    // history must stay readable; an unknown type is already a validation error
+    const legacy = { equipmentType: 'Retired Type Name', equipmentCategory: 'M', technicalObjectType: 'COMP' }
+    expect(applyDerivations('EQUIPMENT', legacy)).toEqual(legacy)
   })
 
   it('does not touch other object types', () => {

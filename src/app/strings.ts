@@ -113,6 +113,8 @@ export const S = {
     imported: (n: number) => `Imported ${n} ${n === 1 ? 'line' : 'lines'} from Excel.`,
     importNothing: 'No lines were imported.',
     importIssuesTitle: 'Import notes:',
+    confirmDropHidden: (n: number) =>
+      `${n} ${n === 1 ? 'value does' : 'values do'} not apply to their line's action and will be removed when this request is saved.\n\nContinue?`,
   },
 
   detail: {

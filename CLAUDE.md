@@ -103,6 +103,19 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
   live in browser state with a remove ✕ until the explicit Upload
   button commits them (reload discards pending; no server-side delete —
   would need delete rights requesters intentionally lack).
+- Line data is NORMALIZED at every provider boundary —
+  `normalizeFieldData(objectType, action, fieldData)` (derive first, then drop
+  values for fields the action doesn't use; unknown keys and unknown object
+  types/actions pass through untouched). Applied on READ (`sp/mapping.mapLine`,
+  mock `loadDb` — this is what cleans rows stored before 2026-07-20, no
+  migration) and on WRITE (`replaceLines`, `writeLines`). The Excel export
+  masks non-applicable cells itself as well: that sheet is keyed into SAP, so
+  it never trusts the boundary. Editor state is deliberately NOT pruned on an
+  action change (mis-clicked dropdown is recoverable by switching back);
+  saving/submitting asks first when values would be dropped, and Duplicate
+  copies only visible values (user decisions 2026-07-20).
+- Both providers validate + check the transition BEFORE deleting empty lines at
+  submit — a rejected submit must never destroy rows.
 - Empty (never-filled) lines are pruned at submit — in the editor AND in
   the provider (`isEmptyLine`); the Phase-2 SharePointProvider must prune
   on submit too. Drafts keep scratch rows.

@@ -1,4 +1,5 @@
 import type { AuditEntry, AuditEvent, Comment, Request, RequestLine, RequestStatus, Role, User } from '@/domain/types'
+import { normalizeFieldData } from '@/domain/field-map'
 import type { RequestScope } from '../provider'
 import { DMP_GROUPS } from './schema'
 
@@ -71,13 +72,17 @@ export function mapLine(item: LineItem): RequestLine {
   } catch {
     // corrupted blob — surface an empty line rather than crashing the page
   }
+  const objectType = (item.ObjectType ?? 'EQUIPMENT') as RequestLine['objectType']
+  const action = (item.LineAction ?? 'ADD') as RequestLine['action']
   return {
     id: String(item.Id),
     requestId: String(item.RequestId),
-    objectType: (item.ObjectType ?? 'EQUIPMENT') as RequestLine['objectType'],
-    action: (item.LineAction ?? 'ADD') as RequestLine['action'],
+    objectType,
+    action,
     order: item.LineOrder ?? 0,
-    fieldData,
+    // read boundary: values for fields this action doesn't use are dropped
+    // here, so rows stored before this fix never reach the UI or the export
+    fieldData: normalizeFieldData(objectType, action, fieldData),
   }
 }
 

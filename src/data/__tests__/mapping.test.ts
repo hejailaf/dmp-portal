@@ -76,6 +76,19 @@ describe('mapLine', () => {
     const l = mapLine({ Id: 1, RequestId: 1, FieldData: '{not json' })
     expect(l.fieldData).toEqual({})
   })
+
+  it('drops stored values the line action does not use (rows written before the fix)', () => {
+    const l = mapLine({
+      Id: 12,
+      RequestId: 7,
+      ObjectType: 'EQUIPMENT',
+      LineAction: 'DELETE',
+      LineOrder: 1,
+      // written when the line was still an Add, kept after the action changed
+      FieldData: '{"equipmentNumber":"10001234","deletionReason":"Scrapped","description":"stale","manufacturer":"stale"}',
+    })
+    expect(l.fieldData).toEqual({ equipmentNumber: '10001234', deletionReason: 'Scrapped' })
+  })
 })
 
 describe('rolesFromGroups', () => {

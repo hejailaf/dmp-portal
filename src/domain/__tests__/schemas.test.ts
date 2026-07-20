@@ -9,7 +9,7 @@ import {
   validateForSubmit,
   validateLine,
 } from '../schemas'
-import { actionsFor, FIELD_MAP, OBJECT_TYPE_CONFIGS } from '../field-map'
+import { actionsFor, FIELD_MAP, normalizeFieldData, OBJECT_TYPE_CONFIGS } from '../field-map'
 import { LINE_ACTIONS, type RequestLine } from '../types'
 
 // Company field set (field-map review 2026-07-17): equipment ADD mandatory set
@@ -210,6 +210,14 @@ describe('isEmptyLine (pruned at submit instead of validated)', () => {
   it('false as soon as any field has a real value', () => {
     expect(isEmptyLine({ fieldData: { description: 'Pump' } })).toBe(false)
     expect(isEmptyLine({ fieldData: { equipmentType: 'Pump' } })).toBe(false)
+  })
+
+  it('a line holding only values hidden by its action is empty once normalized', () => {
+    // raw it looks filled, so it used to survive the submit prune and then fail
+    // with confusing "required" errors; on normalized data it is correctly blank
+    const raw = { description: 'typed while this was an Add', equipmentType: 'Pump' }
+    expect(isEmptyLine({ fieldData: raw })).toBe(false)
+    expect(isEmptyLine({ fieldData: normalizeFieldData('EQUIPMENT', 'DELETE', raw) })).toBe(true)
   })
 })
 

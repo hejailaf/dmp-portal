@@ -46,6 +46,46 @@ export function appliesTo(field: FieldDef, action: LineAction): boolean {
   return !field.appliesTo || field.appliesTo.includes(action)
 }
 
+/**
+ * The canonical stored shape of a line's data: derived fields filled in, and
+ * values for fields that do NOT apply to this action removed.
+ *
+ * Applied at the data boundaries (provider reads and writes) so a value typed
+ * under one action can never survive an action change into storage, the Excel
+ * export, or a duplicated line — where it would be keyed into SAP as truth.
+ *
+ * Derivations run FIRST on purpose: a derived value must never outlive a
+ * source field that this action hides. Keep that order even if a derived
+ * field's `appliesTo` ever stops matching its source's.
+ *
+ * Keys with no field definition are kept deliberately — stored data may
+ * outlive the field map (see the `.passthrough()` in schemas.ts), and unknown
+ * keys are never rendered, validated, or exported.
+ */
+export function normalizeFieldData(
+  objectType: ObjectType,
+  action: LineAction,
+  fieldData: Record<string, string>,
+): Record<string, string> {
+  // Total by construction: this runs on every provider read, including rows
+  // hand-edited in the SharePoint list, so an unrecognised object type must
+  // hand the data back rather than throw (mapLine promises not to crash the
+  // page, and the mock's read would otherwise fall into its reseed catch).
+  const cfg = FIELD_MAP[objectType]
+  if (!cfg) return fieldData
+  // An action this type no longer offers (legacy or hand-edited rows) keeps its
+  // data as-is, so validateLine reports it instead of the line quietly emptying.
+  if (!(cfg.actions ?? LINE_ACTIONS).includes(action)) return fieldData
+  const derived = applyDerivations(objectType, fieldData)
+  const fields = cfg.fields
+  const out: Record<string, string> = {}
+  for (const [key, value] of Object.entries(derived)) {
+    const field = fields.find((f) => f.key === key)
+    if (!field || appliesTo(field, action)) out[key] = value
+  }
+  return out
+}
+
 export function isRequired(field: FieldDef, action: LineAction): boolean {
   return !!field.requiredFor?.includes(action) && appliesTo(field, action)
 }

@@ -11,6 +11,7 @@ import { getProvider, type DraftLineInput } from '@/data'
 import {
   appliesTo,
   applyDerivations,
+  normalizeFieldData,
   isRequired,
   OBJECT_TYPE_CONFIGS,
   type ObjectTypeConfig,
@@ -457,10 +458,21 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
   const duplicateSelected = (objectType: ObjectType) => {
     const dup = selectedKeysInTab(objectType)
     if (dup.size === 0) return
-    // each copy lands directly after its original, Excel-style
+    // each copy lands directly after its original, Excel-style. The copy takes
+    // only the VISIBLE values: anything hidden by the original's action (typed
+    // before the action changed) must not travel into a new line.
     setLines((ls) =>
       ls.flatMap((l) =>
-        dup.has(l.key) ? [l, { ...l, key: crypto.randomUUID(), fieldData: { ...l.fieldData } }] : [l],
+        dup.has(l.key)
+          ? [
+              l,
+              {
+                ...l,
+                key: crypto.randomUUID(),
+                fieldData: { ...normalizeFieldData(l.objectType, l.action, l.fieldData) },
+              },
+            ]
+          : [l],
       ),
     )
     setSelected((s) => new Set([...s].filter((k) => !dup.has(k))))
@@ -520,7 +532,22 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
     return req.id
   }
 
+  /**
+   * Values typed under one action stay in editor state after the action
+   * changes (so a mis-clicked dropdown is recoverable by switching back), but
+   * saving stores only what the current action uses. Ask before that becomes
+   * permanent — the alternative is losing typed work silently.
+   */
+  const confirmHiddenLoss = (): boolean => {
+    const hidden = lines.reduce((n, l) => {
+      const kept = normalizeFieldData(l.objectType, l.action, l.fieldData)
+      return n + Object.entries(l.fieldData).filter(([k, v]) => v?.trim() && kept[k] === undefined).length
+    }, 0)
+    return hidden === 0 || window.confirm(S.editor.confirmDropHidden(hidden))
+  }
+
   const onSave = async () => {
+    if (!confirmHiddenLoss()) return
     setBusy('save')
     setBanner(undefined)
     try {
@@ -536,8 +563,14 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
 
   const onSubmit = async () => {
     setBanner(undefined)
-    // untouched lines are dropped silently instead of raising validation errors
-    const kept = lines.filter((l) => !isEmptyLine(l))
+    if (!confirmHiddenLoss()) return
+    // Untouched lines are dropped silently instead of raising validation
+    // errors. Emptiness is judged on the normalized data (what will actually be
+    // stored), so a line holding only values hidden by its action counts as
+    // empty — otherwise it survives and fails with confusing "required" errors.
+    const kept = lines.filter(
+      (l) => !isEmptyLine({ fieldData: normalizeFieldData(l.objectType, l.action, l.fieldData) }),
+    )
     if (kept.length !== lines.length) setLines(kept)
     const validation = validateForSubmit(toDomainLines(kept), description)
     setErrors(validation.lineResults)

@@ -76,12 +76,26 @@ export const EQUIPMENT_TYPE_NAMES: string[] = EQUIPMENT_TYPES.map((r) => r.equip
 
 /**
  * Fills equipmentCategory / technicalObjectType / catalogProfile from the
- * selected equipmentType. Unknown or empty selections leave existing values
- * untouched (legacy lines keep their data; validation flags bad selections).
+ * selected equipmentType. Clearing the type CLEARS them too: the
+ * classification has no source then, and a leftover value from a previous
+ * selection would be shown and exported as if it were true. Users never type
+ * these fields by hand (they are `derived`, hidden in the editor and the
+ * Excel template), so nothing hand-entered can be lost here. A type that is
+ * present but not in the table keeps whatever it has (see below).
  */
 export function deriveEquipmentFields(fieldData: Record<string, string>): Record<string, string> {
   const row = EQUIPMENT_TYPES.find((r) => r.equipmentType === fieldData.equipmentType)
-  if (!row) return fieldData
+  if (!row) {
+    // A type that is present but unknown (e.g. renamed in a later import of
+    // tech_object_types.xlsx) is a validation error, not a licence to erase the
+    // classification of historical requests — only clear when nothing is chosen.
+    if (fieldData.equipmentType) return fieldData
+    const rest = { ...fieldData }
+    delete rest.equipmentCategory
+    delete rest.technicalObjectType
+    delete rest.catalogProfile
+    return rest
+  }
   return {
     ...fieldData,
     equipmentCategory: row.equipmentCategory,
