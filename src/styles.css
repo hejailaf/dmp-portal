@@ -74,4 +74,14 @@
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     font-variant-numeric: tabular-nums; /* IDs and counts align (brand spec) */
   }
+
+  /* The open dropdown list of a native <select> is painted from the OPTION's
+     own colours, which default to transparent — in the editor grid the control
+     is transparent too. In dark mode that left the list on a white system
+     surface with our light text on it. `color-scheme` alone does not fix it,
+     so give options an explicit surface in both themes. */
+  option {
+    background-color: hsl(var(--card));
+    color: hsl(var(--foreground));
+  }
 }
