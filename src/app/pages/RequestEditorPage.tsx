@@ -658,6 +658,7 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder={S.editor.descriptionPlaceholder}
                 maxLength={DESCRIPTION_MAX_LENGTH}
+                className="max-w-[784px]"
               />
               <span className="flex-none text-xs tabular-nums text-muted-foreground">
                 {description.length}/{DESCRIPTION_MAX_LENGTH}
