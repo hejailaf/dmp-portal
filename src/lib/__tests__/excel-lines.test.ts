@@ -41,7 +41,7 @@ describe('Excel template round-trip', () => {
         model: 'Etanorm 200',
         planningPlant: '1000',
         functionalLocation: 'SITE-A-PROC-PMP-01',
-        costCenter: 'CC-1100',
+        costCenter: '1100',
         plannerGroup: 'P01',
         mainWorkCenter: 'MECH01',
         startupDate: '07/16/2026', // US-typed text — importer converts to ISO

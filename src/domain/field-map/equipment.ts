@@ -86,7 +86,7 @@ export const equipmentConfig: ObjectTypeConfig = {
       maxLength: 40,
       configurable: true,
     },
-    { key: 'costCenter', label: 'Cost Center', input: 'text', appliesTo: ['ADD', 'CHANGE'], requiredFor: ['ADD'], maxLength: 10, configurable: true },
+    { key: 'costCenter', label: 'Cost Center', input: 'number', appliesTo: ['ADD', 'CHANGE'], requiredFor: ['ADD'], maxLength: 10, configurable: true },
     { key: 'plannerGroup', label: 'Planner Group', input: 'text', appliesTo: ['ADD', 'CHANGE'], requiredFor: ['ADD'], maxLength: 3, configurable: true },
     { key: 'mainWorkCenter', label: 'Work Center', input: 'text', appliesTo: ['ADD', 'CHANGE'], requiredFor: ['ADD'], maxLength: 8, configurable: true },
     { key: 'startupDate', label: 'Start-up Date', input: 'date', appliesTo: ['ADD', 'CHANGE'], requiredFor: ['ADD'], configurable: true },

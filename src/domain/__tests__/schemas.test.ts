@@ -20,7 +20,7 @@ const validEquipmentAdd = {
   model: 'Etanorm 200',
   planningPlant: '1000',
   functionalLocation: 'SITE-A-PROC-PMP-01',
-  costCenter: 'CC-1100',
+  costCenter: '1100',
   plannerGroup: 'P01',
   mainWorkCenter: 'MECH01',
   startupDate: '2026-07-16',
@@ -194,7 +194,7 @@ describe('change-line rule', () => {
       line({
         objectType: 'EQUIPMENT',
         action: 'CHANGE',
-        fieldData: { equipmentNumber: '10001234', costCenter: 'CC-4711' },
+        fieldData: { equipmentNumber: '10001234', costCenter: '4711' },
       }),
     )
     expect(withChange.ok).toBe(true)

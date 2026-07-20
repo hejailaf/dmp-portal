@@ -138,7 +138,7 @@ export function buildSeed(): MockDb {
           model: 'GA-30',
           planningPlant: '1000',
           functionalLocation: 'SITE-A-UTIL-COMP-01',
-          costCenter: 'CC-1100',
+          costCenter: '1100',
           plannerGroup: 'P01',
           mainWorkCenter: 'MECH01',
           startupDate: '2026-06-01',
@@ -167,7 +167,7 @@ export function buildSeed(): MockDb {
         fieldData: {
           description: 'Compressor bay 1',
           superiorFunctionalLocation: 'SITE-A-UTIL',
-          costCenter: 'CC-1100',
+          costCenter: '1100',
           startupDate: '2026-05-15',
         },
       },
@@ -193,7 +193,7 @@ export function buildSeed(): MockDb {
           model: 'CT-F400',
           planningPlant: '2000',
           functionalLocation: 'SITE-B-COOL-CT-04',
-          costCenter: 'CC-2100',
+          costCenter: '2100',
           plannerGroup: 'P02',
           mainWorkCenter: 'MECH02',
           startupDate: '2026-04-20',
@@ -211,7 +211,7 @@ export function buildSeed(): MockDb {
     submittedDaysAgo: 1,
     description: 'Cost center transfer after area reorg',
     lines: [
-      { objectType: 'EQUIPMENT', action: 'CHANGE', fieldData: { equipmentNumber: '10002501', costCenter: 'CC-4711' } },
+      { objectType: 'EQUIPMENT', action: 'CHANGE', fieldData: { equipmentNumber: '10002501', costCenter: '4711' } },
     ],
   })
   add({
@@ -221,7 +221,7 @@ export function buildSeed(): MockDb {
     submittedDaysAgo: 6,
     description: 'Pump P-07 cost center + PM cycle extension - MOC-2144', // overdue (SLA 3 for change)
     lines: [
-      { objectType: 'FLOC', action: 'CHANGE', fieldData: { functionalLocation: 'SITE-B-PROC-PMP-07', costCenter: 'CC-2200' } },
+      { objectType: 'FLOC', action: 'CHANGE', fieldData: { functionalLocation: 'SITE-B-PROC-PMP-07', costCenter: '2200' } },
       { objectType: 'PM', action: 'CHANGE', fieldData: { equipmentNumber: '10002501', taskListNumber: '102', maintenanceItem: '458', changeDetails: 'Extend cycle to 6 months' } },
     ],
   })
@@ -267,7 +267,7 @@ export function buildSeed(): MockDb {
     description: 'Cost center change for pump P-11',
     rejectReason: 'Cost center CC-9999 does not exist — please verify and resubmit',
     lines: [
-      { objectType: 'EQUIPMENT', action: 'CHANGE', fieldData: { equipmentNumber: '10007001', costCenter: 'CC-9999' } },
+      { objectType: 'EQUIPMENT', action: 'CHANGE', fieldData: { equipmentNumber: '10007001', costCenter: '9999' } },
     ],
   })
 

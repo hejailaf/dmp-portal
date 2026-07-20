@@ -37,7 +37,7 @@ export const flocConfig: ObjectTypeConfig = {
       maxLength: 40,
       configurable: true,
     },
-    { key: 'costCenter', label: 'Cost Center', input: 'text', appliesTo: ['ADD', 'CHANGE'], maxLength: 10, configurable: true },
+    { key: 'costCenter', label: 'Cost Center', input: 'number', appliesTo: ['ADD', 'CHANGE'], maxLength: 10, configurable: true },
     {
       key: 'startupDate',
       label: 'Start-up Date',
