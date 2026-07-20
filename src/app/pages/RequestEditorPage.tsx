@@ -355,32 +355,11 @@ function EditorGrid({
     meta: { config, errors, onChange, selected, onToggleSelect, onToggleAll } satisfies EditorMeta,
   })
 
-  const tabErrors = lines
-    .flatMap((l, i) => {
-      const v = errors[l.key]
-      if (!v || v.ok) return []
-      const msgs = [...v.lineErrors, ...Object.values(v.fieldErrors)]
-      return msgs.map((m) => S.editor.lineError(config.label, i + 1, m))
-    })
-
-  return (
-    <div className="space-y-3">
-      {tabErrors.length > 0 && (
-        <div className="rounded-md border border-destructive/40 bg-[var(--danger-tint)] p-3 text-sm text-destructive">
-          <div className="font-medium">{S.editor.lineErrorsTitle}</div>
-          <ul className="mt-1 max-h-40 list-inside list-disc overflow-y-auto">
-            {tabErrors.map((e, i) => (
-              <li key={i}>{e}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-      {lines.length === 0 ? (
-        <p className="py-4 text-sm text-muted-foreground">{S.editor.noLines}</p>
-      ) : (
-        <DataGrid table={table} rowClassName="hover:bg-transparent" cellClassName="p-0" />
-      )}
-    </div>
+  // the error list is rendered by the page, above the line buttons
+  return lines.length === 0 ? (
+    <p className="py-4 text-sm text-muted-foreground">{S.editor.noLines}</p>
+  ) : (
+    <DataGrid table={table} rowClassName="hover:bg-transparent" cellClassName="p-0" />
   )
 }
 
@@ -609,6 +588,16 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
   // the toolbars now live outside the tab panels, so they act on the OPEN tab
   const activeCfg = FIELD_MAP[tab]
   const activeSelected = selectedKeysInTab(tab).size
+  // line numbers stay per-tab, as they read in the grid
+  const activeErrors = lines
+    .filter((l) => l.objectType === tab)
+    .flatMap((l, i) => {
+      const v = errors[l.key]
+      if (!v || v.ok) return []
+      return [...v.lineErrors, ...Object.values(v.fieldErrors)].map((m) =>
+        S.editor.lineError(activeCfg.label, i + 1, m),
+      )
+    })
 
   return (
     <div className="space-y-4">
@@ -666,8 +655,7 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
           <div className="flex flex-wrap items-center gap-x-4 gap-y-3 px-4 py-3">
             <div className="flex min-w-[280px] flex-[2] items-center gap-2">
               <label className="flex-none text-sm font-medium" htmlFor="req-description">
-                {S.editor.descriptionLabel}
-                <span className="text-destructive">*</span>:
+                {S.editor.descriptionLabel}:<span className="text-destructive">*</span>
               </label>
               <Input
                 id="req-description"
@@ -727,6 +715,17 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
                 {S.editor.requiredHintRest}
               </p>
             </div>
+            {/* validation for the OPEN tab, above its toolbar */}
+            {activeErrors.length > 0 && (
+              <div className="mx-4 mt-3 rounded-md border border-destructive/40 bg-[var(--danger-tint)] p-3 text-sm text-destructive">
+                <div className="font-medium">{S.editor.lineErrorsTitle}</div>
+                <ul className="mt-1 max-h-40 list-inside list-disc overflow-y-auto">
+                  {activeErrors.map((e, i) => (
+                    <li key={i}>{e}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
             {/* per-line actions for the OPEN tab, directly above the grid */}
             <div className="flex flex-wrap gap-2 px-4 pt-3">
               <Button variant="outline" size="sm" onClick={() => addLine(tab)}>
