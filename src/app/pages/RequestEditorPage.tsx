@@ -365,7 +365,11 @@ function EditorGrid({
 
 export function RequestEditorPage({ requestId }: { requestId?: string }) {
   const provider = getProvider()
-  const [lines, setLines] = useState<EditorLine[]>([])
+  // a new request opens ready to fill: one blank Equipment line (edit mode
+  // starts empty and the load effect fills it from the draft)
+  const [lines, setLines] = useState<EditorLine[]>(() =>
+    requestId ? [] : [{ key: crypto.randomUUID(), objectType: 'EQUIPMENT', action: 'ADD', fieldData: {} }],
+  )
   const [description, setDescription] = useState('')
   const [errors, setErrors] = useState<ErrorsByLine>({})
   const [requestErrors, setRequestErrors] = useState<string[]>([])
@@ -610,7 +614,7 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
           <Button variant="outline" disabled={!!busy} onClick={() => void onSave()}>
             {busy === 'save' ? S.editor.saving : S.editor.saveDraft}
           </Button>
-          <Button disabled={!!busy || lines.length === 0} onClick={() => void onSubmit()}>
+          <Button disabled={!!busy || !lines.some((l) => !isEmptyLine(l))} onClick={() => void onSubmit()}>
             {busy === 'submit' ? S.editor.submitting : S.editor.submit}
           </Button>
         </div>
@@ -692,7 +696,8 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
             <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2 border-b px-4">
               <TabsList>
                 {OBJECT_TYPE_CONFIGS.map((cfg) => {
-                  const count = lines.filter((l) => l.objectType === cfg.objectType).length
+                  // a line counts once it holds a value — a blank starter/scratch row does not
+                  const count = lines.filter((l) => l.objectType === cfg.objectType && !isEmptyLine(l)).length
                   const hasError = lines.some(
                     (l) => l.objectType === cfg.objectType && errors[l.key] && !errors[l.key].ok,
                   )
