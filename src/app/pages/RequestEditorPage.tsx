@@ -408,8 +408,9 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
 
   useEffect(() => {
     if (requestId && existing.data && !initialized) {
+      const loaded = existing.data.lines
       setLines(
-        existing.data.lines.map((l) => ({
+        loaded.map((l) => ({
           key: l.id,
           objectType: l.objectType,
           action: l.action,
@@ -417,6 +418,16 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
         })),
       )
       setDescription(existing.data.request.description)
+      // open on the tab that actually holds the request's data instead of
+      // always Equipment — prefer real values, then any (scratch) row
+      const withData = OBJECT_TYPE_CONFIGS.find((cfg) =>
+        loaded.some((l) => l.objectType === cfg.objectType && !isEmptyLine(l)),
+      )
+      const withAnyLine = OBJECT_TYPE_CONFIGS.find((cfg) =>
+        loaded.some((l) => l.objectType === cfg.objectType),
+      )
+      const startTab = withData ?? withAnyLine
+      if (startTab) setTab(startTab.objectType)
       setInitialized(true)
     }
   }, [requestId, existing.data, initialized])

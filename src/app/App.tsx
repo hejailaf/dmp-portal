@@ -99,10 +99,14 @@ function Routes() {
   const [first, second, third] = route.segments
 
   if (route.path === '/') return <HomePage />
-  if (route.path === '/new') return <RequestEditorPage />
+  // `key` per target: these render the same component at the same position, so
+  // without it React reuses the instance and the previous request's editor
+  // state (lines, description, tab) leaks into the next one
+  if (route.path === '/new') return <RequestEditorPage key="new" />
   if (first === 'requests' && !second) return <RequestListPage />
-  if (first === 'requests' && second && third === 'edit') return <RequestEditorPage requestId={second} />
-  if (first === 'requests' && second && !third) return <RequestDetailPage id={second} />
+  if (first === 'requests' && second && third === 'edit')
+    return <RequestEditorPage key={second} requestId={second} />
+  if (first === 'requests' && second && !third) return <RequestDetailPage key={second} id={second} />
   if (first === 'admin' && second === 'dashboard') return <DashboardPage />
   if (first === 'admin' && second === 'provision') return <ProvisionPage />
 
