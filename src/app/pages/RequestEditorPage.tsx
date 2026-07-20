@@ -11,6 +11,7 @@ import { getProvider, type DraftLineInput } from '@/data'
 import {
   appliesTo,
   applyDerivations,
+  FIELD_MAP,
   normalizeFieldData,
   isRequired,
   OBJECT_TYPE_CONFIGS,
@@ -594,20 +595,14 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
   }
 
   const title = requestId && existing.data ? S.editor.editTitle(existing.data.request.ref) : S.editor.newTitle
+  // the toolbars now live outside the tab panels, so they act on the OPEN tab
+  const activeCfg = FIELD_MAP[tab]
+  const activeSelected = selectedKeysInTab(tab).size
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold">{title}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {/* the word carries the exact same highlight as the mandatory cells */}
-            <span className="rounded bg-[var(--warning-tint)] px-1.5 py-0.5 text-foreground ring-1 ring-inset ring-[rgba(225,154,47,.4)] dark:ring-[rgba(233,170,75,.45)]">
-              {S.editor.requiredHintHighlighted}
-            </span>
-            {S.editor.requiredHintRest}
-          </p>
-        </div>
+        <h1 className="text-2xl font-semibold">{title}</h1>
         <div className="flex gap-2">
           <Button variant="ghost" onClick={() => window.history.back()}>
             {S.editor.cancel}
@@ -637,24 +632,44 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
           ))}
         </div>
       )}
-      {/* request description — a one-line title; free while drafting, required to submit */}
-      <div>
-        <label className="mb-1 block text-sm font-medium" htmlFor="req-description">
-          {S.editor.descriptionLabel}
-        </label>
-        <div className="flex max-w-3xl items-center gap-2">
-          <Input
-            id="req-description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder={S.editor.descriptionPlaceholder}
-            maxLength={DESCRIPTION_MAX_LENGTH}
-          />
-          <span className="flex-none text-xs tabular-nums text-muted-foreground">
-            {description.length}/{DESCRIPTION_MAX_LENGTH}
-          </span>
-        </div>
-      </div>
+      {/* request-level details: the one-line description (free while drafting,
+          required to submit) and the bulk-entry buttons for the open tab */}
+      <Card>
+        <CardContent className="flex flex-wrap items-end gap-4 p-4">
+          <div className="min-w-[240px] flex-[2]">
+            <label className="mb-1 block text-sm font-medium" htmlFor="req-description">
+              {S.editor.descriptionLabel} <span className="text-destructive">*</span>
+            </label>
+            <div className="flex items-center gap-2">
+              <Input
+                id="req-description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder={S.editor.descriptionPlaceholder}
+                maxLength={DESCRIPTION_MAX_LENGTH}
+              />
+              <span className="flex-none text-xs tabular-nums text-muted-foreground">
+                {description.length}/{DESCRIPTION_MAX_LENGTH}
+              </span>
+            </div>
+          </div>
+          <div className="flex min-w-[190px] flex-1 flex-wrap justify-end gap-2">
+            <Button variant="outline" size="sm" onClick={() => void downloadTemplate(activeCfg)}>
+              <Download className="h-4 w-4" /> {S.editor.downloadTemplate}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                importTarget.current = activeCfg
+                fileInputRef.current?.click()
+              }}
+            >
+              <Upload className="h-4 w-4" /> {S.editor.importExcel}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <input
         ref={fileInputRef}
@@ -672,59 +687,56 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
       <Card>
         <CardContent className="p-4">
           <Tabs value={tab} onValueChange={(v) => setTab(v as ObjectType)}>
-            <TabsList>
-              {OBJECT_TYPE_CONFIGS.map((cfg) => {
-                const count = lines.filter((l) => l.objectType === cfg.objectType).length
-                const hasError = lines.some(
-                  (l) => l.objectType === cfg.objectType && errors[l.key] && !errors[l.key].ok,
-                )
-                return (
-                  <TabsTrigger key={cfg.objectType} value={cfg.objectType}>
-                    {cfg.label}
-                    {count > 0 && <span className="ml-1 text-xs text-muted-foreground">{S.editor.tabCount(count)}</span>}
-                    {hasError && <span className="ml-1 h-2 w-2 rounded-full bg-destructive" />}
-                  </TabsTrigger>
-                )
-              })}
-            </TabsList>
-            {OBJECT_TYPE_CONFIGS.map((cfg) => {
-              const tabSelected = selectedKeysInTab(cfg.objectType).size
-              return (
+            {/* tabs left, per-line actions for the OPEN tab right */}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <TabsList>
+                {OBJECT_TYPE_CONFIGS.map((cfg) => {
+                  const count = lines.filter((l) => l.objectType === cfg.objectType).length
+                  const hasError = lines.some(
+                    (l) => l.objectType === cfg.objectType && errors[l.key] && !errors[l.key].ok,
+                  )
+                  return (
+                    <TabsTrigger key={cfg.objectType} value={cfg.objectType}>
+                      {cfg.label}
+                      {count > 0 && (
+                        <span className="ml-1 text-xs text-muted-foreground">{S.editor.tabCount(count)}</span>
+                      )}
+                      {hasError && <span className="ml-1 h-2 w-2 rounded-full bg-destructive" />}
+                    </TabsTrigger>
+                  )
+                })}
+              </TabsList>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" size="sm" onClick={() => addLine(tab)}>
+                  <Plus className="h-4 w-4" /> {S.editor.addLine}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={activeSelected === 0}
+                  onClick={() => duplicateSelected(tab)}
+                >
+                  <Copy className="h-4 w-4" /> {S.editor.duplicate(activeSelected)}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={activeSelected === 0}
+                  onClick={() => deleteSelected(tab)}
+                >
+                  <Trash2 className="h-4 w-4" /> {S.editor.deleteLines(activeSelected)}
+                </Button>
+              </div>
+            </div>
+            <p className="mt-3 text-sm text-muted-foreground">
+              {/* the word carries the exact same highlight as the mandatory cells */}
+              <span className="rounded bg-[var(--warning-tint)] px-1.5 py-0.5 text-foreground ring-1 ring-inset ring-[rgba(225,154,47,.4)] dark:ring-[rgba(233,170,75,.45)]">
+                {S.editor.requiredHintHighlighted}
+              </span>
+              {S.editor.requiredHintRest}
+            </p>
+            {OBJECT_TYPE_CONFIGS.map((cfg) => (
               <TabsContent key={cfg.objectType} value={cfg.objectType}>
-                <div className="mb-3 flex flex-wrap gap-2">
-                  <Button variant="outline" size="sm" onClick={() => addLine(cfg.objectType)}>
-                    <Plus className="h-4 w-4" /> {S.editor.addLine}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={tabSelected === 0}
-                    onClick={() => duplicateSelected(cfg.objectType)}
-                  >
-                    <Copy className="h-4 w-4" /> {S.editor.duplicate(tabSelected)}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={tabSelected === 0}
-                    onClick={() => deleteSelected(cfg.objectType)}
-                  >
-                    <Trash2 className="h-4 w-4" /> {S.editor.deleteLines(tabSelected)}
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => void downloadTemplate(cfg)}>
-                    <Download className="h-4 w-4" /> {S.editor.downloadTemplate}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      importTarget.current = cfg
-                      fileInputRef.current?.click()
-                    }}
-                  >
-                    <Upload className="h-4 w-4" /> {S.editor.importExcel}
-                  </Button>
-                </div>
                 <EditorGrid
                   config={cfg}
                   lines={lines.filter((l) => l.objectType === cfg.objectType)}
@@ -735,8 +747,7 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
                   onToggleAll={toggleAll}
                 />
               </TabsContent>
-              )
-            })}
+            ))}
           </Tabs>
         </CardContent>
       </Card>
