@@ -18,10 +18,8 @@ export const S = {
 
   home: {
     welcome: (name: string) => `Welcome, ${name}`,
-    roleLabel: 'Your roles',
-    sectionRequester: 'As a Requester',
-    sectionMaintainer: 'As a Data Maintainer',
-    sectionAdmin: 'As an Admin',
+    // only the HIGHEST role is shown (Admin > Maintainer > Requester)
+    roleLabel: 'Your role',
     newRequestCta: 'Create a new request',
     open: 'Open',
     cards: {

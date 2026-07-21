@@ -86,21 +86,24 @@ function DueSuffix({ request }: { request: Request }) {
 export function HomePage() {
   const user = useCurrentUser()
   const provider = getProvider()
-  const isRequester = user.roles.includes('requester')
-  const isMaintainer = user.roles.includes('maintainer')
-  const isAdmin = user.roles.includes('admin')
-  // staff (maintainers/admins) don't need their own requester tiles on the
-  // home page — they can still file via the nav + "Create a new request"
-  const isStaff = isMaintainer || isAdmin
-  const showRequesterTiles = isRequester && !isStaff
+  // the home page shows ONE layout, picked by the user's highest role
+  // (Admin > Maintainer > Requester — user decision 2026-07-21). Display
+  // only: nav links and permissions stay multi-role.
+  const topRole = user.roles.includes('admin')
+    ? ('admin' as const)
+    : user.roles.includes('maintainer')
+      ? ('maintainer' as const)
+      : user.roles.includes('requester')
+        ? ('requester' as const)
+        : undefined
 
   const overview = useAsync(async () => {
     const empty: Request[] = []
     const [mine, queue, unassigned, all] = await Promise.all([
-      showRequesterTiles ? provider.listRequests('mine') : empty,
-      isMaintainer ? provider.listRequests('queue') : empty,
-      isMaintainer || isAdmin ? provider.listRequests('unassigned') : empty,
-      isAdmin ? provider.listRequests('all') : empty,
+      topRole === 'requester' ? provider.listRequests('mine') : empty,
+      topRole === 'maintainer' ? provider.listRequests('queue') : empty,
+      topRole === 'maintainer' || topRole === 'admin' ? provider.listRequests('unassigned') : empty,
+      topRole === 'admin' ? provider.listRequests('all') : empty,
     ])
     return { mine, queue, unassigned, all }
   }, [user.id])
@@ -190,15 +193,14 @@ export function HomePage() {
           <h1 className="text-2xl font-semibold">{S.home.welcome(user.displayName)}</h1>
           <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
             {S.home.roleLabel}:
-            {user.roles.length === 0 && <Badge variant="red">{S.roles.none}</Badge>}
-            {user.roles.map((r) => (
-              <Badge key={r} variant="blue">
-                {S.roles[r]}
-              </Badge>
-            ))}
+            {topRole ? (
+              <Badge variant="blue">{S.roles[topRole]}</Badge>
+            ) : (
+              <Badge variant="red">{S.roles.none}</Badge>
+            )}
           </div>
         </div>
-        {isStaff && (isRequester || isAdmin) && (
+        {topRole === 'admin' && (
           <a
             href={href('/new')}
             className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
@@ -209,11 +211,8 @@ export function HomePage() {
       </div>
 
       {/* requester: launchpad + attention + recent + how-it-works */}
-      {showRequesterTiles && (
+      {topRole === 'requester' && (
         <div className="space-y-3">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            {S.home.sectionRequester}
-          </h2>
           <div className="grid gap-3 md:grid-cols-3">
             <ActionCard
               to="/new"
@@ -298,11 +297,8 @@ export function HomePage() {
       )}
 
       {/* maintainer: queue bar + due-this-week + tiles */}
-      {isMaintainer && (
+      {topRole === 'maintainer' && (
         <div className="space-y-3">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            {S.home.sectionMaintainer}
-          </h2>
           {queueOpen.length > 0 && (
             <Card>
               <CardContent className="p-4">
@@ -365,11 +361,8 @@ export function HomePage() {
       )}
 
       {/* admin: command center — tiles, dispatch callouts, team load, activity */}
-      {isAdmin && (
+      {topRole === 'admin' && (
         <div className="space-y-3">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            {S.home.sectionAdmin}
-          </h2>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             <StatCard label={S.home.cards.all} value={all.length} to="/requests?scope=all" />
             <StatCard label={S.home.cards.overdue} value={allOverdue.length} to="/requests?scope=all&overdue=1" tone="red" />
