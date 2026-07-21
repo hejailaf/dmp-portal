@@ -1,3 +1,4 @@
+import { Plus } from 'lucide-react'
 import { getProvider } from '@/data'
 import logoLight from '@/assets/logo-header.svg'
 import logoDark from '@/assets/logo-header-dark.svg'
@@ -52,13 +53,8 @@ function Shell({ children }: { children: React.ReactNode }) {
             {isMaintainer && (
               <NavLink to="/requests?scope=queue" label={S.nav.myQueue} active={route.path === '/requests' && scope === 'queue'} />
             )}
-            {(isMaintainer || isAdmin) && (
-              <NavLink
-                to="/requests?scope=unassigned"
-                label={S.nav.unassigned}
-                active={route.path === '/requests' && scope === 'unassigned'}
-              />
-            )}
+            {/* Unassigned link removed (user decision 2026-07-21) — the pool
+                is reachable via the list page's scope switcher + home tiles */}
             {isAdmin && (
               <NavLink
                 to="/requests?scope=all"
@@ -66,7 +62,6 @@ function Shell({ children }: { children: React.ReactNode }) {
                 active={route.path === '/requests' && (scope === 'all' || !scope)}
               />
             )}
-            {(isRequester || isAdmin) && <NavLink to="/new" label={S.nav.newRequest} active={route.path === '/new'} />}
             {isAdmin && (
               <NavLink to="/admin/dashboard" label={S.nav.dashboard} active={route.path === '/admin/dashboard'} />
             )}
@@ -75,6 +70,16 @@ function Shell({ children }: { children: React.ReactNode }) {
             )}
           </nav>
           <div className="ml-auto flex items-center gap-2">
+            {/* the primary CTA lives on the right; hidden on home, which
+                already carries its own (user decision 2026-07-21) */}
+            {(isRequester || isAdmin) && route.path !== '/' && (
+              <a
+                href={href('/new')}
+                className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+              >
+                <Plus className="h-4 w-4" /> {S.home.newRequestCta}
+              </a>
+            )}
             <ThemeToggle />
             <span className="text-sm text-muted-foreground">{user.displayName}</span>
           </div>
