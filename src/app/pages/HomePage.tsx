@@ -324,6 +324,29 @@ export function HomePage() {
       {/* maintainer: queue bar + due-this-week + tiles */}
       {topRole === 'maintainer' && (
         <div className="space-y-3">
+          {/* same dispatch alert as the admin home — maintainers CLAIM from
+              the pool instead of assigning */}
+          {oldestUnassigned && unassignedDays >= 1 && (
+            <Callout
+              tone={isOverdue(oldestUnassigned) ? 'red' : 'amber'}
+              icon={
+                isOverdue(oldestUnassigned) ? (
+                  <AlertCircle className="h-4 w-4 flex-none text-destructive" />
+                ) : (
+                  <UserPlus className="h-4 w-4 flex-none text-[var(--warning)]" />
+                )
+              }
+              text={S.home.unassignedAging(
+                oldestUnassigned.ref,
+                unassignedDays,
+                isOverdue(oldestUnassigned) && oldestUnassigned.dueDate
+                  ? -daysUntilDue(oldestUnassigned.dueDate)
+                  : undefined,
+              )}
+              actionLabel={S.list.claim}
+              actionTo={`/requests/${oldestUnassigned.id}`}
+            />
+          )}
           {queueOpen.length > 0 && (
             <Card>
               <CardContent className="p-4">
