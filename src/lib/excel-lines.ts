@@ -5,13 +5,14 @@ import { appliesTo, applyDerivations, isRequired, type FieldDef, type ObjectType
 // Excel template generation + import for the AIW editor, both derived from
 // the field map so they can never drift from the grid or the validation.
 //
-// Template layout: row 1 = locked headers (Action + field labels, amber =
-// mandatory for some action), row 2 = hidden field keys (robust import
-// mapping even if labels are later renamed), rows 3..502 = unlocked entry
-// rows with dropdowns for Action and choice fields. Sheet protection blocks
-// column insert/delete and header edits. NOTE: Excel protection is a fence
-// against accidents, not security — the importer independently validates
-// everything anyway.
+// Template layout: row 1 = headers (Action + field labels, amber =
+// mandatory) plus an advisory banner after the last header, row 2 = hidden
+// field keys (robust import mapping even if labels are later renamed),
+// rows 3..502 = entry rows with dropdowns for Action and choice fields.
+// The sheet is deliberately UNPROTECTED (user decision 2026-07-21 —
+// protection blocked sorting/filtering and annoyed users): the banner
+// advises against adding/removing columns, and the importer independently
+// validates everything anyway.
 
 const ENTRY_ROWS = 500
 const KEY_ROW_MARKER = '__action'
@@ -40,6 +41,16 @@ export async function makeTemplate(cfg: ObjectTypeConfig): Promise<Blob> {
 
   const headerRow = ws.getRow(1)
   headerRow.font = { bold: true }
+  // Action is mandatory on every row — same amber cue as mandatory fields
+  const actionHeader = headerRow.getCell(1)
+  actionHeader.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: AMBER } }
+  actionHeader.note =
+    'Mandatory for every row — pick from the dropdown. Rows without an Action are skipped at import.'
+  // advisory banner one column after the last header (replaces the old sheet
+  // protection; row 1 is never parsed when the hidden key row is present)
+  const bannerCell = headerRow.getCell(columns.length + 2)
+  bannerCell.value = 'Pick an Action for every row, then enter its data. Do not add or remove columns.'
+  bannerCell.font = { italic: true, color: { argb: 'FF808080' } }
   fields.forEach((f, i) => {
     const cell = headerRow.getCell(i + 2)
     if (f.requiredFor?.length) {
@@ -59,11 +70,6 @@ export async function makeTemplate(cfg: ObjectTypeConfig): Promise<Blob> {
     col.width = Math.max(16, f.label.length + 3)
     if (f.input === 'date') col.numFmt = 'mm/dd/yyyy'
   })
-
-  // unlock entry cells (columns unlocked, header/key rows re-locked)
-  for (let c = 1; c <= columns.length; c++) ws.getColumn(c).protection = { locked: false }
-  ws.getRow(1).protection = { locked: true }
-  ws.getRow(2).protection = { locked: true }
 
   // dropdowns — short lists inline; long lists (Excel caps inline lists at
   // 255 chars) go on a veryHidden "Lists" sheet referenced by range
@@ -113,6 +119,21 @@ export async function makeTemplate(cfg: ObjectTypeConfig): Promise<Blob> {
     })
   }
 
+  // Action itself lights up amber when a row holds data but no action —
+  // mirroring the importer, which skips exactly those rows
+  const lastColLetter = String.fromCharCode(64 + columns.length) // ≤26 template columns
+  ws.addConditionalFormatting({
+    ref: `A3:A${lastRow}`,
+    rules: [
+      {
+        type: 'expression',
+        priority: 1,
+        formulae: [`AND(ISBLANK($A3),COUNTA($B3:$${lastColLetter}3)>0)`],
+        style: { fill: { type: 'pattern', pattern: 'solid', bgColor: { argb: AMBER } } },
+      },
+    ],
+  })
+
   // row-exact mandatory hints, mirroring the editor's amber cells: once the
   // row's Action is chosen in Excel, its mandatory-and-empty cells tint amber
   fields.forEach((f, i) => {
@@ -130,20 +151,6 @@ export async function makeTemplate(cfg: ObjectTypeConfig): Promise<Blob> {
         },
       ],
     })
-  })
-
-  // fence, not a lock: stops accidental column/header edits, not determined users
-  await ws.protect('', {
-    selectLockedCells: true,
-    selectUnlockedCells: true,
-    formatColumns: false,
-    formatRows: false,
-    insertColumns: false,
-    insertRows: false,
-    deleteColumns: false,
-    deleteRows: false,
-    sort: false,
-    autoFilter: false,
   })
 
   const buffer = await wb.xlsx.writeBuffer()

@@ -135,7 +135,8 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
 - Excel line import/export templates (`src/lib/excel-lines.ts`): per-tab
   template download + validating import in the editor, both derived from the
   field map. exceljs loads as a lazy chunk — keep it out of the main bundle.
-  Excel sheet protection is a convenience fence, not security; the importer
+  The template sheet is UNPROTECTED (user decision 2026-07-21): a grey
+  banner + amber Action header advise the layout rules; the importer
   validates everything.
 - Equipment classification is DERIVED: users pick only Equipment Type; the
   correlation table (`src/domain/field-map/equipment-types.ts`, GENERATED
