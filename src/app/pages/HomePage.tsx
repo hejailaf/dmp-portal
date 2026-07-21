@@ -191,14 +191,18 @@ export function HomePage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">{S.home.welcome(user.displayName)}</h1>
-          <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-            {S.home.roleLabel}:
-            {topRole ? (
-              <Badge variant="blue">{S.roles[topRole]}</Badge>
-            ) : (
-              <Badge variant="red">{S.roles.none}</Badge>
-            )}
-          </div>
+          {/* requesters don't need telling they're requesters; the role-less
+              red badge stays — it's the app's only "access broken" signal */}
+          {topRole !== 'requester' && (
+            <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+              {S.home.roleLabel}:
+              {topRole ? (
+                <Badge variant="blue">{S.roles[topRole]}</Badge>
+              ) : (
+                <Badge variant="red">{S.roles.none}</Badge>
+              )}
+            </div>
+          )}
         </div>
         {topRole === 'admin' && (
           <a
