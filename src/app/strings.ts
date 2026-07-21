@@ -35,6 +35,35 @@ export const S = {
       completed: 'Completed',
       dashboardLink: 'Open the admin dashboard',
     },
+    // requester launchpad (home redesign 2026-07-21)
+    newRequestCardBody: 'Equipment, FLoc, BOM, or PM changes.',
+    myRequestsCardBody: (drafts: number, open: number, completed: number) =>
+      `${drafts} ${drafts === 1 ? 'draft' : 'drafts'} · ${open} open · ${completed} completed`,
+    templatesCardTitle: 'Excel templates',
+    templatesCardBody: 'Bulk-fill lines offline, import in the editor.',
+    rejectedCallout: (ref: string) => `${ref} was rejected — fix and resubmit.`,
+    openAction: 'Open',
+    recentTitle: 'Recent requests',
+    viewAll: 'View all',
+    howSteps: [
+      'Fill in the SAP data lines and submit.',
+      'The data team reviews and keys it into SAP.',
+      "Track progress here until it's completed.",
+    ],
+    // maintainer overview
+    queueByStatus: 'My queue by status',
+    dueThisWeek: 'Due this week',
+    nothingDue: 'Nothing due this week.',
+    // admin command center
+    unassignedAging: (ref: string, days: number) =>
+      `${ref} has waited unassigned for ${days} ${days === 1 ? 'day' : 'days'}.`,
+    assignAction: 'Assign',
+    overdueCallout: (n: number) => `${n} ${n === 1 ? 'request is' : 'requests are'} overdue.`,
+    viewAction: 'View',
+    teamLoad: 'Team load (open requests)',
+    latestActivity: 'Latest activity',
+    activitySubmitted: 'submitted',
+    activityCompleted: 'completed',
     errorLoading: 'Could not load your overview.',
   },
 
