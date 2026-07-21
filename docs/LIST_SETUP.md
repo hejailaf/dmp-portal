@@ -163,3 +163,47 @@ add people one by one:
 4. Group settings for all three PMDC groups: "Who can view the membership
    of the group" = **Everyone** — otherwise directly-added members show
    "No PM DataCare role" (the membership API hides groups the caller cannot view).
+
+## §7 Hardening — only Admins can edit anything (added 2026-07-21)
+
+§4 already gives each role its minimum on the LISTS. These extra steps
+close the remaining doors so nothing on the site is editable except by
+PMDC Admins (i.e. you):
+
+1. **Keep `PMDC Admins` tiny** — you plus at most one deputy. Every
+   edit-anything right on the site should trace back to this one group.
+2. **Prune the default groups.** Subsite creation also made
+   `<site> Owners / Members / Visitors`. On Site permissions:
+   - remove the **Members** grant (it carries Edit — the over-grant §4b
+     warns about), or change it to **Read** if those people should still
+     open the app;
+   - leave **Owners** empty except you, or remove its grant entirely
+     (you're covered by PMDC Admins);
+   - Visitors at Read is harmless — keep or remove.
+   The three PMDC groups + per-list grants carry ALL real access.
+3. **Site level = Read for everyone but Admins.** PMDC Requesters and
+   Maintainers get exactly **Read** on the subsite (§4b) — never Edit or
+   Contribute at site scope. All their write ability comes from the
+   per-list grants.
+4. **The app library (`PMDCApp`) is already write-locked**: Requesters
+   and Maintainers have Read only (§4b table). Nobody but Admins can
+   replace `index.aspx` or the assets — i.e. nobody else can tamper with
+   the app code users run.
+5. **Turn off re-sharing.** Site permissions → ribbon **Access Request
+   Settings** → UNTICK "Allow members to share the site and individual
+   files and folders". Optionally point access requests at your email so
+   join-requests reach you instead of failing silently.
+6. **Audit log stays tamper-proof** by §4's "PMDC Add only" level:
+   everyone (including maintainers) can only append; only Admins could
+   ever edit/delete history — and shouldn't.
+
+What this does NOT protect against (know the limits):
+- **Site collection admins** of the parent collection bypass every grant
+  here — that's SharePoint's design. On a team site those are IT's
+  accounts; choose the parent accordingly.
+- **Draft privacy is app-level.** Any Requester can technically read all
+  list items via the REST API (the queue model requires list-wide read;
+  item-level "own items only" settings would break maintainer views —
+  leave Advanced settings at "All items" as §4b says). The app hides
+  other people's drafts, but a curious user with REST knowledge could see
+  them. Acceptable for master-data requests; don't put secrets in drafts.
