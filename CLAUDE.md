@@ -75,10 +75,11 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
   returned interval (`extendDueDate`, `returnedAt` field / ReturnedAt
   column; reason shares RejectReason; isOverdue is false while
   Returned). Only Completed is terminal. DISPLAY (2026-07-21,
-  `S.statusLabel`): the stored "Waiting to be started" reads
-  "Submitted" while unassigned and "Assigned" once assigned (stored
-  value/choice column unchanged); the stepper track is Draft →
-  Submitted → Assigned → In process → Completed.
+  `S.statusLabel`): the stored "Waiting to be started" reads "Assigned"
+  once assigned; while unassigned it reads BY VIEWER — "Submitted" to
+  requesters, "Unassigned" to staff (maintainer/admin) — stored
+  value/choice column unchanged. Stepper track: Draft →
+  Submitted|Unassigned → Assigned → In process → Completed.
 - Transition permissions live in `src/domain/status.ts` TRANSITIONS table:
   submit/reopen/resubmit = owning requester or admin; start/complete/
   return = assigned maintainer or admin; **reject = admin only**

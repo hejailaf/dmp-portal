@@ -115,15 +115,19 @@ export const S = {
   } as Record<string, string>,
 
   /**
-   * Dynamic display name (user decision 2026-07-21): a stored
-   * "Waiting to be started" request reads "Submitted" while unassigned and
-   * "Assigned" once a maintainer is set. Stored values never change.
+   * Dynamic display name (user decisions 2026-07-21): a stored
+   * "Waiting to be started" request reads "Assigned" once a maintainer is
+   * set; while unassigned it reads by PERSPECTIVE — "Submitted" to
+   * requesters ("I submitted it"), "Unassigned" to staff ("nobody owns it
+   * yet"). Stored values never change.
    */
-  statusLabel: (status: string, hasAssignee: boolean): string =>
+  statusLabel: (status: string, hasAssignee: boolean, staffView = false): string =>
     status === 'Waiting to be started'
       ? hasAssignee
         ? 'Assigned'
-        : 'Submitted'
+        : staffView
+          ? 'Unassigned'
+          : 'Submitted'
       : (S.status[status] ?? status),
 
   sla: {
@@ -262,7 +266,7 @@ export const S = {
     adminOnly: 'The dashboard is only available to PMDC Admins.',
     kpis: {
       total: 'All requests',
-      waiting: 'Submitted / Assigned',
+      waiting: 'Unassigned / Assigned', // the dashboard is admin-only — staff wording
       inProcess: 'In process',
       completed: 'Completed',
       overdue: 'Overdue',

@@ -3,6 +3,13 @@ import type { Request, RequestStatus } from '@/domain/types'
 import { daysUntilDue, isOverdue } from '@/domain/sla'
 import { Badge } from './ui/badge'
 import { S } from '../strings'
+import { useCurrentUser } from '../user-context'
+
+/** Staff (maintainers/admins) see "Unassigned" where requesters see "Submitted". */
+function useStaffView(): boolean {
+  const user = useCurrentUser()
+  return user.roles.includes('maintainer') || user.roles.includes('admin')
+}
 
 const STATUS_VARIANT: Record<RequestStatus, 'neutral' | 'blue' | 'amber' | 'green' | 'red'> = {
   Draft: 'neutral',
@@ -13,9 +20,10 @@ const STATUS_VARIANT: Record<RequestStatus, 'neutral' | 'blue' | 'amber' | 'gree
   Rejected: 'red',
 }
 
-/** Badge label follows reality: waiting shows "Submitted"/"Assigned" by assignee presence. */
+/** Badge label follows reality: waiting shows "Submitted"/"Unassigned"/"Assigned" by assignee + viewer. */
 export function StatusBadge({ status, assigneeId }: { status: RequestStatus; assigneeId?: string }) {
-  return <Badge variant={STATUS_VARIANT[status]}>{S.statusLabel(status, !!assigneeId)}</Badge>
+  const staffView = useStaffView()
+  return <Badge variant={STATUS_VARIANT[status]}>{S.statusLabel(status, !!assigneeId, staffView)}</Badge>
 }
 
 /**
@@ -26,6 +34,7 @@ export function StatusBadge({ status, assigneeId }: { status: RequestStatus; ass
  * stages — they render as short Draft → <branch> tracks.
  */
 export function StatusStepper({ status, assigneeId }: { status: RequestStatus; assigneeId?: string }) {
+  const staffView = useStaffView()
   interface Step {
     label: string
     state: 'past' | 'current' | 'future'
@@ -34,13 +43,13 @@ export function StatusStepper({ status, assigneeId }: { status: RequestStatus; a
   if (status === 'Rejected' || status === 'Returned') {
     steps = [
       { label: S.status.Draft, state: 'past' },
-      { label: S.statusLabel(status, !!assigneeId), state: 'current' },
+      { label: S.statusLabel(status, !!assigneeId, staffView), state: 'current' },
     ]
   } else {
     const labels = [
       S.status.Draft,
-      S.statusLabel('Waiting to be started', false), // Submitted
-      S.statusLabel('Waiting to be started', true), // Assigned
+      S.statusLabel('Waiting to be started', false, staffView), // Submitted / Unassigned
+      S.statusLabel('Waiting to be started', true, staffView), // Assigned
       S.status['In process'],
       S.status.Completed,
     ]
@@ -61,7 +70,10 @@ export function StatusStepper({ status, assigneeId }: { status: RequestStatus; a
   }
   const variant = STATUS_VARIANT[status]
   return (
-    <div className="flex flex-wrap items-center gap-y-1" aria-label={S.statusLabel(status, !!assigneeId)}>
+    <div
+      className="flex flex-wrap items-center gap-y-1"
+      aria-label={S.statusLabel(status, !!assigneeId, staffView)}
+    >
       {steps.map((step, i) => (
         <div key={step.label} className="flex items-center">
           {i > 0 && (

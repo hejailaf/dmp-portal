@@ -254,7 +254,10 @@ export function RequestListPage() {
           <option value="">{S.list.allStatuses}</option>
           {STATUSES.map((s) => (
             <option key={s} value={s}>
-              {S.status[s]}
+              {/* the waiting option covers BOTH sub-states, worded per viewer */}
+              {s === 'Waiting to be started'
+                ? `${S.statusLabel(s, false, user.roles.includes('maintainer') || user.roles.includes('admin'))} / ${S.statusLabel(s, true, false)}`
+                : S.status[s]}
             </option>
           ))}
         </Select>
