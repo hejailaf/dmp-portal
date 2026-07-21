@@ -37,8 +37,8 @@ export const S = {
     newRequestCardBody: 'Equipment, FLoc, BOM, or PM changes.',
     myRequestsCardBody: (drafts: number, open: number, completed: number) =>
       `${drafts} ${drafts === 1 ? 'draft' : 'drafts'} · ${open} open · ${completed} completed`,
-    templatesCardTitle: 'Excel templates',
-    templatesCardBody: 'Bulk-fill lines offline, import in the editor.',
+    templatesCardTitle: 'Excel template',
+    templatesCardBody: 'One workbook, a sheet per data type — fill and import in the editor.',
     rejectedCallout: (ref: string) => `${ref} was rejected — fix and resubmit.`,
     openAction: 'Open',
     recentTitle: 'Recent requests',

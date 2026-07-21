@@ -15,30 +15,39 @@ import { Card, CardContent } from '../components/ui/card'
 import { Skeleton } from '../components/ui/skeleton'
 import { StatCard } from '../components/StatCard'
 
-/** Launchpad-style action card (requester home). */
+/** Launchpad-style action card (requester home) — link, or in-place action via onClick. */
 function ActionCard({
   to,
+  onClick,
   icon,
   title,
   body,
   primary,
 }: {
-  to: string
+  to?: string
+  onClick?: () => void
   icon: React.ReactNode
   title: React.ReactNode
   body: string
   primary?: boolean
 }) {
-  return (
+  const card = (
+    <Card className={primary ? 'border-2 border-primary transition-colors hover:border-ring' : 'transition-colors hover:border-ring'}>
+      <CardContent className="p-4">
+        <div className={primary ? 'text-primary' : 'text-muted-foreground'}>{icon}</div>
+        <div className="mt-2 text-sm font-medium">{title}</div>
+        <div className="mt-0.5 text-xs text-muted-foreground">{body}</div>
+      </CardContent>
+    </Card>
+  )
+  return to ? (
     <a href={href(to)} className="block">
-      <Card className={primary ? 'border-2 border-primary transition-colors hover:border-ring' : 'transition-colors hover:border-ring'}>
-        <CardContent className="p-4">
-          <div className={primary ? 'text-primary' : 'text-muted-foreground'}>{icon}</div>
-          <div className="mt-2 text-sm font-medium">{title}</div>
-          <div className="mt-0.5 text-xs text-muted-foreground">{body}</div>
-        </CardContent>
-      </Card>
+      {card}
     </a>
+  ) : (
+    <button type="button" className="block w-full text-left" onClick={onClick}>
+      {card}
+    </button>
   )
 }
 
@@ -241,7 +250,19 @@ export function HomePage() {
               )}
             />
             <ActionCard
-              to="/new"
+              onClick={() =>
+                void (async () => {
+                  // direct download — exceljs loads lazily on first use
+                  const { makeUnifiedTemplate, TEMPLATE_FILENAME } = await import('@/lib/excel-lines')
+                  const blob = await makeUnifiedTemplate()
+                  const url = URL.createObjectURL(blob)
+                  const a = document.createElement('a')
+                  a.href = url
+                  a.download = TEMPLATE_FILENAME
+                  a.click()
+                  URL.revokeObjectURL(url)
+                })()
+              }
               icon={<FileSpreadsheet className="h-5 w-5" />}
               title={S.home.templatesCardTitle}
               body={S.home.templatesCardBody}

@@ -132,9 +132,14 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
   only Add/Delete (`actions` on ObjectTypeConfig) and links to equipment
   only; PM Change/Delete are identified by Maintenance Item; several SAP
   number fields use strict numeric validation.
-- Excel line import/export templates (`src/lib/excel-lines.ts`): per-tab
-  template download + validating import in the editor, both derived from the
-  field map. exceljs loads as a lazy chunk — keep it out of the main bundle.
+- Excel line import/export templates (`src/lib/excel-lines.ts`): ONE
+  unified workbook, a sheet per object type (`makeUnifiedTemplate` /
+  `parseUnifiedTemplate`, ux-experiments 2026-07-21) — the importer reads
+  ALL recognizable sheets so several types mass-import at once; old
+  single-sheet files still import by sheet name. The editor's download
+  opens on the active tab's sheet (workbook.views activeTab); the home
+  page's Excel card downloads it directly. Both derived from the field
+  map. exceljs loads as a lazy chunk — keep it out of the main bundle.
   The template sheet is UNPROTECTED (user decision 2026-07-21): a grey
   banner + amber Action header advise the layout rules; the importer
   validates everything.

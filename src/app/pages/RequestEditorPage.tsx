@@ -24,7 +24,7 @@ import {
   validateLine,
   type LineValidation,
 } from '@/domain/schemas'
-import { makeTemplate, parseTemplate } from '@/lib/excel-lines'
+import { makeUnifiedTemplate, parseUnifiedTemplate, TEMPLATE_FILENAME } from '@/lib/excel-lines'
 import { LINE_ACTIONS, type LineAction, type ObjectType, type RequestLine } from '@/domain/types'
 import { cn, formatDateValue } from '@/lib/utils'
 import { useAsync, usePageTitle } from '../hooks'
@@ -382,7 +382,6 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
   // (must live ABOVE the early returns — hooks may not be conditional)
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set())
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const importTarget = useRef<ObjectTypeConfig>()
 
   const existing = useAsync(
     async () => (requestId ? provider.getRequest(requestId) : undefined),
@@ -509,20 +508,21 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
     setSelected((s) => new Set([...s].filter((k) => !doomed.has(k))))
   }
 
-  const downloadTemplate = async (cfg: ObjectTypeConfig) => {
-    const blob = await makeTemplate(cfg)
+  const downloadTemplate = async () => {
+    // the unified workbook opens on the sheet matching the open tab
+    const blob = await makeUnifiedTemplate(tab)
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `PMDC-${cfg.label.replace(/\s+/g, '-')}-template.xlsx`
+    a.download = TEMPLATE_FILENAME
     a.click()
     URL.revokeObjectURL(url)
   }
 
-  const importFile = async (cfg: ObjectTypeConfig, file: File) => {
+  const importFile = async (file: File) => {
     setBanner(undefined)
     try {
-      const result = await parseTemplate(cfg, await file.arrayBuffer())
+      const result = await parseUnifiedTemplate(await file.arrayBuffer())
       const imported: EditorLine[] = result.lines.map((l) => ({ ...l, key: crypto.randomUUID() }))
       if (imported.length > 0) dirtyRef.current = true
       setLines((ls) => [...ls, ...imported])
@@ -533,8 +533,16 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
         if (!v.ok) newErrors[l.key] = v
       }
       setErrors((e) => ({ ...e, ...newErrors }))
+      // per-type breakdown, and land on the first tab that received lines
+      const perType = OBJECT_TYPE_CONFIGS.map((cfg) => ({
+        cfg,
+        n: imported.filter((l) => l.objectType === cfg.objectType).length,
+      })).filter((t) => t.n > 0)
+      if (perType.length > 0) setTab(perType[0].cfg.objectType)
       setImportNotes([
-        imported.length ? S.editor.imported(imported.length) : S.editor.importNothing,
+        imported.length
+          ? `${S.editor.imported(imported.length)} (${perType.map((t) => `${t.cfg.label} ${t.n}`).join(' · ')})`
+          : S.editor.importNothing,
         ...result.errors,
       ])
     } catch (e) {
@@ -679,9 +687,8 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
         className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0]
-          const cfg = importTarget.current
           e.target.value = '' // allow re-importing the same file
-          if (file && cfg) void importFile(cfg, file)
+          if (file) void importFile(file)
         }}
       />
 
@@ -711,17 +718,10 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
               </span>
             </div>
             <div className="flex flex-1 flex-wrap justify-end gap-2">
-              <Button variant="outline" size="sm" onClick={() => void downloadTemplate(activeCfg)}>
+              <Button variant="outline" size="sm" onClick={() => void downloadTemplate()}>
                 <Download className="h-4 w-4" /> {S.editor.downloadTemplate}
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  importTarget.current = activeCfg
-                  fileInputRef.current?.click()
-                }}
-              >
+              <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
                 <Upload className="h-4 w-4" /> {S.editor.importExcel}
               </Button>
             </div>
