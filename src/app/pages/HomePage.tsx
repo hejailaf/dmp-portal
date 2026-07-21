@@ -51,32 +51,30 @@ function ActionCard({
   )
 }
 
-/** Amber/red inline callout row with a trailing action link. */
+/** Amber/red callout row — the WHOLE bar is the link (user decision 2026-07-21). */
 function Callout({
   tone,
   icon,
   text,
-  actionLabel,
-  actionTo,
+  to,
 }: {
   tone: 'red' | 'amber'
   icon: React.ReactNode
   text: string
-  actionLabel: string
-  actionTo: string
+  to: string
 }) {
   const toneCls =
     tone === 'red'
       ? 'border-destructive/40 bg-[var(--danger-tint)] text-destructive'
       : 'border-[rgba(225,154,47,.4)] bg-[var(--warning-tint)] text-foreground'
   return (
-    <div className={`flex items-center gap-2.5 rounded-md border p-2.5 text-sm ${toneCls}`}>
+    <a
+      href={href(to)}
+      className={`flex items-center gap-2.5 rounded-md border p-2.5 text-sm hover:underline ${toneCls}`}
+    >
       {icon}
       <span className="min-w-0">{text}</span>
-      <a href={href(actionTo)} className="ml-auto flex-none font-medium underline">
-        {actionLabel}
-      </a>
-    </div>
+    </a>
   )
 }
 
@@ -274,8 +272,7 @@ export function HomePage() {
               tone="red"
               icon={<AlertCircle className="h-4 w-4 flex-none text-destructive" />}
               text={S.home.rejectedCallout(r.ref)}
-              actionLabel={S.home.openAction}
-              actionTo={`/requests/${r.id}`}
+              to={`/requests/${r.id}`}
             />
           ))}
           <Card>
@@ -343,8 +340,7 @@ export function HomePage() {
                   ? -daysUntilDue(oldestUnassigned.dueDate)
                   : undefined,
               )}
-              actionLabel={S.list.claim}
-              actionTo={`/requests/${oldestUnassigned.id}`}
+              to={`/requests/${oldestUnassigned.id}`}
             />
           )}
           {queueOpen.length > 0 && (
@@ -440,8 +436,7 @@ export function HomePage() {
                   ? -daysUntilDue(oldestUnassigned.dueDate)
                   : undefined,
               )}
-              actionLabel={S.home.assignAction}
-              actionTo={`/requests/${oldestUnassigned.id}`}
+              to={`/requests/${oldestUnassigned.id}`}
             />
           )}
           <div className="grid gap-3 lg:grid-cols-2">

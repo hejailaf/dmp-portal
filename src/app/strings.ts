@@ -38,7 +38,6 @@ export const S = {
     templatesCardTitle: 'Excel template',
     templatesCardBody: 'One workbook, a sheet per data type — fill and import in the editor.',
     rejectedCallout: (ref: string) => `${ref} was rejected — fix and resubmit.`,
-    openAction: 'Open',
     recentTitle: 'Recent requests',
     viewAll: 'View all',
     howSteps: [
@@ -56,7 +55,6 @@ export const S = {
       `${ref} has waited unassigned for ${days} ${days === 1 ? 'day' : 'days'}` +
       (overdueDays ? ` and is ${overdueDays} ${overdueDays === 1 ? 'day' : 'days'} overdue` : '') +
       '.',
-    assignAction: 'Assign',
     teamLoad: 'Team load (open requests)',
     latestActivity: 'Latest activity',
     activitySubmitted: 'submitted',
