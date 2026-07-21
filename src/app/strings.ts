@@ -80,7 +80,8 @@ export const S = {
     searchPlaceholder: 'Search ref, content, requester…',
     statusFilter: 'Status',
     allStatuses: 'All statuses',
-    overdueOnly: 'Overdue only',
+    overdueOnly: 'Overdue',
+    unassignedOnly: 'Unassigned',
     columns: {
       ref: 'Ref',
       description: 'Description',

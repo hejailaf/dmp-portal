@@ -258,11 +258,20 @@ export function RequestListPage() {
             </option>
           ))}
         </Select>
+        {/* Overdue and Unassigned are mutually exclusive (user decision
+            2026-07-21) — checking one clears the other */}
         <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"
             checked={overdueOnly}
-            onChange={(e) => setQuery({ overdue: e.target.checked ? '1' : '' })}
+            onChange={(e) =>
+              setQuery({
+                overdue: e.target.checked ? '1' : '',
+                ...(e.target.checked && scope === 'unassigned'
+                  ? { scope: scopes.find((s) => s !== 'unassigned') ?? scopes[0] }
+                  : {}),
+              })
+            }
             className="h-4 w-4 accent-primary"
           />
           {S.list.overdueOnly}
@@ -279,11 +288,12 @@ export function RequestListPage() {
                   scope: e.target.checked
                     ? 'unassigned'
                     : (scopes.find((s) => s !== 'unassigned') ?? scopes[0]),
+                  ...(e.target.checked ? { overdue: '' } : {}),
                 })
               }
               className="h-4 w-4 accent-primary"
             />
-            {S.list.title.unassigned}
+            {S.list.unassignedOnly}
           </label>
         )}
         {requests.data && (
