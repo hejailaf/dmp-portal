@@ -82,6 +82,7 @@ export function RequestListPage() {
   const autoSizes = useMemo(
     () => ({
       ref: autoColumnSize(S.list.columns.ref, filtered.map((r) => r.ref)),
+      description: autoColumnSize(S.list.columns.description, filtered.map((r) => r.description)),
       lines: autoColumnSize(S.list.columns.lines, filtered.map((r) => r.lineSummary)),
       requester: autoColumnSize(S.list.columns.requester, filtered.map((r) => r.requesterName)),
       assignee: autoColumnSize(S.list.columns.assignee, filtered.map((r) => r.assigneeName ?? S.detail.unassigned)),
@@ -99,6 +100,11 @@ export function RequestListPage() {
             {info.getValue()}
           </a>
         ),
+      }),
+      columnHelper.accessor('description', {
+        header: S.list.columns.description,
+        size: autoSizes.description,
+        cell: (info) => <ClippedCell value={info.getValue()} />,
       }),
       columnHelper.accessor('status', {
         header: S.list.columns.status,

@@ -58,6 +58,7 @@ export const S = {
     overdueOnly: 'Overdue only',
     columns: {
       ref: 'Ref',
+      description: 'Description',
       status: 'Status',
       lines: 'Line items',
       requester: 'Requester',
