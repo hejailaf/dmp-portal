@@ -50,12 +50,13 @@ export const S = {
     queueByStatus: 'My queue by status',
     dueThisWeek: 'Due this week',
     nothingDue: 'Nothing due this week.',
-    // admin command center
-    unassignedAging: (ref: string, days: number) =>
-      `${ref} has waited unassigned for ${days} ${days === 1 ? 'day' : 'days'}.`,
+    // admin command center — callouts name SPECIFIC requests; counts stay
+    // on the tiles (the old "N requests are overdue" line duplicated the tile)
+    unassignedAging: (ref: string, days: number, overdueDays?: number) =>
+      `${ref} has waited unassigned for ${days} ${days === 1 ? 'day' : 'days'}` +
+      (overdueDays ? ` and is ${overdueDays} ${overdueDays === 1 ? 'day' : 'days'} overdue` : '') +
+      '.',
     assignAction: 'Assign',
-    overdueCallout: (n: number) => `${n} ${n === 1 ? 'request is' : 'requests are'} overdue.`,
-    viewAction: 'View',
     teamLoad: 'Team load (open requests)',
     latestActivity: 'Latest activity',
     activitySubmitted: 'submitted',

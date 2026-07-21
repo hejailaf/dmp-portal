@@ -398,22 +398,27 @@ export function HomePage() {
               to="/requests?scope=all&status=Completed"
             />
           </div>
+          {/* one banner per request, worst facts combined — the Overdue tile
+              already carries the count, so no count-only callout */}
           {oldestUnassigned && unassignedDays >= 1 && (
             <Callout
-              tone="amber"
-              icon={<UserPlus className="h-4 w-4 flex-none text-[var(--warning)]" />}
-              text={S.home.unassignedAging(oldestUnassigned.ref, unassignedDays)}
+              tone={isOverdue(oldestUnassigned) ? 'red' : 'amber'}
+              icon={
+                isOverdue(oldestUnassigned) ? (
+                  <AlertCircle className="h-4 w-4 flex-none text-destructive" />
+                ) : (
+                  <UserPlus className="h-4 w-4 flex-none text-[var(--warning)]" />
+                )
+              }
+              text={S.home.unassignedAging(
+                oldestUnassigned.ref,
+                unassignedDays,
+                isOverdue(oldestUnassigned) && oldestUnassigned.dueDate
+                  ? -daysUntilDue(oldestUnassigned.dueDate)
+                  : undefined,
+              )}
               actionLabel={S.home.assignAction}
               actionTo={`/requests/${oldestUnassigned.id}`}
-            />
-          )}
-          {allOverdue.length > 0 && (
-            <Callout
-              tone="red"
-              icon={<AlertCircle className="h-4 w-4 flex-none text-destructive" />}
-              text={S.home.overdueCallout(allOverdue.length)}
-              actionLabel={S.home.viewAction}
-              actionTo="/requests?scope=all&overdue=1"
             />
           )}
           <div className="grid gap-3 lg:grid-cols-2">
