@@ -5,7 +5,7 @@ Click-by-click recipe for the "core four" notifications (decision
 
 | Event | Email goes to |
 |---|---|
-| Request submitted (status → Waiting to be started) | **DMP Maintainers** group |
+| Request submitted (status → Waiting to be started) | **PMDC Maintainers** group |
 | Assignee set or changed | the **assignee** |
 | Request rejected | the **requester** (with the reject reason) |
 | Request completed | the **requester** |
@@ -20,11 +20,11 @@ has no server-side jobs. Overdue lives in the app UI and dashboard.
    works fine against SharePoint Server 2019.
 2. **Outgoing email is configured on the farm.** Quick check: List
    settings → "Alert me" exists on any list → set a test alert on
-   DMP_Requests, change an item, see if a mail arrives. If no mail ever
+   PMDC_Requests, change an item, see if a mail arrives. If no mail ever
    arrives, stop and ask IT to enable outgoing email — no workflow can
    send without it.
 3. **Helper columns exist**: open the app → Site setup → Verify &
-   provision. It must report DMP_Requests has `LastNotifiedStatus` and
+   provision. It must report PMDC_Requests has `LastNotifiedStatus` and
    `LastNotifiedAssignee` (added automatically from build 202607191xxx+,
    together with CompletedAt/Description if you had not re-run it).
 4. Everyone who should RECEIVE mail (maintainers, requesters in the
@@ -39,7 +39,7 @@ resolves this in "Send an Email → To", but farms differ — prove it
 before building everything:
 
 1. SPD → Open Site → your site URL (…/personal/<you>/pmdc).
-2. Workflows → List Workflow → DMP_Requests. Name: `DMP Notify TEST`.
+2. Workflows → List Workflow → PMDC_Requests. Name: `PMDC Notify TEST`.
    Platform: **SharePoint 2013 Workflow** (if that platform is missing,
    pick SharePoint 2010 Workflow — everything in this recipe exists in
    both; 2010 wording differs slightly).
@@ -59,9 +59,9 @@ before building everything:
      skips `i:0#.w|`), output to Variable:plainLogin — and use
      Variable:plainLogin in To instead.
 
-## The real workflow — `DMP Notify`
+## The real workflow — `PMDC Notify`
 
-SPD → Workflows → List Workflow → **DMP_Requests**. Name: `DMP Notify`.
+SPD → Workflows → List Workflow → **PMDC_Requests**. Name: `PMDC Notify`.
 Platform type: SharePoint 2013 Workflow.
 
 ### Stage: Notify
@@ -74,7 +74,7 @@ the action name in the SPD search box to find it):
 ```
 If Current Item:RequestStatus not equals Current Item:LastNotifiedStatus
     If Current Item:RequestStatus equals Waiting to be started
-        Email DMP Maintainers            (see Email A below)
+        Email PMDC Maintainers            (see Email A below)
     Else if Current Item:RequestStatus equals Rejected
         Email Current Item:RequesterLogin (see Email B; claims note above)
     Else if Current Item:RequestStatus equals Completed
@@ -103,10 +103,10 @@ Use **Add or Change Lookup** in the email body for every `[..]` token.
 The deep link works in every mail; replace the site path with yours:
 
 ```
-https://<server>/personal/<you>/pmdc/DMPApp/index.aspx#/requests/[%Current Item:ID%]
+https://<server>/personal/<you>/pmdc/PMDCApp/index.aspx#/requests/[%Current Item:ID%]
 ```
 
-- **Email A — to: DMP Maintainers** (type the group name in To)
+- **Email A — to: PMDC Maintainers** (type the group name in To)
   - Subject: `New request [%Current Item:Title%]: [%Current Item:Description%]`
   - Body: requester name, Description, LineSummary, DueDate, deep link.
 - **Email B — rejected, to requester**
@@ -156,5 +156,5 @@ LastNotified columns exist purely for this.
   profile, or the To field has a typo in the group name.
 - **Duplicate emails** → the guard "Set field" actions are missing or
   placed inside the wrong If branch.
-- Workflow history: List settings → Workflow Settings → DMP Notify →
+- Workflow history: List settings → Workflow Settings → PMDC Notify →
   click an instance to see each action's outcome.

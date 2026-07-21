@@ -1,8 +1,9 @@
 # PM DataCare
 
-*Caring for your SAP PM master data* — internally codenamed **DMP**
-(Data Maintenance Portal; the `DMP_*` lists, groups, and refs keep that
-name).
+*Caring for your SAP PM master data* — originally codenamed **DMP**
+(Data Maintenance Portal). SharePoint artifacts now use the **PMDC**
+prefix (`PMDC_*` lists, `PMDC *` groups, renamed 2026-07-21); only
+internals (repo name, zip, localStorage keys) keep the old codename.
 
 An internal portal where end users submit **change requests for SAP Plant
 Maintenance (PM) master data**, and the Data Maintenance team executes those

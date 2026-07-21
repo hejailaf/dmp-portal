@@ -12,12 +12,12 @@ URL segment renamed `dmp` → `pmdc` on 2026-07-19).
 
 ## First-time setup (once — Phase 2)
 
-1. **Document library** — `DMPApp` on the dmp subsite (done during Phase 0).
+1. **Document library** — `PMDCApp` on the pmdc subsite.
 2. **Upload the app** — from `dist-sp/`: `index.aspx` (+ `spike.aspx` if you
    want diagnostics available) into the library root; everything from
    `dist-sp/assets/` into the library's `assets` folder.
-3. **Groups** — create `DMP Requesters` / `DMP Maintainers` / `DMP Admins`
-   per `LIST_SETUP.md` §1 and put yourself in DMP Admins.
+3. **Groups** — create `PMDC Requesters` / `PMDC Maintainers` / `PMDC Admins`
+   per `LIST_SETUP.md` §1 and put yourself in PMDC Admins.
 4. **Lists** — open `index.aspx` → **Site setup** in the nav → **Verify &
    provision lists** (all green), then **Run connection self-test** (ends
    with "DELETE OK"). Manual fallback: `LIST_SETUP.md` §3.
@@ -32,7 +32,7 @@ URL segment renamed `dmp` → `pmdc` on 2026-07-19).
 
 1. At home: `npm run package:sp` → produces `dist-sp/` and `dmp-sp.zip`.
 2. Bring the files to work (per your normal transfer method).
-3. Open the `DMPApp` library → drag in `index.aspx` (and `spike.aspx` if you
+3. Open the `PMDCApp` library → drag in `index.aspx` (and `spike.aspx` if you
    want the diagnostics page updated), replacing the existing files.
 4. Open the `assets` folder → drag in everything from `dist-sp/assets/`,
    replacing existing files.
@@ -51,10 +51,10 @@ restore the previous version of `index.aspx` and the `assets` files.
 ## Friendly URL: the app as the site home page (added 2026-07-19)
 
 Site setup screen -> "Make the app the site home page" points the site
-welcome page at DMPApp/index.aspx, so the bare site URL (…/pmdc) opens
+welcome page at PMDCApp/index.aspx, so the bare site URL (…/pmdc) opens
 the app directly - that is the link to share with users. Revert by
 setting it back to SitePages/Home.aspx (ask Claude, or use the same REST
-call). Note: the LIBRARY URL (…/pmdc/DMPApp) cannot be redirected -
+call). Note: the LIBRARY URL (…/pmdc/PMDCApp) cannot be redirected -
 SharePoint hardwires it to the file list; users landing there click
 index.aspx.
 
@@ -82,21 +82,21 @@ the new subsite under your personal site again would change nothing.
 - User Permissions: **Use unique permissions** ← important; this saves the
   "Stop Inheriting" detour in LIST_SETUP.md §4a
 - Create. On the "Set Up Groups for this Site" page accept the defaults
-  (create new Visitor/Member/Owner groups) — the DMP groups come next and
+  (create new Visitor/Member/Owner groups) — the PMDC groups come next and
   are the ones that matter. (§4b's note applies: Members get Edit; you can
   trim that to Read later.)
 
-**2. Library.** Site contents → New → **Document library** named `DMPApp`;
+**2. Library.** Site contents → New → **Document library** named `PMDCApp`;
 inside it create a folder named `assets`.
 
 **3. Upload the current build** — `index.aspx` (+ `spike.aspx` if wanted)
 to the library root, everything from `dist-sp/assets/` into `assets`
 (same as a routine update).
 
-**4. Groups** — LIST_SETUP.md §1: create the three `DMP *` groups fresh on
+**4. Groups** — LIST_SETUP.md §1: create the three `PMDC *` groups fresh on
 this site, exact names. Then per §6: set "Who can view the membership" =
-**Everyone** on all three, add yourself to DMP Admins, and re-add the AD
-security group into DMP Requesters.
+**Everyone** on all three, add yourself to PMDC Admins, and re-add the AD
+security group into PMDC Requesters.
 
 **5. Lists** — open `index.aspx` → **Site setup** → **Verify & provision
 lists** (all green — this creates all four lists with every current

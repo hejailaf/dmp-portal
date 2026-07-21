@@ -1,6 +1,7 @@
 import { AUDIT_EVENTS, LINE_ACTIONS, OBJECT_TYPES, STATUSES } from '@/domain/types'
 
-// The four DMP lists (spec §Lists + Phase-2 plan). The provision screen
+// The four PMDC lists (spec §Lists + Phase-2 plan; prefix renamed
+// DMP→PMDC 2026-07-21 with the new-subsite move). The provision screen
 // creates/verifies exactly this; docs/LIST_SETUP.md mirrors it for manual
 // setup. Field internal names are fixed — the provider reads/writes them.
 //
@@ -44,7 +45,7 @@ const choice = (name: string, values: readonly string[]) => ({
 
 export const LIST_SPECS: ListSpec[] = [
   {
-    title: 'DMP_Requests',
+    title: 'PMDC_Requests',
     versioning: true,
     fields: [
       choice('RequestStatus', STATUSES),
@@ -66,7 +67,7 @@ export const LIST_SPECS: ListSpec[] = [
     ],
   },
   {
-    title: 'DMP_RequestLines',
+    title: 'PMDC_RequestLines',
     versioning: false,
     fields: [
       number('RequestId', true),
@@ -77,19 +78,19 @@ export const LIST_SPECS: ListSpec[] = [
     ],
   },
   {
-    title: 'DMP_Comments',
+    title: 'PMDC_Comments',
     versioning: false,
     fields: [number('RequestId', true), note('Body')],
   },
   {
-    title: 'DMP_AuditLog',
+    title: 'PMDC_AuditLog',
     versioning: true,
     fields: [number('RequestId', true), choice('Event', AUDIT_EVENTS), note('OldValue'), note('NewValue')],
   },
 ]
 
-export const DMP_GROUPS = {
-  requester: 'DMP Requesters',
-  maintainer: 'DMP Maintainers',
-  admin: 'DMP Admins',
+export const PMDC_GROUPS = {
+  requester: 'PMDC Requesters',
+  maintainer: 'PMDC Maintainers',
+  admin: 'PMDC Admins',
 } as const

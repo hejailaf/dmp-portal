@@ -42,7 +42,7 @@ export const S = {
     requester: 'Requester',
     maintainer: 'Data Maintainer',
     admin: 'Admin',
-    none: 'No DMP role',
+    none: 'No PM DataCare role',
   } as Record<string, string>,
 
   list: {
@@ -174,7 +174,7 @@ export const S = {
   provision: {
     title: 'Site setup',
     intro:
-      'Creates and verifies the four DMP lists on this SharePoint site, checks the role groups, and runs a write self-test. Safe to run repeatedly.',
+      'Creates and verifies the four PMDC lists on this SharePoint site, checks the role groups, and runs a write self-test. Safe to run repeatedly.',
     provisionNow: 'Verify & provision lists',
     selfTest: 'Run connection self-test',
     setHome: 'Make the app the site home page',
@@ -189,12 +189,12 @@ export const S = {
     selfTestTitle: 'Connection self-test',
     mockNote: 'Running on the mock provider — nothing to provision; the buttons demonstrate the screen only.',
     recipeHint: 'Groups and permissions are set up manually once — the click-by-click recipe is docs/LIST_SETUP.md.',
-    adminOnly: 'Site setup is only available to DMP Admins.',
+    adminOnly: 'Site setup is only available to PMDC Admins.',
   },
 
   dashboard: {
     title: 'Admin dashboard',
-    adminOnly: 'The dashboard is only available to DMP Admins.',
+    adminOnly: 'The dashboard is only available to PMDC Admins.',
     kpis: {
       total: 'All requests',
       waiting: 'Waiting to be started',

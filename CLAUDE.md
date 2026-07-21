@@ -1,8 +1,13 @@
 # CLAUDE.md — PM DataCare (internally DMP)
 
 Display name: **PM DataCare** — "Caring for your SAP PM master data"
-(renamed 2026-07-18 from "Data Maintenance Portal"). Internal `DMP_*`
-lists and `DMP *` groups keep the DMP naming. Request refs are
+(renamed 2026-07-18 from "Data Maintenance Portal"). SharePoint artifacts
+use the `PMDC` prefix — `PMDC_*` lists, `PMDC *` groups, `PMDCApp`
+library, `PMDC *` permission levels (renamed from DMP 2026-07-21, bound
+to the new-subsite move: a PMDC build only works on a site provisioned
+with PMDC names — the old personal-site subsite needs the pre-rename
+build until retired). Only internals keep the DMP codename (repo name,
+`dmp-sp.zip`, localStorage keys, the spec filename). Request refs are
 `DCR-YYNNNN` (brand restyle of 2026-07-18; legacy `REQ-` refs are ignored
 by `nextRef`).
 
@@ -23,7 +28,7 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
   no Node backend, no DB, no cloud, no Power Automate, no SPFx.
 - **SharePoint lists are the database** via SP2019 REST (same origin).
 - Windows auth; identity from `/_api/web/currentuser`, roles from groups
-  `DMP Requesters` / `DMP Maintainers` / `DMP Admins`.
+  `PMDC Requesters` / `PMDC Maintainers` / `PMDC Admins`.
 - Entry page is **`index.aspx`** (Strict file handling downloads `.html`).
 - The developer has **no terminal and no internet at work** — deployment is
   drag-and-drop upload in the browser. The app must be fully runnable offline
@@ -69,10 +74,11 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
   if maintainers should reject).
 - Assignment: admins assign anyone; maintainers may self-claim unassigned
   requests (user decision). Enforced in providers, not just UI.
-- Roles: groups first; if a user has NO direct DMP group, the SP provider
-  probes EffectiveBasePermissions on DMP_Requests and grants `requester`
+- Roles: groups first; if a user has NO direct PMDC group, the SP provider
+  probes EffectiveBasePermissions on PMDC_Requests and grants `requester`
   when the AddListItems bit is set — this is how 1,000-member AD security
-  groups nested in `DMP Requesters` work (on-site verified 2026-07-19;
+  groups nested in `PMDC Requesters` work (on-site verified 2026-07-19,
+  pre-rename;
   see LIST_SETUP.md §6). Maintainer/admin stay group-name-only. All three
   groups need "view membership: Everyone" or direct members read as
   role-less.
@@ -166,8 +172,8 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
   mapping w/ tests, full provider — nometadata writes only), Site setup
   screen (`#/admin/provision`: provision/verify lists, groups check,
   connection self-test incl. the untested DELETE verb), `LIST_SETUP.md`
-  (groups, custom permission levels "DMP Contribute (no delete)" +
-  "DMP Add only", per-list grants). `package:sp` now builds
+  (groups, custom permission levels "PMDC Contribute (no delete)" +
+  "PMDC Add only", per-list grants). `package:sp` now builds
   VITE_DATA_PROVIDER=sharepoint; dev stays mock. Deviation (approved):
   requester/assignee stored as TEXT columns (claims login + display name),
   not Person fields.
@@ -183,18 +189,22 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
   `src/domain/dashboard.ts`, computed at render), `CompletedAt` column
   (stamped on transition to Completed in BOTH providers; dashboard
   on-time %/cycle time need it — pre-upgrade Completed items show "—").
-  ON-SITE STEP PENDING: re-run "Verify & provision" once so the existing
-  DMP_Requests list gains CompletedAt AND Description (added same day). Note: the formerly listed
-  "digest-expiry retry" was already implemented in Phase 2
-  (client.ts 403 → refresh digest → retry once) — not a Phase-3 item.
+  The formerly pending "provision re-run for CompletedAt + Description"
+  is SUPERSEDED by the PMDC rename: the new subsite's fresh provision
+  creates every current column (the old site would need the pre-rename
+  build to re-provision, and is being retired instead). Note: the
+  formerly listed "digest-expiry retry" was already implemented in
+  Phase 2 (client.ts 403 → refresh digest → retry once) — not a
+  Phase-3 item.
 - ✅ Phase 4 AUTHORED (2026-07-19): WORKFLOW_RECIPE.md (SPD 2013,
   "core four" emails — submitted→Maintainers, assigned→assignee,
   rejected/completed→requester; loop-safe via LastNotifiedStatus/
   LastNotifiedAssignee scratch columns now in LIST_SPECS; Step-0 check
   for claims-login email resolution), SMOKE_TEST.md (pre-pilot
   checklist), README demo script, DEPLOY_SP pilot note. ON-SITE
-  EXECUTION PENDING: provision re-run (adds 4 columns now), workflow
-  built per recipe, smoke test run, then pilot.
+  EXECUTION PENDING (now on the NEW subsite, DEPLOY_SP.md "Moving to a
+  new subsite"): fresh provision there, workflow built per recipe, smoke
+  test run, then pilot.
 
 ## Session handoff (2026-07-18) — read before continuing
 
@@ -202,8 +212,9 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
   dist-sp/ is committed on purpose — it's the payload). At work the user
   opens `stackblitz.com/github/hejailaf/dmp-portal` (anonymous; GitHub
   itself is blocked there), downloads the project zip, uploads `dist-sp/`
-  files into the `DMPApp` library on the SharePoint subsite
-  (`/personal/<user>/pmdc`, unique permissions). Typical update = replace
+  files into the app library on the SharePoint subsite (old site:
+  `DMPApp` under `/personal/<user>/pmdc`; new site: `PMDCApp` under the
+  team-site subsite once created). Typical update = replace
   `index.aspx` + `assets/index.js` + `assets/index.css`. ALWAYS
   `npm run package:sp` + commit + push after user-visible changes.
 - **On-site state**: Phase 2 verified (provision green, self-test incl.
@@ -212,9 +223,10 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
   the app as non-owners with correct roles (after setting group
   "view membership: Everyone" — the no-role fix), AND the 1,000-member
   AD security group flow works "flawlessly" (permission-probe requester
-  role, LIST_SETUP.md §6). Still to confirm on-site: one full vertical
-  slice (submit → assign → complete) with real data, and a "Verify &
-  provision" re-run so DMP_Requests gains CompletedAt + Description.
+  role, LIST_SETUP.md §6). All of that was on the OLD (pre-rename) site;
+  still to do on-site: the new-subsite move (DEPLOY_SP.md) with fresh
+  PMDC provision, then one full vertical slice (submit → assign →
+  complete) with real data there.
 - **Brand restyle applied** (2026-07-18, from
   `design_handoff_pm_datacare_restyle/README.md` §1–5): PM DataCare tokens
   in styles.css (light + dark, plus plain hex brand vars for badges/cells),

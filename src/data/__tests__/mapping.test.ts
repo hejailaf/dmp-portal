@@ -93,9 +93,9 @@ describe('mapLine', () => {
 
 describe('rolesFromGroups', () => {
   it('maps the three exact group names and ignores others', () => {
-    expect(rolesFromGroups(['DMP Requesters', 'Random Team'])).toEqual(['requester'])
-    expect(rolesFromGroups(['DMP Maintainers', 'DMP Admins'])).toEqual(['maintainer', 'admin'])
-    expect(rolesFromGroups(['dmp requesters'])).toEqual([]) // exact match only
+    expect(rolesFromGroups(['PMDC Requesters', 'Random Team'])).toEqual(['requester'])
+    expect(rolesFromGroups(['PMDC Maintainers', 'PMDC Admins'])).toEqual(['maintainer', 'admin'])
+    expect(rolesFromGroups(['pmdc requesters'])).toEqual([]) // exact match only
   })
 })
 

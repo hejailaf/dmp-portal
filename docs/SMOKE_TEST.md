@@ -19,15 +19,15 @@ Everything is browser-only. Tick as you go.
 - [ ] Connection self-test → all lines OK incl. DELETE and the
       EffectiveBasePermissions line ("AddListItems OK").
 - [ ] "Make the app the site home page" → confirmation shows
-      `DMPApp/index.aspx`; opening the bare site URL now loads the app.
+      `PMDCApp/index.aspx`; opening the bare site URL now loads the app.
 
 ## 3. Access & roles
 
-- [ ] A DIRECT member of DMP Requesters sees the Requester home.
+- [ ] A DIRECT member of PMDC Requesters sees the Requester home.
 - [ ] An AD-GROUP member (no direct membership) sees the Requester home.
 - [ ] A maintainer sees queue/unassigned nav; an admin sees Dashboard +
       Site setup.
-- [ ] All three DMP groups have "view membership: Everyone"
+- [ ] All three PMDC groups have "view membership: Everyone"
       (LIST_SETUP.md §6.4).
 
 ## 4. Vertical slice (the money test)

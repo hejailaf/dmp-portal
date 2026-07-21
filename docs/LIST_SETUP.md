@@ -1,6 +1,6 @@
 # LIST_SETUP.md — Lists, groups, and permissions (one-time, browser-only)
 
-Everything here happens once, in the browser, on the **dmp subsite**. Do it
+Everything here happens once, in the browser, on the **pmdc subsite**. Do it
 in this order:
 
 1. Create the three role groups (§1)
@@ -17,19 +17,19 @@ three times. The names must match EXACTLY (the app maps roles from them):
 
 | Group name | Who belongs in it | Suggested "Group owner" |
 |---|---|---|
-| `DMP Requesters` | End users who file requests | you |
-| `DMP Maintainers` | The Data Maintenance team | you |
-| `DMP Admins` | You (+ a deputy) | you |
+| `PMDC Requesters` | End users who file requests | you |
+| `PMDC Maintainers` | The Data Maintenance team | you |
+| `PMDC Admins` | You (+ a deputy) | you |
 
-Leave every other group setting at its default. Add yourself to **DMP
+Leave every other group setting at its default. Add yourself to **PMDC
 Admins** now (you can also be in the other two for testing). A person may be
 in several groups; their app roles combine.
 
 ## §2 Lists — the easy way (app-driven)
 
-1. Upload the current build to the `DMPApp` library (see DEPLOY_SP.md).
+1. Upload the current build to the `PMDCApp` library (see DEPLOY_SP.md).
 2. Open `index.aspx` — you should land on the app as yourself.
-3. Top navigation → **Site setup** (visible to DMP Admins only) →
+3. Top navigation → **Site setup** (visible to PMDC Admins only) →
    **Verify & provision lists**. The app creates the four lists with all
    columns and re-checks them; every row should end green (`ok`/`created`).
 4. Click **Run connection self-test** — all lines should appear, ending with
@@ -44,7 +44,7 @@ Site contents → New → **List** (blank), name it exactly, then List settings
 → Create column for each row. "Line" = single line of text; "Multi" =
 multiple lines of text, **plain text**.
 
-**DMP_Requests** — versioning ON (List settings → Versioning settings →
+**PMDC_Requests** — versioning ON (List settings → Versioning settings →
 Create a version each time = Yes). Attachments stay enabled (default).
 
 | Column | Type | Notes |
@@ -55,7 +55,7 @@ Create a version each time = Yes). Attachments stay enabled (default).
 | SlaDays | Number | 0 decimals |
 | RejectReason / LineSummary | Multi (plain) | |
 
-**DMP_RequestLines**
+**PMDC_RequestLines**
 
 | Column | Type | Notes |
 |---|---|---|
@@ -65,9 +65,9 @@ Create a version each time = Yes). Attachments stay enabled (default).
 | LineOrder | Number | 0 decimals |
 | FieldData | Multi (plain) | the JSON blob — never split into columns |
 
-**DMP_Comments** — RequestId (Number, indexed), Body (Multi plain).
+**PMDC_Comments** — RequestId (Number, indexed), Body (Multi plain).
 
-**DMP_AuditLog** — versioning ON. RequestId (Number, indexed), Event
+**PMDC_AuditLog** — versioning ON. RequestId (Number, indexed), Event
 (Choice: Created; DraftUpdated; Submitted; Assigned; StatusChanged;
 Rejected; Reopened; CommentAdded; AttachmentAdded), OldValue (Multi plain),
 NewValue (Multi plain).
@@ -87,10 +87,10 @@ Gear → Site settings → **Site permissions**.
 
 Then click ribbon **Permission Levels**:
 
-1. **`DMP Contribute (no delete)`** — click **Contribute** → Copy Permission
+1. **`PMDC Contribute (no delete)`** — click **Contribute** → Copy Permission
    Level → name it as above → UNTICK **Delete Items** and **Delete
    Versions** → Create. (Requesters can add/edit but never delete.)
-2. **`DMP Add only`** — Add a Permission Level → name it → tick these:
+2. **`PMDC Add only`** — Add a Permission Level → name it → tick these:
    under **List Permissions** — **Add Items, View Items, Open Items, View
    Application Pages**; under **Site Permissions** — **Use Remote
    Interfaces** (REQUIRED — the app's REST writes to the audit log fail for
@@ -103,16 +103,16 @@ Then click ribbon **Permission Levels**:
 
 For each list: List settings → **Permissions for this list** → ribbon
 **Stop Inheriting Permissions** → remove the default site groups (keep
-yourself/DMP Admins!) → **Grant Permissions** to the DMP groups
+yourself/PMDC Admins!) → **Grant Permissions** to the PMDC groups
 ("Show options" → untick email → pick the permission level directly):
 
-| List | DMP Requesters | DMP Maintainers | DMP Admins |
+| List | PMDC Requesters | PMDC Maintainers | PMDC Admins |
 |---|---|---|---|
-| DMP_Requests | DMP Contribute (no delete) | Contribute | Full Control |
-| DMP_RequestLines | DMP Contribute (no delete) | Contribute | Full Control |
-| DMP_Comments | DMP Contribute (no delete) | Contribute | Full Control |
-| DMP_AuditLog | DMP Add only | DMP Add only | Full Control |
-| DMPApp (library) | Read | Read | Contribute |
+| PMDC_Requests | PMDC Contribute (no delete) | Contribute | Full Control |
+| PMDC_RequestLines | PMDC Contribute (no delete) | Contribute | Full Control |
+| PMDC_Comments | PMDC Contribute (no delete) | Contribute | Full Control |
+| PMDC_AuditLog | PMDC Add only | PMDC Add only | Full Control |
+| PMDCApp (library) | Read | Read | Contribute |
 
 Also grant all three groups **Read** on the **subsite itself** (Site
 settings → Site permissions → Grant Permissions) so members can reach the
@@ -121,8 +121,8 @@ library at all.
 > At the SITE level, Requesters and Maintainers only need **Read** — all
 > their write access comes from the list-level grants above. The "Set Up
 > Groups" step maps Members → **Edit**, which over-grants Maintainers on
-> still-inheriting content (e.g. the app files in DMPApp). Optional but
-> cleaner: change DMP Maintainers' site-level level from Edit to Read.
+> still-inheriting content (e.g. the app files in PMDCApp). Optional but
+> cleaner: change PMDC Maintainers' site-level level from Edit to Read.
 > Admins stay Full Control.
 
 **"Limited Access" is normal** — SharePoint auto-adds it (greyed out, can't
@@ -130,18 +130,18 @@ be assigned/removed by hand) so members can traverse to content they're
 allowed to use; it grants nothing on its own. Just confirm each group ALSO
 shows its real level from the table, not only Limited Access.
 
-Check on DMP_Requests and DMP_RequestLines: List settings → Advanced
+Check on PMDC_Requests and PMDC_RequestLines: List settings → Advanced
 settings → "Read access / Create and Edit access" must remain **All items**
 (maintainers edit items created by requesters).
 
 ## §5 Verify
 
 - As yourself: Site setup screen → provision all green + self-test all green.
-- Add a colleague to `DMP Requesters` only → they open `index.aspx`: the app
+- Add a colleague to `PMDC Requesters` only → they open `index.aspx`: the app
   renders (non-owner rendering check!), they see the Requester home, can
   create + submit a request, CANNOT see the Site setup nav, and deleting is
   nowhere offered.
-- As a `DMP Maintainers` member: unassigned pool shows the submitted
+- As a `PMDC Maintainers` member: unassigned pool shows the submitted
   request; claim → start → complete works; audit trail fills in.
 
 ## §6 Access at scale — AD security groups (added 2026-07-19)
@@ -149,17 +149,17 @@ settings → "Read access / Create and Edit access" must remain **All items**
 For large requester populations (e.g. a 1,000-member department), do NOT
 add people one by one:
 
-1. Open People and groups → `DMP Requesters` → New → Add Users → enter
+1. Open People and groups → `PMDC Requesters` → New → Add Users → enter
    the **AD security group** name → OK. Permissions flow to every member
    automatically (SharePoint expands AD groups for authorization).
 2. Role detection for these users works via a permission probe, not group
-   membership: the app treats "may add items to DMP_Requests"
+   membership: the app treats "may add items to PMDC_Requests"
    (EffectiveBasePermissions, AddListItems bit) as the Requester role.
    Verified on-site 2026-07-19 (AD member: High=432, Low=1011028583 =
    contribute, no delete). The probe only runs for users with no direct
-   DMP group membership.
+   PMDC group membership.
 3. Maintainers and Admins must remain DIRECT members of their groups —
    the app maps those roles by group name only. They are few; keep it so.
-4. Group settings for all three DMP groups: "Who can view the membership
+4. Group settings for all three PMDC groups: "Who can view the membership
    of the group" = **Everyone** — otherwise directly-added members show
-   "No DMP role" (the membership API hides groups the caller cannot view).
+   "No PM DataCare role" (the membership API hides groups the caller cannot view).

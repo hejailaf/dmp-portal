@@ -1,7 +1,7 @@
 import type { AuditEntry, AuditEvent, Comment, Request, RequestLine, RequestStatus, Role, User } from '@/domain/types'
 import { normalizeFieldData } from '@/domain/field-map'
 import type { RequestScope } from '../provider'
-import { DMP_GROUPS } from './schema'
+import { PMDC_GROUPS } from './schema'
 
 // Pure list-item ↔ domain mapping + shared filtering rules. Everything in
 // this file is unit-tested at home; the provider stays a thin I/O shell.
@@ -114,7 +114,7 @@ export function mapAudit(item: AuthoredItem): AuditEntry {
  * AddListItems is bit 0x2 of the Low permission mask. Users granted access
  * through a nested AD security group are invisible to the group-membership
  * API, but EffectiveBasePermissions sees through AD groups — so "may add
- * items to DMP_Requests" identifies requesters (verified on-site 2026-07-19:
+ * items to PMDC_Requests" identifies requesters (verified on-site 2026-07-19:
  * AD member Low=1011028583 → add/edit, no delete/manage).
  */
 export function hasAddListItems(low: number): boolean {
@@ -124,9 +124,9 @@ export function hasAddListItems(low: number): boolean {
 /** Roles from SharePoint group titles — exact names from docs/LIST_SETUP.md. */
 export function rolesFromGroups(groupTitles: string[]): Role[] {
   const roles: Role[] = []
-  if (groupTitles.includes(DMP_GROUPS.requester)) roles.push('requester')
-  if (groupTitles.includes(DMP_GROUPS.maintainer)) roles.push('maintainer')
-  if (groupTitles.includes(DMP_GROUPS.admin)) roles.push('admin')
+  if (groupTitles.includes(PMDC_GROUPS.requester)) roles.push('requester')
+  if (groupTitles.includes(PMDC_GROUPS.maintainer)) roles.push('maintainer')
+  if (groupTitles.includes(PMDC_GROUPS.admin)) roles.push('admin')
   return roles
 }
 

@@ -57,7 +57,7 @@ export interface DataProvider {
     newValue?: string
   }): Promise<void>
   listAudit(id: string): Promise<AuditEntry[]>
-  /** Admin diagnostics: verify/create the four DMP lists. */
+  /** Admin diagnostics: verify/create the four PMDC lists. */
   provisionLists(): Promise<ProvisionResult[]>
   /** Candidates for the assignment dropdown (added beyond spec §5 — assignment needs a target). */
   listAssignableUsers(): Promise<User[]>

@@ -485,7 +485,7 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `DMP-${cfg.label.replace(/\s+/g, '-')}-template.xlsx`
+    a.download = `PMDC-${cfg.label.replace(/\s+/g, '-')}-template.xlsx`
     a.click()
     URL.revokeObjectURL(url)
   }

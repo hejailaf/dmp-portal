@@ -332,7 +332,7 @@ export class MockProvider implements DataProvider {
 
   async provisionLists(): Promise<ProvisionResult[]> {
     await sleep()
-    return ['DMP_Requests', 'DMP_RequestLines', 'DMP_Comments', 'DMP_AuditLog'].map((list) => ({
+    return ['PMDC_Requests', 'PMDC_RequestLines', 'PMDC_Comments', 'PMDC_AuditLog'].map((list) => ({
       list,
       status: 'ok',
       detail: 'MockProvider — nothing to provision',

@@ -2,19 +2,19 @@ import { StrictMode, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DMP Phase 0 feasibility spike (spec §10, Phase 0).
+// PMDC Phase 0 feasibility spike (spec §10, Phase 0).
 //
 // A standalone diagnostics page that verifies, ON THE REAL SP2019 SITE, every
 // assumption the production SharePointProvider will be built on. Each check
 // maps to one VERIFY-ON-SITE assumption. Upload dist-sp/spike.aspx and
-// dist-sp/assets/spike.js to the DMPApp document library, open spike.aspx,
+// dist-sp/assets/spike.js to the PMDCApp document library, open spike.aspx,
 // click "Run all checks", then copy/screenshot the results.
 //
 // Run at home (npm run dev → /spike.html): the page renders but the API
 // checks fail — that is expected; there is no SharePoint at home.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const SCRATCH_LIST = 'DMP_Spike'
+const SCRATCH_LIST = 'PMDC_Spike'
 const NOMETA = 'application/json;odata=nometadata'
 const VERBOSE = 'application/json;odata=verbose'
 
@@ -212,7 +212,7 @@ function App() {
         'pass',
         `User: ${user.Title} (${user.LoginName})`,
         `Email: ${user.Email || '(none)'}`,
-        `Groups: ${groups.length ? groups.join(', ') : '(none — add yourself to the DMP groups later)'}`,
+        `Groups: ${groups.length ? groups.join(', ') : '(none — add yourself to the PMDC groups later)'}`,
       )
       identityOk = true
     } catch (e) {
@@ -309,7 +309,7 @@ function App() {
         webUrl,
         `${itemPath}/AttachmentFiles/add(FileName='spike.txt')`,
         digest,
-        `DMP Phase 0 spike attachment, created ${new Date().toISOString()}`,
+        `PMDC Phase 0 spike attachment, created ${new Date().toISOString()}`,
       )
       const atts = await spGet(webUrl, `${itemPath}/AttachmentFiles`)
       const names = (atts.value ?? []).map((a: { FileName: string }) => a.FileName)
@@ -325,7 +325,7 @@ function App() {
 
   const copyReport = () => {
     const lines = [
-      `DMP Phase 0 spike results — ${new Date().toISOString()}`,
+      `PMDC Phase 0 spike results — ${new Date().toISOString()}`,
       `Page: ${window.location.href}`,
       site,
       '',
@@ -346,7 +346,7 @@ function App() {
 
   return (
     <div style={{ maxWidth: 860, margin: '2rem auto', padding: '0 1rem', fontFamily: "'Segoe UI', system-ui, sans-serif", color: '#111827' }}>
-      <h1 style={{ fontSize: 22, marginBottom: 4 }}>DMP Phase 0 — SP2019 Feasibility Spike</h1>
+      <h1 style={{ fontSize: 22, marginBottom: 4 }}>PMDC Phase 0 — SP2019 Feasibility Spike</h1>
       <p style={{ color: '#4b5563', marginTop: 0 }}>
         Verifies every SharePoint 2019 assumption the Data Maintenance Portal will be built on. Click{' '}
         <b>Run all checks</b>, then copy or screenshot the results. Write checks create/use a scratch

@@ -21,7 +21,7 @@ import type {
   RequestScope,
 } from '../provider'
 import { listPath, spDelete, spGet, spMerge, spPost, spPostRaw } from './client'
-import { DMP_GROUPS, LIST_SPECS } from './schema'
+import { PMDC_GROUPS, LIST_SPECS } from './schema'
 import {
   filterByScope,
   mapAudit,
@@ -40,10 +40,10 @@ import {
 // MockProvider: transition permissions, self-claim rule, empty-line pruning
 // at submit, and normalizeFieldData on every line read and write.
 
-const REQUESTS = 'DMP_Requests'
-const LINES = 'DMP_RequestLines'
-const COMMENTS = 'DMP_Comments'
-const AUDIT = 'DMP_AuditLog'
+const REQUESTS = 'PMDC_Requests'
+const LINES = 'PMDC_RequestLines'
+const COMMENTS = 'PMDC_Comments'
+const AUDIT = 'PMDC_AuditLog'
 
 const REQUEST_SELECT =
   '$select=Id,Title,RequestStatus,RequesterLogin,RequesterName,AssigneeLogin,AssigneeName,Created,SubmittedAt,DueDate,CompletedAt,SlaDays,Description,RejectReason,LineSummary'
@@ -61,7 +61,7 @@ export class SharePointProvider implements DataProvider {
       )
       const roles = rolesFromGroups(((u.Groups ?? []) as { Title: string }[]).map((g) => g.Title))
       if (roles.length === 0) {
-        // no direct DMP group membership — the user may still be a requester
+        // no direct PMDC group membership — the user may still be a requester
         // via a nested AD security group (invisible to the Groups API, but
         // the authorization engine expands it). Never fail login over this.
         try {
@@ -395,7 +395,7 @@ export class SharePointProvider implements DataProvider {
 
   async listAssignableUsers(): Promise<User[]> {
     const data = await spGet(
-      `/_api/web/sitegroups/getbyname('${encodeURIComponent(DMP_GROUPS.maintainer)}')/users?$select=Title,Email,LoginName&$top=500`,
+      `/_api/web/sitegroups/getbyname('${encodeURIComponent(PMDC_GROUPS.maintainer)}')/users?$select=Title,Email,LoginName&$top=500`,
     )
     return ((data.value ?? []) as { Title: string; Email?: string; LoginName: string }[]).map((u) => ({
       id: u.LoginName,
@@ -410,11 +410,11 @@ export function createSharePointProvider(): DataProvider {
   return new SharePointProvider()
 }
 
-/** Provision-screen extra: do the three DMP groups exist? (Groups are created manually per LIST_SETUP.md.) */
+/** Provision-screen extra: do the three PMDC groups exist? (Groups are created manually per LIST_SETUP.md.) */
 export async function checkDmpGroups(): Promise<{ name: string; exists: boolean }[]> {
   const data = await spGet('/_api/web/sitegroups?$select=Title&$top=500')
   const titles = new Set(((data.value ?? []) as { Title: string }[]).map((g) => g.Title))
-  return Object.values(DMP_GROUPS).map((name) => ({ name, exists: titles.has(name) }))
+  return Object.values(PMDC_GROUPS).map((name) => ({ name, exists: titles.has(name) }))
 }
 
 /**
@@ -428,7 +428,7 @@ export async function checkDmpGroups(): Promise<{ name: string; exists: boolean 
  * farm — the Site setup button surfaces success/failure.
  */
 export async function setAppAsSiteHome(): Promise<string> {
-  await spMerge('/_api/web/rootfolder', { WelcomePage: 'DMPApp/index.aspx' })
+  await spMerge('/_api/web/rootfolder', { WelcomePage: 'PMDCApp/index.aspx' })
   const check = await spGet('/_api/web/rootfolder?$select=WelcomePage')
   return String(check.WelcomePage ?? '')
 }
@@ -436,24 +436,24 @@ export async function setAppAsSiteHome(): Promise<string> {
 export async function runConnectionSelfTest(): Promise<string[]> {
   const log: string[] = []
   try {
-    await spGet(`${listPath('DMP_Spike')}?$select=Title`)
-    log.push('Scratch list DMP_Spike exists')
+    await spGet(`${listPath('PMDC_Spike')}?$select=Title`)
+    log.push('Scratch list PMDC_Spike exists')
   } catch {
-    await spPost('/_api/web/lists', { Title: 'DMP_Spike', BaseTemplate: 100 })
-    log.push('Created scratch list DMP_Spike')
+    await spPost('/_api/web/lists', { Title: 'PMDC_Spike', BaseTemplate: 100 })
+    log.push('Created scratch list PMDC_Spike')
   }
-  const created = await spPost(`${listPath('DMP_Spike')}/items`, {
+  const created = await spPost(`${listPath('PMDC_Spike')}/items`, {
     Title: `self-test ${new Date().toISOString()}`,
   })
   log.push(`Created item ${created.Id}`)
-  await spMerge(item('DMP_Spike', created.Id), { Title: 'self-test (updated)' })
+  await spMerge(item('PMDC_Spike', created.Id), { Title: 'self-test (updated)' })
   log.push('MERGE update OK')
   await spPostRaw(
-    `${item('DMP_Spike', created.Id)}/AttachmentFiles/add(FileName='selftest.txt')`,
-    new TextEncoder().encode('DMP connection self-test').buffer as ArrayBuffer,
+    `${item('PMDC_Spike', created.Id)}/AttachmentFiles/add(FileName='selftest.txt')`,
+    new TextEncoder().encode('PMDC connection self-test').buffer as ArrayBuffer,
   )
   log.push('Attachment OK')
-  await spDelete(item('DMP_Spike', created.Id))
+  await spDelete(item('PMDC_Spike', created.Id))
   log.push('DELETE OK — all verbs verified on this site')
   try {
     const perms = await spGet(`${listPath(REQUESTS)}/EffectiveBasePermissions`)

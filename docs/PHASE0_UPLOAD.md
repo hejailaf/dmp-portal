@@ -19,20 +19,20 @@ built on those assumptions.
 
 ## One-time setup
 
-1. On your SharePoint site, create a **document library** named `DMPApp`
+1. On your SharePoint site, create a **document library** named `PMDCApp`
    (Gear icon → Site contents → New → Document library).
 2. Build the package at home: `npm run package:sp`. It produces a `dist-sp/`
    folder (and `dmp-sp.zip`).
 
 ## Upload
 
-1. Open the `DMPApp` library in the browser.
+1. Open the `PMDCApp` library in the browser.
 2. Drag in **`spike.aspx`** from `dist-sp/`.
 3. Create a folder named **`assets`** in the library, open it, and drag in
    **`assets/spike.js`** and **`assets/client.js`** (the shared React
    runtime — the spike needs both).
 4. Click `spike.aspx` in the library (or browse to
-   `https://<your-site>/DMPApp/spike.aspx`).
+   `https://<your-site>/PMDCApp/spike.aspx`).
 
 ## Run and report
 
@@ -41,9 +41,9 @@ built on those assumptions.
    shown. (Likely cause: custom script blocked on the web application; the
    fix is an admin setting — we'll address it before anything else.)
 2. Otherwise click **Run all checks**. The write checks will create a scratch
-   list called `DMP_Spike` — that's intentional and safe to delete afterwards.
+   list called `PMDC_Spike` — that's intentional and safe to delete afterwards.
    - If list creation fails with an access error, create the list manually
-     (Site contents → New → List, name it `DMP_Spike`) and click Run again.
+     (Site contents → New → List, name it `PMDC_Spike`) and click Run again.
 3. Click **Copy results to clipboard** and paste the text back to me — or
    take a screenshot of the whole panel. Either is a complete report.
 
@@ -56,5 +56,5 @@ built on those assumptions.
 
 ## Cleanup (optional)
 
-Delete the `DMP_Spike` list and `spike.aspx` whenever you're done — the real
+Delete the `PMDC_Spike` list and `spike.aspx` whenever you're done — the real
 app doesn't use them.
