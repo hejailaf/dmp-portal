@@ -74,7 +74,7 @@ NewValue (Multi plain).
 
 ## §4 Permissions
 
-### 4a. Two custom permission levels (create once)
+### 4a. Three custom permission levels (create once)
 
 Gear → Site settings → **Site permissions**.
 
@@ -98,6 +98,14 @@ Then click ribbon **Permission Levels**:
    as dependencies — leave those ticked. Leave Edit/Delete unticked — that
    is what makes the audit log tamper-proof (everyone adds rows as
    themselves; nobody edits or deletes history).
+3. **`PMDC Maintain`** — click **Contribute** → Copy Permission Level →
+   name it as above → TICK **Manage Lists** → Create. Why: §4c below
+   restricts editing to "own items only"; users holding **Manage Lists**
+   bypass that restriction. Maintainers must edit request items CREATED BY
+   requesters (claim, start, complete), so they get this level on
+   PMDC_Requests only. (Trade-off: Manage Lists would also let a
+   maintainer change that list's columns/views — acceptable for a small
+   trusted team.)
 
 ### 4b. Per-list assignments
 
@@ -108,7 +116,7 @@ yourself/PMDC Admins!) → **Grant Permissions** to the PMDC groups
 
 | List | PMDC Requesters | PMDC Maintainers | PMDC Admins |
 |---|---|---|---|
-| PMDC_Requests | PMDC Contribute (no delete) | Contribute | Full Control |
+| PMDC_Requests | PMDC Contribute (no delete) | PMDC Maintain | Full Control |
 | PMDC_RequestLines | PMDC Contribute (no delete) | Contribute | Full Control |
 | PMDC_Comments | PMDC Contribute (no delete) | Contribute | Full Control |
 | PMDC_AuditLog | PMDC Add only | PMDC Add only | Full Control |
@@ -130,9 +138,35 @@ be assigned/removed by hand) so members can traverse to content they're
 allowed to use; it grants nothing on its own. Just confirm each group ALSO
 shows its real level from the table, not only Limited Access.
 
-Check on PMDC_Requests and PMDC_RequestLines: List settings → Advanced
-settings → "Read access / Create and Edit access" must remain **All items**
-(maintainers edit items created by requesters).
+### 4c. Item-level permissions — nobody edits someone else's request
+
+Without this, any requester who finds the list URL can open ANY request
+in the SharePoint list UI and edit it raw, bypassing the app's rules. Fix
+it with an out-of-the-box setting, on **PMDC_Requests, PMDC_RequestLines
+and PMDC_Comments** (NOT the audit log — its Add-only level already
+blocks edits):
+
+List settings → **Advanced settings** → *Item-level Permissions*:
+- **Read access:** keep **All items** (required: maintainers see the
+  queue, ref numbering scans existing refs, requesters see maintainer
+  comments).
+- **Create and Edit access:** set **Create items and edit items that were
+  created by the user**.
+
+Effect: requesters can create and edit only their OWN requests/lines —
+other people's items become read-only for them, in the list UI and the
+API alike. Maintainers keep working the queue because `PMDC Maintain`
+(Manage Lists) bypasses the restriction on PMDC_Requests; Admins bypass
+everywhere via Full Control.
+
+Two notes:
+- A requester can still raw-edit their OWN request in the list UI (even
+  after submitting). SharePoint has no per-status lock without a server.
+  Mitigation: PMDC_Requests versioning is ON (§3) — every change is
+  recorded with name + timestamp, so tampering is visible.
+- After applying, re-run the workflow TEST from WORKFLOW_RECIPE.md once:
+  the email workflow writes scratch columns under the editing user's
+  identity and must still save.
 
 ## §5 Verify
 
@@ -201,9 +235,9 @@ What this does NOT protect against (know the limits):
 - **Site collection admins** of the parent collection bypass every grant
   here — that's SharePoint's design. On a team site those are IT's
   accounts; choose the parent accordingly.
-- **Draft privacy is app-level.** Any Requester can technically read all
-  list items via the REST API (the queue model requires list-wide read;
-  item-level "own items only" settings would break maintainer views —
-  leave Advanced settings at "All items" as §4b says). The app hides
-  other people's drafts, but a curious user with REST knowledge could see
-  them. Acceptable for master-data requests; don't put secrets in drafts.
+- **Draft privacy is app-level.** Read access stays "All items" (§4c —
+  the queue, ref numbering and comments need it), so any Requester can
+  technically READ all list items via the REST API. §4c blocks them from
+  EDITING anything that isn't theirs, but the app hiding other people's
+  drafts is filtering, not a permission. Acceptable for master-data
+  requests; don't put secrets in drafts.

@@ -173,7 +173,10 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
   screen (`#/admin/provision`: provision/verify lists, groups check,
   connection self-test incl. the untested DELETE verb), `LIST_SETUP.md`
   (groups, custom permission levels "PMDC Contribute (no delete)" +
-  "PMDC Add only", per-list grants). `package:sp` now builds
+  "PMDC Add only" + "PMDC Maintain" (Contribute + Manage Lists — bypasses
+  the §4c item-level edit-own-only restriction so maintainers can work
+  requester-created items), per-list grants, §4c item-level permissions:
+  Read=All items / Edit=own items on Requests+Lines+Comments). `package:sp` now builds
   VITE_DATA_PROVIDER=sharepoint; dev stays mock. Deviation (approved):
   requester/assignee stored as TEXT columns (claims login + display name),
   not Person fields.
