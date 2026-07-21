@@ -74,12 +74,39 @@ export function DataGrid<T>({
   table,
   rowClassName,
   cellClassName,
+  stickyIds,
 }: {
   table: TanstackTable<T>
   rowClassName?: string
   /** extra classes for every body cell (the editor passes p-0 so inputs fill cells edge-to-edge) */
   cellClassName?: string
+  /** LEADING column ids pinned during horizontal scroll (detail grids pin #/Action/Description) */
+  stickyIds?: string[]
 }) {
+  // left offsets: each pinned column sits after the pinned ones before it.
+  // Recomputed every render, so drag-resizing a pinned column stays correct.
+  const sticky = new Map<string, number>()
+  if (stickyIds?.length) {
+    let left = 0
+    for (const col of table.getVisibleLeafColumns()) {
+      if (!stickyIds.includes(col.id)) break // leading run only
+      sticky.set(col.id, left)
+      left += col.getSize()
+    }
+  }
+  const lastSticky = [...sticky.keys()].pop()
+  const stickyProps = (id: string, header: boolean) => {
+    const left = sticky.get(id)
+    if (left === undefined) return { style: {}, cls: '' }
+    return {
+      style: { position: 'sticky' as const, left },
+      // solid bg so scrolling cells pass beneath; header keeps its own bg
+      cls: cn(
+        header ? 'z-30' : 'z-20 bg-card',
+        id === lastSticky && 'border-r-2 border-r-[var(--border-strong)]',
+      ),
+    }
+  }
   return (
     // minWidth + w-full + a width-less filler column: real columns keep their
     // exact pixel widths (Excel feel — dragging never re-shares space among
@@ -91,9 +118,13 @@ export function DataGrid<T>({
         {table.getHeaderGroups().map((hg) => (
           <TableRow key={hg.id} className="hover:bg-transparent">
             {hg.headers.map((h) => (
-              // eslint-disable-next-line -- no className here: `relative` would
-              // tw-merge away the base `sticky`, which already anchors the handle
-              <TableHead key={h.id} style={{ width: h.getSize() }}>
+              // position classes stay OUT of className (they would tw-merge away
+              // the base `sticky top-0`); left-pinning rides on inline style
+              <TableHead
+                key={h.id}
+                style={{ width: h.getSize(), ...stickyProps(h.column.id, true).style }}
+                className={stickyProps(h.column.id, true).cls || undefined}
+              >
                 <div className="truncate pr-1">
                   {h.isPlaceholder ? null : flexRender(h.column.columnDef.header, h.getContext())}
                 </div>
@@ -118,7 +149,11 @@ export function DataGrid<T>({
         {table.getRowModel().rows.map((row) => (
           <TableRow key={row.id} className={rowClassName}>
             {row.getVisibleCells().map((cell) => (
-              <TableCell key={cell.id} style={{ width: cell.column.getSize() }} className={cellClassName}>
+              <TableCell
+                key={cell.id}
+                style={{ width: cell.column.getSize(), ...stickyProps(cell.column.id, false).style }}
+                className={cn(cellClassName, stickyProps(cell.column.id, false).cls || undefined)}
+              >
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
               </TableCell>
             ))}

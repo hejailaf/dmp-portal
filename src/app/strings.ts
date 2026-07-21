@@ -144,6 +144,7 @@ export const S = {
     attachmentCount: (n: number, max: number) => `${n} of ${max} attachments used`,
     exportExcel: 'Export to Excel',
     exporting: 'Exporting…',
+    more: 'More',
     completedAt: 'Completed',
     editDraft: 'Edit draft',
     claim: 'Claim this request',
@@ -223,6 +224,11 @@ export const S = {
   theme: {
     toDark: 'Switch to dark mode',
     toLight: 'Switch to light mode',
+  },
+
+  time: {
+    todayAt: (t: string) => `today, ${t}`,
+    yesterdayAt: (t: string) => `yesterday, ${t}`,
   },
 
   footer: {

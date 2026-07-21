@@ -1,3 +1,4 @@
+import { Check } from 'lucide-react'
 import type { Request, RequestStatus } from '@/domain/types'
 import { daysUntilDue, isOverdue } from '@/domain/sla'
 import { Badge } from './ui/badge'
@@ -13,6 +14,42 @@ const STATUS_VARIANT: Record<RequestStatus, 'neutral' | 'blue' | 'amber' | 'gree
 
 export function StatusBadge({ status }: { status: RequestStatus }) {
   return <Badge variant={STATUS_VARIANT[status]}>{S.status[status]}</Badge>
+}
+
+/**
+ * Lifecycle track for the detail header: past steps get a check, the
+ * current one the familiar status pill, future ones sit muted. Rejected is
+ * a branch, not a stage — it renders as a short Draft → Rejected track.
+ */
+export function StatusStepper({ status }: { status: RequestStatus }) {
+  const track: RequestStatus[] =
+    status === 'Rejected'
+      ? ['Draft', 'Rejected']
+      : ['Draft', 'Waiting to be started', 'In process', 'Completed']
+  const current = track.indexOf(status)
+  return (
+    <div className="flex flex-wrap items-center gap-y-1" aria-label={S.status[status]}>
+      {track.map((step, i) => (
+        <div key={step} className="flex items-center">
+          {i > 0 && (
+            <span
+              className={`mx-2 h-px w-6 ${i <= current ? 'bg-[var(--border-strong)]' : 'bg-border'}`}
+            />
+          )}
+          {i < current ? (
+            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Check className="h-3.5 w-3.5 text-[var(--teal)]" />
+              {S.status[step]}
+            </span>
+          ) : i === current ? (
+            <StatusBadge status={step} />
+          ) : (
+            <span className="text-xs text-muted-foreground/70">{S.status[step]}</span>
+          )}
+        </div>
+      ))}
+    </div>
+  )
 }
 
 /** SLA countdown / overdue badge — derived at render time, never stored. */

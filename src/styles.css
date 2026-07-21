@@ -37,32 +37,33 @@
     --sky-tint: #eaf6fc;
   }
 
-  /* dark palette — derived navy set approved in the prototype */
+  /* dark palette — warm-neutral graphite (ux-experiments 2026-07-21,
+     replacing the navy-tinted set; brand blue/status colors kept) */
   .dark {
     color-scheme: dark;
-    --background: 212 65% 12%; /* #0B1E33 */
-    --foreground: 208 39% 83%; /* #C2D4E4 */
-    --card: 210 62% 16%; /* #102A44 */
-    --card-foreground: 208 39% 83%;
+    --background: 45 4% 9%; /* #181816 */
+    --foreground: 45 4% 83%; /* #D6D5D0 */
+    --card: 45 3% 14%; /* #242422 */
+    --card-foreground: 45 4% 83%;
     --primary: 215 77% 61%; /* #4E8FE8 */
     --primary-foreground: 0 0% 100%;
-    --secondary: 208 54% 22%; /* #1A3A57 */
-    --secondary-foreground: 209 56% 91%; /* #DCE9F5 */
-    --muted: 205 62% 23%; /* #16405F */
-    --muted-foreground: 206 25% 61%; /* #84A0B5 */
-    --accent: 205 62% 23%;
+    --secondary: 45 3% 18%; /* #2F2F2C */
+    --secondary-foreground: 45 6% 90%; /* #E8E7E3 */
+    --muted: 45 3% 18%;
+    --muted-foreground: 45 3% 62%; /* #A0A099 */
+    --accent: 45 3% 21%; /* #373734 */
     --accent-foreground: 214 80% 80%; /* #A5C8F5 */
     --destructive: 352 68% 65%; /* #E36A7B */
-    --border: 209 49% 23%; /* #1E3C58 */
-    --input: 208 42% 31%; /* #2E5170 */
+    --border: 45 3% 23%; /* #3C3C39 */
+    --input: 45 3% 30%; /* #4E4E4A */
     --ring: 199 77% 61%; /* #4FB8E8 */
-    --border-strong: #2e5170; /* not in handoff — matches dark --input */
+    --border-strong: #4e4e4a; /* matches dark --input */
     --teal: #2bbfb4;
     --teal-tint: #0e3a38;
     --warning: #e9aa4b;
     --warning-tint: #3a2a12;
     --danger-tint: #3d1b24;
-    --sky-tint: #12374c;
+    --sky-tint: #1c333f;
   }
 
   * {
