@@ -68,6 +68,13 @@ export const S = {
     claim: 'Claim',
     empty: 'No requests match.',
     loading: 'Loading requests…',
+    count: (shown: number, total: number) =>
+      shown === total
+        ? `${total} ${total === 1 ? 'request' : 'requests'}`
+        : `${shown} of ${total} requests`,
+    clearSearch: 'Clear search',
+    emptyMineTitle: 'No requests yet',
+    emptyMineBody: 'Your submitted requests and drafts will appear here.',
   },
 
   status: {
@@ -116,6 +123,7 @@ export const S = {
     importIssuesTitle: 'Import notes:',
     confirmDropHidden: (n: number) =>
       `${n} ${n === 1 ? 'value does' : 'values do'} not apply to their line's action and will be removed when this request is saved.\n\nContinue?`,
+    confirmLeave: 'This request has unsaved changes. They will be lost if you leave now.\n\nLeave anyway?',
   },
 
   detail: {
@@ -133,6 +141,7 @@ export const S = {
     commentsTitle: 'Comments',
     commentPlaceholder: 'Write a comment…',
     commentAdd: 'Add comment',
+    commentHint: 'Ctrl+Enter to send',
     noComments: 'No comments yet.',
     auditTitle: 'Audit trail',
     attachmentsTitle: 'Attachments',

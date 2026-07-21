@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { S } from './strings'
 
 export interface AsyncState<T> {
   data?: T
@@ -40,4 +41,14 @@ export function useAsync<T>(fn: () => Promise<T>, deps: unknown[]): AsyncState<T
 
   const reload = useCallback(() => setBump((b) => b + 1), [])
   return { data, error, loading, reload }
+}
+
+/** Browser-tab title per screen: "DCR-260003 · PM DataCare". Pass undefined while loading. */
+export function usePageTitle(title?: string) {
+  useEffect(() => {
+    document.title = title ? `${title} · ${S.appName}` : S.appName
+    return () => {
+      document.title = S.appName
+    }
+  }, [title])
 }

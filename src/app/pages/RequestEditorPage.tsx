@@ -27,8 +27,8 @@ import {
 import { makeTemplate, parseTemplate } from '@/lib/excel-lines'
 import { LINE_ACTIONS, type LineAction, type ObjectType, type RequestLine } from '@/domain/types'
 import { cn, formatDateValue } from '@/lib/utils'
-import { useAsync } from '../hooks'
-import { navigate } from '../router'
+import { useAsync, usePageTitle } from '../hooks'
+import { navigate, setNavGuard } from '../router'
 import { S } from '../strings'
 import { Button } from '../components/ui/button'
 import { Card, CardContent } from '../components/ui/card'
@@ -389,6 +389,29 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
     [requestId],
   )
 
+  usePageTitle(
+    requestId ? (existing.data ? S.editor.editTitle(existing.data.request.ref) : undefined) : S.editor.newTitle,
+  )
+
+  // unsaved-changes guard: any edit flips the ref; save/submit clear it.
+  // Hash navigation away (nav links, Cancel/back) goes through the router's
+  // nav guard (a component listener would unmount mid-event and never run);
+  // closing/reloading the tab hits the native beforeunload prompt.
+  const dirtyRef = useRef(false)
+  useEffect(() => {
+    setNavGuard(() => !dirtyRef.current || window.confirm(S.editor.confirmLeave))
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (!dirtyRef.current) return
+      e.preventDefault()
+      e.returnValue = ''
+    }
+    window.addEventListener('beforeunload', onBeforeUnload)
+    return () => {
+      setNavGuard(null)
+      window.removeEventListener('beforeunload', onBeforeUnload)
+    }
+  }, [])
+
   useEffect(() => {
     if (requestId && existing.data && !initialized) {
       const loaded = existing.data.lines
@@ -420,7 +443,8 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
   if (requestId && existing.data && existing.data.request.status !== 'Draft')
     return <p className="text-destructive">{S.editor.editTitle(existing.data.request.ref)}: not a draft.</p>
 
-  const update = (key: string, patch: Partial<EditorLine>) =>
+  const update = (key: string, patch: Partial<EditorLine>) => {
+    dirtyRef.current = true
     setLines((ls) =>
       ls.map((l) => {
         if (l.key !== key) return l
@@ -430,8 +454,11 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
         return next
       }),
     )
-  const addLine = (objectType: ObjectType) =>
+  }
+  const addLine = (objectType: ObjectType) => {
+    dirtyRef.current = true
     setLines((ls) => [...ls, { key: crypto.randomUUID(), objectType, action: 'ADD', fieldData: {} }])
+  }
 
   const toggleSelect = (key: string) =>
     setSelected((s) => {
@@ -453,6 +480,7 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
   const duplicateSelected = (objectType: ObjectType) => {
     const dup = selectedKeysInTab(objectType)
     if (dup.size === 0) return
+    dirtyRef.current = true
     // each copy lands directly after its original, Excel-style. The copy takes
     // only the VISIBLE values: anything hidden by the original's action (typed
     // before the action changed) must not travel into a new line.
@@ -476,6 +504,7 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
   const deleteSelected = (objectType: ObjectType) => {
     const doomed = selectedKeysInTab(objectType)
     if (doomed.size === 0) return
+    dirtyRef.current = true
     setLines((ls) => ls.filter((l) => !doomed.has(l.key)))
     setSelected((s) => new Set([...s].filter((k) => !doomed.has(k))))
   }
@@ -495,6 +524,7 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
     try {
       const result = await parseTemplate(cfg, await file.arrayBuffer())
       const imported: EditorLine[] = result.lines.map((l) => ({ ...l, key: crypto.randomUUID() }))
+      if (imported.length > 0) dirtyRef.current = true
       setLines((ls) => [...ls, ...imported])
       // validate immediately so problem cells light up without waiting for submit
       const newErrors: ErrorsByLine = {}
@@ -548,6 +578,7 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
     try {
       // drafts keep scratch rows — only submit prunes
       const id = await saveDraft(lines)
+      dirtyRef.current = false // saved — leaving is safe now
       navigate(`/requests/${id}`)
     } catch (e) {
       setBanner(e instanceof Error ? e.message : String(e))
@@ -579,6 +610,7 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
     setBusy('submit')
     try {
       const id = await saveDraft(kept)
+      dirtyRef.current = false // lines are stored even if the submit below fails
       await provider.submitRequest(id)
       navigate(`/requests/${id}`)
     } catch (e) {
@@ -605,7 +637,9 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      {/* sticky under the 64px app header: Save/Submit stay reachable while
+          scrolling long grids */}
+      <div className="sticky top-16 z-20 -mx-4 flex flex-wrap items-center justify-between gap-3 border-b bg-background px-4 py-2">
         <h1 className="text-2xl font-semibold">{title}</h1>
         <div className="flex gap-2">
           <Button variant="ghost" onClick={() => window.history.back()}>
@@ -664,7 +698,10 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
               <Input
                 id="req-description"
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                onChange={(e) => {
+                  dirtyRef.current = true
+                  setDescription(e.target.value)
+                }}
                 placeholder={S.editor.descriptionPlaceholder}
                 maxLength={DESCRIPTION_MAX_LENGTH}
                 className="max-w-[640px]"

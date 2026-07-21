@@ -24,6 +24,35 @@ function parse(): Route {
 
 let current = parse()
 
+// ── navigation guard ────────────────────────────────────────────────────────
+// The editor blocks leaving with unsaved changes. This listener is registered
+// at module load, BEFORE React's subscribe below — so it runs first and can
+// revert the hash before the router re-renders (a component-level hashchange
+// listener would be unmounted mid-event and never fire).
+type NavGuard = () => boolean
+let activeGuard: NavGuard | null = null
+let lastHash = window.location.hash
+let reverting = false
+
+/** One guard at a time (only the editor uses it). Pass null to clear. */
+export function setNavGuard(guard: NavGuard | null) {
+  activeGuard = guard
+  lastHash = window.location.hash
+}
+
+window.addEventListener('hashchange', () => {
+  if (reverting) {
+    reverting = false
+    return
+  }
+  if (activeGuard && !activeGuard()) {
+    reverting = true
+    window.location.hash = lastHash // synchronous — the router below sees the old route
+    return
+  }
+  lastHash = window.location.hash
+})
+
 function subscribe(cb: () => void) {
   const handler = () => {
     current = parse()

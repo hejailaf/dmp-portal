@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
+import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react'
 import {
   flexRender,
   type ColumnSizingState,
   type OnChangeFn,
+  type Row,
   type Table as TanstackTable,
 } from '@tanstack/react-table'
 import { cn } from '@/lib/utils'
@@ -77,7 +79,8 @@ export function DataGrid<T>({
   stickyIds,
 }: {
   table: TanstackTable<T>
-  rowClassName?: string
+  /** static classes, or per-row (the request list marks overdue rows) */
+  rowClassName?: string | ((row: Row<T>) => string | undefined)
   /** extra classes for every body cell (the editor passes p-0 so inputs fill cells edge-to-edge) */
   cellClassName?: string
   /** LEADING column ids pinned during horizontal scroll (detail grids pin #/Action/Description) */
@@ -125,9 +128,30 @@ export function DataGrid<T>({
                 style={{ width: h.getSize(), ...stickyProps(h.column.id, true).style }}
                 className={stickyProps(h.column.id, true).cls || undefined}
               >
-                <div className="truncate pr-1">
-                  {h.isPlaceholder ? null : flexRender(h.column.columnDef.header, h.getContext())}
-                </div>
+                {/* sortable only where the table opted in (accessor columns +
+                    getSortedRowModel) — editor/detail display columns never sort */}
+                {h.column.getCanSort() ? (
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-1 truncate pr-1 text-left"
+                    onClick={h.column.getToggleSortingHandler()}
+                  >
+                    <span className="truncate">
+                      {h.isPlaceholder ? null : flexRender(h.column.columnDef.header, h.getContext())}
+                    </span>
+                    {h.column.getIsSorted() === 'asc' ? (
+                      <ArrowUp className="h-3 w-3 flex-none text-primary" />
+                    ) : h.column.getIsSorted() === 'desc' ? (
+                      <ArrowDown className="h-3 w-3 flex-none text-primary" />
+                    ) : (
+                      <ChevronsUpDown className="h-3 w-3 flex-none opacity-30" />
+                    )}
+                  </button>
+                ) : (
+                  <div className="truncate pr-1">
+                    {h.isPlaceholder ? null : flexRender(h.column.columnDef.header, h.getContext())}
+                  </div>
+                )}
                 {h.column.getCanResize() && (
                   <div
                     onMouseDown={h.getResizeHandler()}
@@ -147,7 +171,10 @@ export function DataGrid<T>({
       </TableHeader>
       <TableBody>
         {table.getRowModel().rows.map((row) => (
-          <TableRow key={row.id} className={rowClassName}>
+          <TableRow
+            key={row.id}
+            className={typeof rowClassName === 'function' ? rowClassName(row) : rowClassName}
+          >
             {row.getVisibleCells().map((cell) => (
               <TableCell
                 key={cell.id}

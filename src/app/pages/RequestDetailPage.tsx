@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createColumnHelper, getCoreRowModel, useReactTable } from '@tanstack/react-table'
 import {
+  ArrowLeft,
   ArrowRight,
   MessageSquare,
   MoreHorizontal,
@@ -27,15 +28,17 @@ import { daysUntilDue, isOverdue } from '@/domain/sla'
 import { availableTransitions, type TransitionCtx } from '@/domain/status'
 import type { Attachment, AuditEvent, Request, RequestLine } from '@/domain/types'
 import { formatDate, formatDateTime, formatDateValue } from '@/lib/utils'
-import { useAsync } from '../hooks'
+import { useAsync, usePageTitle } from '../hooks'
 import { href } from '../router'
 import { S } from '../strings'
 import { useCurrentUser } from '../user-context'
+import { readListState } from './RequestListPage'
 import { StatusStepper } from '../components/badges'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Dialog, DialogContent, DialogTitle } from '../components/ui/dialog'
 import { Select, Textarea } from '../components/ui/input'
+import { Skeleton } from '../components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { autoColumnSize, ClippedCell, DataGrid, usePersistedColumnSizing } from '../components/DataGrid'
 
@@ -372,7 +375,18 @@ export function RequestDetailPage({ id }: { id: string }) {
     }
   }
 
-  if (detail.loading) return <p className="text-muted-foreground">{S.detail.loading}</p>
+  usePageTitle(detail.data?.request.ref)
+  // back to the list this request was opened from (last-used list state)
+  const backScope = readListState().scope ?? (user.roles.includes('admin') ? 'all' : user.roles.includes('maintainer') ? 'queue' : 'mine')
+
+  if (detail.loading)
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-44 w-full rounded-[10px]" />
+        <Skeleton className="h-56 w-full rounded-[10px]" />
+        <Skeleton className="h-64 w-full rounded-[10px]" />
+      </div>
+    )
   if (detail.error) return <p className="text-destructive">{detail.error}</p>
   if (!detail.data) return <p className="text-destructive">{S.detail.notFound}</p>
 
@@ -444,8 +458,21 @@ export function RequestDetailPage({ id }: { id: string }) {
   const dueActive = !!req.dueDate && req.status !== 'Completed' && req.status !== 'Rejected'
   const stripLink = 'text-primary hover:underline'
 
+  const postComment = () =>
+    void run(async () => {
+      await provider.addComment(req.id, commentBody)
+      setCommentBody('')
+      comments.reload()
+    })
+
   return (
     <div className="space-y-4">
+      <a
+        href={href(`/requests?scope=${backScope}`)}
+        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="h-3.5 w-3.5" /> {S.list.title[backScope]}
+      </a>
       {banner && (
         <p className="rounded-md border border-destructive/40 bg-[var(--danger-tint)] p-3 text-sm text-destructive">{banner}</p>
       )}
@@ -640,22 +667,21 @@ export function RequestDetailPage({ id }: { id: string }) {
                 <Textarea
                   value={commentBody}
                   onChange={(e) => setCommentBody(e.target.value)}
+                  onKeyDown={(e) => {
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && commentBody.trim() && !busy) {
+                      e.preventDefault()
+                      postComment()
+                    }
+                  }}
                   placeholder={S.detail.commentPlaceholder}
                   maxLength={COMMENT_MAX_LENGTH}
                 />
-                <Button
-                  size="sm"
-                  disabled={busy || !commentBody.trim()}
-                  onClick={() =>
-                    void run(async () => {
-                      await provider.addComment(req.id, commentBody)
-                      setCommentBody('')
-                      comments.reload()
-                    })
-                  }
-                >
-                  {S.detail.commentAdd}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button size="sm" disabled={busy || !commentBody.trim()} onClick={postComment}>
+                    {S.detail.commentAdd}
+                  </Button>
+                  <span className="text-xs text-muted-foreground">{S.detail.commentHint}</span>
+                </div>
               </div>
             </TabsContent>
 

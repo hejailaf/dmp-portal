@@ -9,6 +9,7 @@ import { href } from '../router'
 import { S } from '../strings'
 import { useCurrentUser } from '../user-context'
 import { Badge } from '../components/ui/badge'
+import { Skeleton } from '../components/ui/skeleton'
 import { StatCard } from '../components/StatCard'
 
 export function HomePage() {
@@ -33,7 +34,17 @@ export function HomePage() {
     return { mine, queue, unassigned, all }
   }, [user.id])
 
-  if (overview.loading) return <p className="text-muted-foreground">{S.list.loading}</p>
+  if (overview.loading)
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-24 w-full rounded-[10px]" />
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          {Array.from({ length: 4 }, (_, i) => (
+            <Skeleton key={i} className="h-24" />
+          ))}
+        </div>
+      </div>
+    )
   if (overview.error || !overview.data)
     return <p className="text-destructive">{S.home.errorLoading}</p>
 
