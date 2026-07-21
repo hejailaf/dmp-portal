@@ -223,22 +223,7 @@ export function RequestListPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">{S.list.title[scope]}</h1>
-        {scopes.length > 1 && (
-          <div className="flex gap-1 rounded-lg bg-muted p-1">
-            {scopes.map((s) => (
-              <a
-                key={s}
-                href={href(`/requests?scope=${s}`)}
-                className={`rounded-md px-3 py-1 text-sm font-medium ${s === scope ? 'bg-card shadow' : 'text-muted-foreground hover:text-foreground'}`}
-              >
-                {S.list.title[s]}
-              </a>
-            ))}
-          </div>
-        )}
-      </div>
+      <h1 className="text-2xl font-semibold">{S.list.title[scope]}</h1>
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative w-full max-w-xs">
@@ -282,6 +267,25 @@ export function RequestListPage() {
           />
           {S.list.overdueOnly}
         </label>
+        {/* the pool is the one scope without a nav link (user decision
+            2026-07-21) — a checkbox here swaps scope, base scope on uncheck */}
+        {scopes.includes('unassigned') && (
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={scope === 'unassigned'}
+              onChange={(e) =>
+                setQuery({
+                  scope: e.target.checked
+                    ? 'unassigned'
+                    : (scopes.find((s) => s !== 'unassigned') ?? scopes[0]),
+                })
+              }
+              className="h-4 w-4 accent-primary"
+            />
+            {S.list.title.unassigned}
+          </label>
+        )}
         {requests.data && (
           <span className="ml-auto text-sm text-muted-foreground">
             {S.list.count(filtered.length, requests.data.length)}
