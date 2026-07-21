@@ -203,6 +203,18 @@ export function buildSeed(): MockDb {
     ],
   })
 
+  // Unassigned AND overdue — exercises the pool + overdue combination
+  // (list filters are mutually exclusive; this row shows red in the pool)
+  add({
+    status: 'Waiting to be started',
+    requester: omar,
+    submittedDaysAgo: 5, // CHANGE SLA is 3 days → 2 days overdue
+    description: 'Tank farm FLoc cost center correction',
+    lines: [
+      { objectType: 'FLOC', action: 'CHANGE', fieldData: { functionalLocation: 'SITE-A-TANK-TK-01', costCenter: '2300' } },
+    ],
+  })
+
   // In process — one on track, one overdue
   add({
     status: 'In process',
