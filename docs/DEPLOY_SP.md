@@ -78,7 +78,9 @@ the new subsite under your personal site again would change nothing.
 **1. Create the subsite.** On the team site: Gear → **Site contents** →
 **New → Subsite**:
 - Title `PM DataCare`, URL name `pmdc`
-- Template: **Team Site** (classic)
+- Template: **Team Site (classic experience)** preferred — matches the
+  verified setup; the modern "Team Site" also works (if used, just
+  re-check the "Make the app the site home page" step at the end)
 - User Permissions: **Use unique permissions** ← important; this saves the
   "Stop Inheriting" detour in LIST_SETUP.md §4a
 - Create. On the "Set Up Groups for this Site" page accept the defaults
