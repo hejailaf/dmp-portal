@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { getProvider, PROVIDER_NAME } from '@/data'
 import type { ProvisionResult } from '@/data/provider'
-import { checkDmpGroups, runConnectionSelfTest, setAppAsSiteHome } from '@/data/sp'
+import { checkDmpGroups, runConnectionSelfTest, setAppAsSiteHome, setListsHidden } from '@/data/sp'
 import { S } from '../strings'
 import { useCurrentUser } from '../user-context'
 import { Badge } from '../components/ui/badge'
@@ -18,6 +18,7 @@ export function ProvisionPage() {
   const [groups, setGroups] = useState<{ name: string; exists: boolean }[]>()
   const [selfTest, setSelfTest] = useState<string[]>()
   const [homeResult, setHomeResult] = useState<string>()
+  const [hideResult, setHideResult] = useState<string[]>()
   const [busy, setBusy] = useState<string>()
   const [error, setError] = useState<string>()
 
@@ -72,7 +73,31 @@ export function ProvisionPage() {
             {busy === 'sethome' ? S.provision.running : S.provision.setHome}
           </Button>
         )}
+        {isSharePoint && (
+          <Button
+            variant="outline"
+            disabled={!!busy}
+            onClick={run('hidelists', async () =>
+              setHideResult([...(await setListsHidden(true)), S.provision.hideListsNote]),
+            )}
+          >
+            {busy === 'hidelists' ? S.provision.running : S.provision.hideLists}
+          </Button>
+        )}
+        {isSharePoint && (
+          <Button
+            variant="outline"
+            disabled={!!busy}
+            onClick={run('showlists', async () => setHideResult(await setListsHidden(false)))}
+          >
+            {busy === 'showlists' ? S.provision.running : S.provision.showLists}
+          </Button>
+        )}
       </div>
+
+      {hideResult && (
+        <pre className="whitespace-pre-wrap rounded-md border bg-accent/50 p-3 text-sm">{hideResult.join('\n')}</pre>
+      )}
 
       {homeResult && <p className="rounded-md border bg-accent/50 p-3 text-sm">{homeResult}</p>}
 

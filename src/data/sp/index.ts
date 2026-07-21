@@ -433,6 +433,28 @@ export async function setAppAsSiteHome(): Promise<string> {
   return String(check.WelcomePage ?? '')
 }
 
+/**
+ * Hide (or unhide) the four PMDC lists from Site contents so requesters
+ * don't stumble into raw list views. Cosmetic hardening only — direct list
+ * URLs and REST keep working (the real protection is LIST_SETUP.md §4c).
+ * SharePoint Designer does NOT show hidden lists — unhide before editing
+ * the email workflow, re-hide after.
+ * VERIFY-ON-SITE: list MERGE of Hidden uses the same verified nometadata
+ * write path as the self-test; the button reports per-list success/failure.
+ */
+export async function setListsHidden(hidden: boolean): Promise<string[]> {
+  const log: string[] = []
+  for (const spec of LIST_SPECS) {
+    try {
+      await spMerge(listPath(spec.title), { Hidden: hidden })
+      log.push(`${spec.title}: ${hidden ? 'hidden from' : 'shown in'} Site contents`)
+    } catch (e) {
+      log.push(`${spec.title}: FAILED — ${e instanceof Error ? e.message : String(e)}`)
+    }
+  }
+  return log
+}
+
 export async function runConnectionSelfTest(): Promise<string[]> {
   const log: string[] = []
   try {

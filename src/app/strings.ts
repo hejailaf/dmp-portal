@@ -178,6 +178,10 @@ export const S = {
     provisionNow: 'Verify & provision lists',
     selfTest: 'Run connection self-test',
     setHome: 'Make the app the site home page',
+    hideLists: 'Hide lists from Site contents',
+    showLists: 'Show lists in Site contents',
+    hideListsNote:
+      'Hidden lists do not appear in SharePoint Designer — click "Show lists in Site contents" before editing the email workflow, and hide again after.',
     setHomeDone: (page: string) =>
       `Site welcome page is now "${page}" — opening the bare site URL serves the app. (Revert: set it back to SitePages/Home.aspx the same way.)`,
     running: 'Working…',

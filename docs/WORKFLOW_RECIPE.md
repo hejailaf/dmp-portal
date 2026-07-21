@@ -30,6 +30,9 @@ has no server-side jobs. Overdue lives in the app UI and dashboard.
 4. Everyone who should RECEIVE mail (maintainers, requesters in the
    pilot) has an email address on their SharePoint profile (People and
    groups shows it; it syncs from AD).
+5. **Lists are visible.** If you already clicked "Hide lists from Site
+   contents" (LIST_SETUP.md §7.7), SPD will not show PMDC_Requests —
+   Site setup → "Show lists in Site contents" first, re-hide when done.
 
 ## ⚠ Step 0 — verify claims-login email resolution (5 minutes, do first)
 

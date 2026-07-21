@@ -230,6 +230,12 @@ PMDC Admins (i.e. you):
 6. **Audit log stays tamper-proof** by §4's "PMDC Add only" level:
    everyone (including maintainers) can only append; only Admins could
    ever edit/delete history — and shouldn't.
+7. **Hide the lists from Site contents** — Site setup screen → **"Hide
+   lists from Site contents"**. Cosmetic (direct URLs and the API still
+   work; §4c is the real protection) but keeps requesters from stumbling
+   into raw list views. Do this LAST — after the email workflow is built:
+   SharePoint Designer does not show hidden lists, so click **"Show lists
+   in Site contents"** before any workflow edit and re-hide after.
 
 What this does NOT protect against (know the limits):
 - **Site collection admins** of the parent collection bypass every grant

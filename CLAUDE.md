@@ -171,7 +171,8 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
   `src/data/sp/` (client with digest cache + 403-retry, schema, pure
   mapping w/ tests, full provider — nometadata writes only), Site setup
   screen (`#/admin/provision`: provision/verify lists, groups check,
-  connection self-test incl. the untested DELETE verb), `LIST_SETUP.md`
+  connection self-test incl. the untested DELETE verb, hide/show lists
+  in Site contents — hide LAST, SPD can't see hidden lists), `LIST_SETUP.md`
   (groups, custom permission levels "PMDC Contribute (no delete)" +
   "PMDC Add only" + "PMDC Maintain" (Contribute + Manage Lists — bypasses
   the §4c item-level edit-own-only restriction so maintainers can work

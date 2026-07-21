@@ -116,7 +116,8 @@ share the bare `…/pmdc` URL.
 
 **9. Emails** — workflows live on the old site's lists and do not move:
 re-run WORKFLOW_RECIPE.md on the new lists. Then SMOKE_TEST.md before
-inviting anyone.
+inviting anyone. After the workflow works: Site setup → **"Hide lists
+from Site contents"** (LIST_SETUP.md §7.7).
 
 **10. Retire the old site.** If the old site holds only test data there is
 nothing to migrate — once §5/§7 pass on the new site, delete the old
