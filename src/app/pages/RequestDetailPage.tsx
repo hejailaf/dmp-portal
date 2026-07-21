@@ -559,7 +559,7 @@ export function RequestDetailPage({ id }: { id: string }) {
             </h1>
           )}
           <div className="mt-3 flex flex-wrap items-center gap-3">
-            <StatusStepper status={req.status} />
+            <StatusStepper status={req.status} assigneeId={req.assigneeId} />
             {req.lineSummary && (
               <span className="ml-auto inline-flex items-center rounded-md bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">
                 {req.lineSummary}

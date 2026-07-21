@@ -74,7 +74,11 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
   Return PAUSES the SLA — submittedAt stays and dueDate grows by the
   returned interval (`extendDueDate`, `returnedAt` field / ReturnedAt
   column; reason shares RejectReason; isOverdue is false while
-  Returned). Only Completed is terminal.
+  Returned). Only Completed is terminal. DISPLAY (2026-07-21,
+  `S.statusLabel`): the stored "Waiting to be started" reads
+  "Submitted" while unassigned and "Assigned" once assigned (stored
+  value/choice column unchanged); the stepper track is Draft →
+  Submitted → Assigned → In process → Completed.
 - Transition permissions live in `src/domain/status.ts` TRANSITIONS table:
   submit/reopen/resubmit = owning requester or admin; start/complete/
   return = assigned maintainer or admin; **reject = admin only**

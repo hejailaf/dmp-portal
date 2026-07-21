@@ -151,7 +151,7 @@ export function RequestListPage() {
       columnHelper.accessor('status', {
         header: S.list.columns.status,
         size: 170,
-        cell: (info) => <StatusBadge status={info.getValue()} />,
+        cell: (info) => <StatusBadge status={info.getValue()} assigneeId={info.row.original.assigneeId} />,
       }),
       columnHelper.accessor('lineSummary', {
         header: S.list.columns.lines,

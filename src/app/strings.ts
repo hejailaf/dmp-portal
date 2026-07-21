@@ -103,14 +103,28 @@ export const S = {
     emptyMineBody: 'Your submitted requests and drafts will appear here.',
   },
 
+  // stored → display names; the waiting entry serves places meaning BOTH
+  // sub-states (filter dropdown, dashboard KPI) — badges use statusLabel
   status: {
     Draft: 'Draft',
-    'Waiting to be started': 'Waiting to be started',
+    'Waiting to be started': 'Submitted / Assigned',
     'In process': 'In process',
     Returned: 'Returned',
     Completed: 'Completed',
     Rejected: 'Rejected',
   } as Record<string, string>,
+
+  /**
+   * Dynamic display name (user decision 2026-07-21): a stored
+   * "Waiting to be started" request reads "Submitted" while unassigned and
+   * "Assigned" once a maintainer is set. Stored values never change.
+   */
+  statusLabel: (status: string, hasAssignee: boolean): string =>
+    status === 'Waiting to be started'
+      ? hasAssignee
+        ? 'Assigned'
+        : 'Submitted'
+      : (S.status[status] ?? status),
 
   sla: {
     overdue: (days: number) => `Overdue by ${days} ${days === 1 ? 'day' : 'days'}`,
@@ -248,7 +262,7 @@ export const S = {
     adminOnly: 'The dashboard is only available to PMDC Admins.',
     kpis: {
       total: 'All requests',
-      waiting: 'Waiting to be started',
+      waiting: 'Submitted / Assigned',
       inProcess: 'In process',
       completed: 'Completed',
       overdue: 'Overdue',

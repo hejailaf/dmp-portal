@@ -306,7 +306,7 @@ export function HomePage() {
                     </a>
                     <span className="min-w-0 truncate text-muted-foreground">{r.description}</span>
                     <span className="ml-auto flex-none">
-                      <StatusBadge status={r.status} />
+                      <StatusBadge status={r.status} assigneeId={r.assigneeId} />
                     </span>
                   </div>
                 ))
@@ -367,7 +367,8 @@ export function HomePage() {
                 <div className="mt-2 flex flex-wrap gap-4 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1.5">
                     <span className="h-2 w-2 rounded-sm bg-[var(--warning)]" />
-                    {S.status['Waiting to be started']} {queueWaiting}
+                    {/* queue items are assigned by definition */}
+                    {S.statusLabel('Waiting to be started', true)} {queueWaiting}
                   </span>
                   <span className="flex items-center gap-1.5">
                     <span className="h-2 w-2 rounded-sm bg-primary" />

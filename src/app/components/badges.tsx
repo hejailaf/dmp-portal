@@ -13,41 +13,71 @@ const STATUS_VARIANT: Record<RequestStatus, 'neutral' | 'blue' | 'amber' | 'gree
   Rejected: 'red',
 }
 
-export function StatusBadge({ status }: { status: RequestStatus }) {
-  return <Badge variant={STATUS_VARIANT[status]}>{S.status[status]}</Badge>
+/** Badge label follows reality: waiting shows "Submitted"/"Assigned" by assignee presence. */
+export function StatusBadge({ status, assigneeId }: { status: RequestStatus; assigneeId?: string }) {
+  return <Badge variant={STATUS_VARIANT[status]}>{S.statusLabel(status, !!assigneeId)}</Badge>
 }
 
 /**
  * Lifecycle track for the detail header: past steps get a check, the
- * current one the familiar status pill, future ones sit muted. Rejected is
- * a branch, not a stage — it renders as a short Draft → Rejected track.
+ * current one the familiar status pill, future ones sit muted. The stored
+ * "Waiting to be started" spans TWO display steps — Submitted, then
+ * Assigned (user decision 2026-07-21). Rejected/Returned are branches, not
+ * stages — they render as short Draft → <branch> tracks.
  */
-export function StatusStepper({ status }: { status: RequestStatus }) {
-  const track: RequestStatus[] =
-    status === 'Rejected'
-      ? ['Draft', 'Rejected']
-      : status === 'Returned'
-        ? ['Draft', 'Returned'] // branch state: back with the requester
-        : ['Draft', 'Waiting to be started', 'In process', 'Completed']
-  const current = track.indexOf(status)
+export function StatusStepper({ status, assigneeId }: { status: RequestStatus; assigneeId?: string }) {
+  interface Step {
+    label: string
+    state: 'past' | 'current' | 'future'
+  }
+  let steps: Step[]
+  if (status === 'Rejected' || status === 'Returned') {
+    steps = [
+      { label: S.status.Draft, state: 'past' },
+      { label: S.statusLabel(status, !!assigneeId), state: 'current' },
+    ]
+  } else {
+    const labels = [
+      S.status.Draft,
+      S.statusLabel('Waiting to be started', false), // Submitted
+      S.statusLabel('Waiting to be started', true), // Assigned
+      S.status['In process'],
+      S.status.Completed,
+    ]
+    const current =
+      status === 'Draft'
+        ? 0
+        : status === 'Waiting to be started'
+          ? assigneeId
+            ? 2
+            : 1
+          : status === 'In process'
+            ? 3
+            : 4
+    steps = labels.map((label, i) => ({
+      label,
+      state: i < current ? 'past' : i === current ? 'current' : 'future',
+    }))
+  }
+  const variant = STATUS_VARIANT[status]
   return (
-    <div className="flex flex-wrap items-center gap-y-1" aria-label={S.status[status]}>
-      {track.map((step, i) => (
-        <div key={step} className="flex items-center">
+    <div className="flex flex-wrap items-center gap-y-1" aria-label={S.statusLabel(status, !!assigneeId)}>
+      {steps.map((step, i) => (
+        <div key={step.label} className="flex items-center">
           {i > 0 && (
             <span
-              className={`mx-2 h-px w-6 ${i <= current ? 'bg-[var(--border-strong)]' : 'bg-border'}`}
+              className={`mx-2 h-px w-6 ${step.state !== 'future' ? 'bg-[var(--border-strong)]' : 'bg-border'}`}
             />
           )}
-          {i < current ? (
+          {step.state === 'past' ? (
             <span className="flex items-center gap-1 text-xs text-muted-foreground">
               <Check className="h-3.5 w-3.5 text-[var(--teal)]" />
-              {S.status[step]}
+              {step.label}
             </span>
-          ) : i === current ? (
-            <StatusBadge status={step} />
+          ) : step.state === 'current' ? (
+            <Badge variant={variant}>{step.label}</Badge>
           ) : (
-            <span className="text-xs text-muted-foreground/70">{S.status[step]}</span>
+            <span className="text-xs text-muted-foreground/70">{step.label}</span>
           )}
         </div>
       ))}
