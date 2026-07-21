@@ -116,6 +116,10 @@ https://<server>/personal/<you>/pmdc/PMDCApp/index.aspx#/requests/[%Current Item
   - Subject: `[%Current Item:Title%] was rejected`
   - Body: `Reason: [%Current Item:RejectReason%]` + deep link + "you can
     reopen it as a draft from the request page".
+  - ALSO add a parallel branch for status **Returned** (2026-07-21): same
+    shape — Subject `[%Current Item:Title%] was returned for changes`,
+    Body `What to change: [%Current Item:RejectReason%]` + deep link +
+    "edit the request and resubmit it from the request page".
 - **Email C — completed, to requester**
   - Subject: `[%Current Item:Title%] is completed`
   - Body: Description + deep link.

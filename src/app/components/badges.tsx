@@ -8,6 +8,7 @@ const STATUS_VARIANT: Record<RequestStatus, 'neutral' | 'blue' | 'amber' | 'gree
   Draft: 'neutral',
   'Waiting to be started': 'amber',
   'In process': 'blue',
+  Returned: 'amber', // with the requester — action needed, like Waiting
   Completed: 'green',
   Rejected: 'red',
 }
@@ -25,7 +26,9 @@ export function StatusStepper({ status }: { status: RequestStatus }) {
   const track: RequestStatus[] =
     status === 'Rejected'
       ? ['Draft', 'Rejected']
-      : ['Draft', 'Waiting to be started', 'In process', 'Completed']
+      : status === 'Returned'
+        ? ['Draft', 'Returned'] // branch state: back with the requester
+        : ['Draft', 'Waiting to be started', 'In process', 'Completed']
   const current = track.indexOf(status)
   return (
     <div className="flex flex-wrap items-center gap-y-1" aria-label={S.status[status]}>

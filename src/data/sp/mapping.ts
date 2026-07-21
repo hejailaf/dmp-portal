@@ -18,6 +18,7 @@ export interface RequestItem {
   SubmittedAt?: string | null
   DueDate?: string | null
   CompletedAt?: string | null
+  ReturnedAt?: string | null
   SlaDays?: number | null
   Description?: string | null
   RejectReason?: string | null
@@ -58,6 +59,7 @@ export function mapRequest(item: RequestItem): Request {
     submittedAt: item.SubmittedAt ?? undefined,
     dueDate: item.DueDate ?? undefined,
     completedAt: item.CompletedAt ?? undefined,
+    returnedAt: item.ReturnedAt ?? undefined,
     slaDays: item.SlaDays ?? undefined,
     rejectReason: item.RejectReason || undefined,
     lineSummary: item.LineSummary ?? '',

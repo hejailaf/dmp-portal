@@ -46,6 +46,8 @@ export interface DataProvider {
   assignRequest(id: string, assigneeId: string): Promise<Request>
   setStatus(id: string, to: RequestStatus): Promise<Request>
   rejectRequest(id: string, reason: string): Promise<Request>
+  /** Assigned maintainer/admin sends the request back for changes; the SLA clock pauses until resubmit. */
+  returnRequest(id: string, reason: string): Promise<Request>
   addComment(id: string, body: string): Promise<Comment>
   listComments(id: string): Promise<Comment[]>
   addAttachment(id: string, file: File): Promise<Attachment>

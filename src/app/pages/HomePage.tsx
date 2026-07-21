@@ -3,7 +3,7 @@ import { daysUntilDue, isOverdue } from '@/domain/sla'
 import type { Request } from '@/domain/types'
 import lockupLight from '@/assets/logo-horizontal-text.svg'
 import lockupDark from '@/assets/logo-horizontal-text-dark.svg'
-import { AlertCircle, ClipboardList, FileSpreadsheet, Plus, UserPlus } from 'lucide-react'
+import { AlertCircle, ClipboardList, CornerUpLeft, FileSpreadsheet, Plus, UserPlus } from 'lucide-react'
 import { relativeDateTime } from '../format'
 import { useAsync } from '../hooks'
 import { href } from '../router'
@@ -137,6 +137,7 @@ export function HomePage() {
 
   // requester bits
   const rejectedMine = mine.filter((r) => r.status === 'Rejected').slice(0, 3)
+  const returnedMine = mine.filter((r) => r.status === 'Returned').slice(0, 3)
   const recentMine = [...mine].sort((a, b) => latestOf(b).localeCompare(latestOf(a))).slice(0, 5)
 
   // maintainer bits
@@ -272,6 +273,15 @@ export function HomePage() {
               tone="red"
               icon={<AlertCircle className="h-4 w-4 flex-none text-destructive" />}
               text={S.home.rejectedCallout(r.ref)}
+              to={`/requests/${r.id}`}
+            />
+          ))}
+          {returnedMine.map((r) => (
+            <Callout
+              key={r.id}
+              tone="amber"
+              icon={<CornerUpLeft className="h-4 w-4 flex-none text-[var(--warning)]" />}
+              text={S.home.returnedCallout(r.ref)}
               to={`/requests/${r.id}`}
             />
           ))}

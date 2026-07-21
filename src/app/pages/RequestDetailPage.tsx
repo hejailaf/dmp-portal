@@ -3,6 +3,7 @@ import { createColumnHelper, getCoreRowModel, useReactTable } from '@tanstack/re
 import {
   ArrowLeft,
   ArrowRight,
+  CornerUpLeft,
   MessageSquare,
   MoreHorizontal,
   Paperclip,
@@ -327,6 +328,7 @@ const AUDIT_ICONS: Record<AuditEvent, LucideIcon> = {
   Assigned: UserCheck,
   StatusChanged: ArrowRight,
   Rejected: X,
+  Returned: CornerUpLeft,
   Reopened: RotateCcw,
   CommentAdded: MessageSquare,
   AttachmentAdded: Paperclip,
@@ -345,7 +347,8 @@ export function RequestDetailPage({ id }: { id: string }) {
   const [busy, setBusy] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [banner, setBanner] = useState<string>()
-  const [rejectOpen, setRejectOpen] = useState(false)
+  // one reason dialog serves Reject (admin) and Return to requester (maintainer)
+  const [reasonTarget, setReasonTarget] = useState<'Rejected' | 'Returned'>()
   const [rejectReason, setRejectReason] = useState('')
   const [assignOpen, setAssignOpen] = useState(false)
   const [assigneeId, setAssigneeId] = useState('')
@@ -388,18 +391,21 @@ export function RequestDetailPage({ id }: { id: string }) {
   }
   const isAdmin = user.roles.includes('admin')
   const transitions = availableTransitions(ctx, req.status)
-  const canEditDraft = req.status === 'Draft' && (ctx.isOwner || isAdmin)
+  // Returned requests are edited directly by their requester (no reopen step)
+  const canEditDraft = (req.status === 'Draft' || req.status === 'Returned') && (ctx.isOwner || isAdmin)
   const canClaim =
     user.roles.includes('maintainer') && !req.assigneeId && req.status === 'Waiting to be started'
   const canAssign = isAdmin && (req.status === 'Waiting to be started' || req.status === 'In process')
 
   const doTransition = (to: Request['status']) => {
-    if (to === 'Rejected') {
+    if (to === 'Rejected' || to === 'Returned') {
       setRejectReason('')
-      setRejectOpen(true)
+      setReasonTarget(to)
       return
     }
-    if (to === 'Waiting to be started' && req.status === 'Draft') {
+    // submit (Draft) and resubmit (Returned) go through submitRequest —
+    // validation + SLA compute/extension live there, not in setStatus
+    if (to === 'Waiting to be started' && (req.status === 'Draft' || req.status === 'Returned')) {
       void run(() => provider.submitRequest(req.id))
       return
     }
@@ -472,6 +478,12 @@ export function RequestDetailPage({ id }: { id: string }) {
           {req.rejectReason}
         </p>
       )}
+      {req.status === 'Returned' && req.rejectReason && (
+        <p className="rounded-md border border-[rgba(225,154,47,.4)] bg-[var(--warning-tint)] p-3 text-sm">
+          <span className="font-semibold">{S.detail.returnReason}: </span>
+          {req.rejectReason}
+        </p>
+      )}
 
       {/* document header (ux-experiments 2026-07-21): actions live IN the
           card on the ref row; the status pill grew into a lifecycle stepper;
@@ -488,7 +500,8 @@ export function RequestDetailPage({ id }: { id: string }) {
               {canEditDraft && (
                 <a href={href(`/requests/${req.id}/edit`)}>
                   <Button variant="outline">
-                    <Pencil className="h-4 w-4" /> {S.detail.editDraft}
+                    <Pencil className="h-4 w-4" />{' '}
+                    {req.status === 'Draft' ? S.detail.editDraft : S.detail.editRequest}
                   </Button>
                 </a>
               )}
@@ -502,10 +515,17 @@ export function RequestDetailPage({ id }: { id: string }) {
                   {S.detail.claim}
                 </Button>
               )}
+              {/* Return is a routine maintainer action → visible outline button;
+                  Reject stays admin-only in the More menu */}
               {transitions
                 .filter((t) => t.to !== 'Rejected')
                 .map((t) => (
-                  <Button key={t.to} disabled={busy} onClick={() => doTransition(t.to)}>
+                  <Button
+                    key={t.to}
+                    variant={t.to === 'Returned' ? 'outline' : 'default'}
+                    disabled={busy}
+                    onClick={() => doTransition(t.to)}
+                  >
                     {t.label}
                   </Button>
                 ))}
@@ -720,25 +740,34 @@ export function RequestDetailPage({ id }: { id: string }) {
         </CardContent>
       </Card>
 
-      {/* reject dialog */}
-      <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
+      {/* reason dialog — Reject (admin) and Return to requester share it */}
+      <Dialog open={!!reasonTarget} onOpenChange={(open) => !open && setReasonTarget(undefined)}>
         <DialogContent>
-          <DialogTitle>{S.detail.rejectTitle}</DialogTitle>
-          <label className="mb-1 block text-sm font-medium">{S.detail.rejectReasonLabel}</label>
+          <DialogTitle>
+            {reasonTarget === 'Returned' ? S.detail.returnTitle : S.detail.rejectTitle}
+          </DialogTitle>
+          <label className="mb-1 block text-sm font-medium">
+            {reasonTarget === 'Returned' ? S.detail.returnReasonLabel : S.detail.rejectReasonLabel}
+          </label>
           <Textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} autoFocus />
           <div className="mt-4 flex justify-end gap-2">
-            <Button variant="ghost" onClick={() => setRejectOpen(false)}>
+            <Button variant="ghost" onClick={() => setReasonTarget(undefined)}>
               {S.editor.cancel}
             </Button>
             <Button
-              variant="destructive"
+              variant={reasonTarget === 'Returned' ? 'default' : 'destructive'}
               disabled={!rejectReason.trim() || busy}
               onClick={() => {
-                setRejectOpen(false)
-                void run(() => provider.rejectRequest(req.id, rejectReason))
+                const target = reasonTarget
+                setReasonTarget(undefined)
+                void run(() =>
+                  target === 'Returned'
+                    ? provider.returnRequest(req.id, rejectReason)
+                    : provider.rejectRequest(req.id, rejectReason),
+                )
               }}
             >
-              {S.detail.rejectConfirm}
+              {reasonTarget === 'Returned' ? S.detail.returnConfirm : S.detail.rejectConfirm}
             </Button>
           </div>
         </DialogContent>

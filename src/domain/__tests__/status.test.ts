@@ -50,6 +50,22 @@ describe('legal transitions and who may perform them', () => {
     expect(canTransition(otherRequester, 'Rejected', 'Draft')).toBe(false)
     expect(canTransition(assignee, 'Rejected', 'Draft')).toBe(false)
   })
+
+  it('return (from Waiting and In process): assigned maintainer and admin only', () => {
+    for (const from of ['Waiting to be started', 'In process'] as const) {
+      expect(canTransition(assignee, from, 'Returned')).toBe(true)
+      expect(canTransition(admin, from, 'Returned')).toBe(true)
+      expect(canTransition(otherMaintainer, from, 'Returned')).toBe(false)
+      expect(canTransition(owner, from, 'Returned')).toBe(false)
+    }
+  })
+
+  it('Returned → Waiting (resubmit): owning requester and admin only', () => {
+    expect(canTransition(owner, 'Returned', 'Waiting to be started')).toBe(true)
+    expect(canTransition(admin, 'Returned', 'Waiting to be started')).toBe(true)
+    expect(canTransition(otherRequester, 'Returned', 'Waiting to be started')).toBe(false)
+    expect(canTransition(assignee, 'Returned', 'Waiting to be started')).toBe(false)
+  })
 })
 
 describe('illegal transitions are impossible for everyone, including admin', () => {
@@ -60,6 +76,9 @@ describe('illegal transitions are impossible for everyone, including admin', () 
     'Waiting to be started>Rejected',
     'In process>Rejected',
     'Rejected>Draft',
+    'Waiting to be started>Returned',
+    'In process>Returned',
+    'Returned>Waiting to be started',
   ])
 
   it('every from×to pair outside the table is rejected', () => {
@@ -91,20 +110,24 @@ describe('assertTransition', () => {
     expect(assertTransition(owner, 'Draft', 'Waiting to be started').event).toBe('Submitted')
     expect(assertTransition(admin, 'In process', 'Rejected').event).toBe('Rejected')
     expect(assertTransition(owner, 'Rejected', 'Draft').event).toBe('Reopened')
+    expect(assertTransition(assignee, 'In process', 'Returned').event).toBe('Returned')
+    expect(assertTransition(owner, 'Returned', 'Waiting to be started').event).toBe('Submitted')
   })
 })
 
 describe('availableTransitions (drives the action buttons)', () => {
-  it('admin from Waiting: start + reject', () => {
+  it('admin from Waiting: start + reject + return', () => {
     expect(availableTransitions(admin, 'Waiting to be started').map((t) => t.to)).toEqual([
       'In process',
       'Rejected',
+      'Returned',
     ])
   })
 
-  it('assigned maintainer from Waiting: start only', () => {
+  it('assigned maintainer from Waiting: start + return', () => {
     expect(availableTransitions(assignee, 'Waiting to be started').map((t) => t.to)).toEqual([
       'In process',
+      'Returned',
     ])
   })
 

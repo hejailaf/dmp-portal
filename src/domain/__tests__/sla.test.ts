@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { computeDueDate, daysUntilDue, isOverdue, slaDaysFor } from '../sla'
+import { computeDueDate, daysUntilDue, extendDueDate, isOverdue, slaDaysFor } from '../sla'
 
 describe('slaDaysFor — max across lines governs the request', () => {
   it('single-action requests use that action’s days', () => {
@@ -46,6 +46,30 @@ describe('isOverdue — derived at render time', () => {
     expect(isOverdue({ status: 'Completed', dueDate: past }, now)).toBe(false)
     expect(isOverdue({ status: 'Rejected', dueDate: past }, now)).toBe(false)
     expect(isOverdue({ status: 'Draft', dueDate: undefined }, now)).toBe(false)
+  })
+
+  it('false while Returned — the clock is paused with the requester', () => {
+    expect(isOverdue({ status: 'Returned', dueDate: past }, now)).toBe(false)
+  })
+})
+
+describe('extendDueDate — SLA pause over the Returned interval', () => {
+  it('adds exactly the time spent with the requester', () => {
+    expect(
+      extendDueDate('2026-07-25T08:00:00.000Z', '2026-07-20T08:00:00.000Z', '2026-07-22T08:00:00.000Z'),
+    ).toBe('2026-07-27T08:00:00.000Z')
+  })
+
+  it('handles partial days', () => {
+    expect(
+      extendDueDate('2026-07-25T08:00:00.000Z', '2026-07-20T08:00:00.000Z', '2026-07-20T20:00:00.000Z'),
+    ).toBe('2026-07-25T20:00:00.000Z')
+  })
+
+  it('never shrinks the due date on clock skew', () => {
+    expect(
+      extendDueDate('2026-07-25T08:00:00.000Z', '2026-07-22T08:00:00.000Z', '2026-07-22T07:59:00.000Z'),
+    ).toBe('2026-07-25T08:00:00.000Z')
   })
 })
 

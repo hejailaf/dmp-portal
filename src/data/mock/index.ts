@@ -8,7 +8,7 @@ import type {
   User,
 } from '@/domain/types'
 import { assertTransition, TransitionError, type TransitionCtx } from '@/domain/status'
-import { computeDueDate, slaDaysFor } from '@/domain/sla'
+import { computeDueDate, extendDueDate, slaDaysFor } from '@/domain/sla'
 import { nextRef } from '@/domain/ref'
 import { normalizeFieldData, summarizeLines } from '@/domain/field-map'
 import { isEmptyLine, validateAttachment, validateCommentBody, validateForSubmit } from '@/domain/schemas'
@@ -172,9 +172,11 @@ export class MockProvider implements DataProvider {
     await sleep()
     const req = this.mustGet(id)
     const ctx = this.ctxFor(req)
-    if (req.status !== 'Draft') throw new Error('Only drafts can be edited')
+    // Returned requests are edited DIRECTLY by the requester (no reopen step)
+    if (req.status !== 'Draft' && req.status !== 'Returned')
+      throw new Error('Only drafts and returned requests can be edited')
     if (!ctx.isOwner && !ctx.roles.includes('admin'))
-      throw new Error('Only the requester can edit this draft')
+      throw new Error('Only the requester can edit this request')
     this.replaceLines(id, lines)
     req.description = description.trim()
     req.lineSummary = summarizeLines(lines)
@@ -195,15 +197,24 @@ export class MockProvider implements DataProvider {
     const validation = validateForSubmit(lines, req.description)
     if (!validation.ok)
       throw new Error(validation.requestErrors[0] ?? 'Request has validation errors — fix the lines first')
-    const t = assertTransition(this.ctxFor(req), req.status, 'Waiting to be started')
+    const from = req.status
+    const t = assertTransition(this.ctxFor(req), from, 'Waiting to be started')
     this.db.lines = [...this.db.lines.filter((l) => l.requestId !== id), ...lines]
     req.lineSummary = summarizeLines(lines)
     req.status = 'Waiting to be started'
-    req.submittedAt = new Date().toISOString()
-    req.slaDays = slaDaysFor(lines)
-    req.dueDate = computeDueDate(req.submittedAt, req.slaDays)
-    req.rejectReason = undefined // resubmit after reopen clears the old reason
-    this.writeAudit(id, t.event, 'Draft', req.status)
+    if (from === 'Returned') {
+      // resubmit: the SLA clock was PAUSED with the requester — the due date
+      // grows by that interval; submittedAt/slaDays stay (user decision 2026-07-21)
+      if (req.dueDate && req.returnedAt)
+        req.dueDate = extendDueDate(req.dueDate, req.returnedAt, new Date().toISOString())
+      req.returnedAt = undefined
+    } else {
+      req.submittedAt = new Date().toISOString()
+      req.slaDays = slaDaysFor(lines)
+      req.dueDate = computeDueDate(req.submittedAt, req.slaDays)
+    }
+    req.rejectReason = undefined // clears the old reject/return reason
+    this.writeAudit(id, t.event, from, req.status)
     this.save()
     return req
   }
@@ -233,6 +244,9 @@ export class MockProvider implements DataProvider {
     const req = this.mustGet(id)
     const t = assertTransition(this.ctxFor(req), req.status, to)
     if (to === 'Rejected') throw new Error('Use rejectRequest — a reject reason is required')
+    if (to === 'Returned') throw new Error('Use returnRequest — a return reason is required')
+    if (req.status === 'Returned')
+      throw new Error('Use submitRequest — resubmission validates lines and extends the due date')
     const from = req.status
     req.status = to
     if (to === 'Completed') req.completedAt = new Date().toISOString()
@@ -255,6 +269,20 @@ export class MockProvider implements DataProvider {
     const from = req.status
     req.status = 'Rejected'
     req.rejectReason = reason.trim()
+    this.writeAudit(id, t.event, from, reason.trim())
+    this.save()
+    return req
+  }
+
+  async returnRequest(id: string, reason: string): Promise<Request> {
+    await sleep()
+    const req = this.mustGet(id)
+    if (!reason.trim()) throw new Error('A return reason is required')
+    const t = assertTransition(this.ctxFor(req), req.status, 'Returned')
+    const from = req.status
+    req.status = 'Returned'
+    req.returnedAt = new Date().toISOString() // pause marker — resubmit extends dueDate by the gap
+    req.rejectReason = reason.trim() // shown to the requester; assignee is KEPT
     this.writeAudit(id, t.event, from, reason.trim())
     this.save()
     return req

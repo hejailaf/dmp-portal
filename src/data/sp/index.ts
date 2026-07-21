@@ -9,7 +9,7 @@ import type {
   User,
 } from '@/domain/types'
 import { assertTransition, TransitionError, type TransitionCtx } from '@/domain/status'
-import { computeDueDate, slaDaysFor } from '@/domain/sla'
+import { computeDueDate, extendDueDate, slaDaysFor } from '@/domain/sla'
 import { nextRef } from '@/domain/ref'
 import { normalizeFieldData, summarizeLines } from '@/domain/field-map'
 import { isEmptyLine, validateAttachment, validateCommentBody, validateForSubmit } from '@/domain/schemas'
@@ -46,7 +46,7 @@ const COMMENTS = 'PMDC_Comments'
 const AUDIT = 'PMDC_AuditLog'
 
 const REQUEST_SELECT =
-  '$select=Id,Title,RequestStatus,RequesterLogin,RequesterName,AssigneeLogin,AssigneeName,Created,SubmittedAt,DueDate,CompletedAt,SlaDays,Description,RejectReason,LineSummary'
+  '$select=Id,Title,RequestStatus,RequesterLogin,RequesterName,AssigneeLogin,AssigneeName,Created,SubmittedAt,DueDate,CompletedAt,ReturnedAt,SlaDays,Description,RejectReason,LineSummary'
 const LINE_SELECT = '$select=Id,RequestId,ObjectType,LineAction,LineOrder,FieldData'
 
 const item = (list: string, id: string | number) => `${listPath(list)}/items(${Number(id)})`
@@ -202,9 +202,11 @@ export class SharePointProvider implements DataProvider {
 
   async updateDraft(id: string, lines: DraftLineInput[], description: string): Promise<Request> {
     const [me, req] = await Promise.all([this.me(), this.fetchRequest(id)])
-    if (req.status !== 'Draft') throw new Error('Only drafts can be edited')
+    // Returned requests are edited DIRECTLY by the requester (no reopen step)
+    if (req.status !== 'Draft' && req.status !== 'Returned')
+      throw new Error('Only drafts and returned requests can be edited')
     if (req.requesterId !== me.id && !me.roles.includes('admin'))
-      throw new Error('Only the requester can edit this draft')
+      throw new Error('Only the requester can edit this request')
     await this.writeLines(id, req.ref, lines)
     await spMerge(item(REQUESTS, id), {
       Description: description.trim(),
@@ -225,19 +227,31 @@ export class SharePointProvider implements DataProvider {
     const validation = validateForSubmit(lines, req.description)
     if (!validation.ok)
       throw new Error(validation.requestErrors[0] ?? 'Request has validation errors — fix the lines first')
-    const t = assertTransition(this.ctxFor(me, req), req.status, 'Waiting to be started')
+    const from = req.status
+    const t = assertTransition(this.ctxFor(me, req), from, 'Waiting to be started')
     for (const l of empties) await spDelete(item(LINES, l.id))
-    const submittedAt = new Date().toISOString()
-    const slaDays = slaDaysFor(lines)
-    await spMerge(item(REQUESTS, id), {
+    const patch: Record<string, unknown> = {
       RequestStatus: 'Waiting to be started',
-      SubmittedAt: submittedAt,
-      DueDate: computeDueDate(submittedAt, slaDays),
-      SlaDays: slaDays,
       RejectReason: '',
       LineSummary: summarizeLines(lines),
-    })
-    await this.writeAudit(id, t.event, 'Draft', 'Waiting to be started', req.ref)
+    }
+    if (from === 'Returned') {
+      // resubmit: the SLA clock was PAUSED with the requester — the due date
+      // grows by that interval; SubmittedAt/SlaDays stay (user decision 2026-07-21)
+      if (req.dueDate && req.returnedAt)
+        patch.DueDate = extendDueDate(req.dueDate, req.returnedAt, new Date().toISOString())
+      patch.ReturnedAt = null
+    } else {
+      const submittedAt = new Date().toISOString()
+      const slaDays = slaDaysFor(lines)
+      Object.assign(patch, {
+        SubmittedAt: submittedAt,
+        DueDate: computeDueDate(submittedAt, slaDays),
+        SlaDays: slaDays,
+      })
+    }
+    await spMerge(item(REQUESTS, id), patch)
+    await this.writeAudit(id, t.event, from, 'Waiting to be started', req.ref)
     return this.fetchRequest(id)
   }
 
@@ -261,6 +275,9 @@ export class SharePointProvider implements DataProvider {
     const [me, req] = await Promise.all([this.me(), this.fetchRequest(id)])
     const t = assertTransition(this.ctxFor(me, req), req.status, to)
     if (to === 'Rejected') throw new Error('Use rejectRequest — a reject reason is required')
+    if (to === 'Returned') throw new Error('Use returnRequest — a return reason is required')
+    if (req.status === 'Returned')
+      throw new Error('Use submitRequest — resubmission validates lines and extends the due date')
     const patch: Record<string, unknown> = { RequestStatus: to }
     if (to === 'Completed') patch.CompletedAt = new Date().toISOString()
     if (t.event === 'Reopened') {
@@ -277,6 +294,19 @@ export class SharePointProvider implements DataProvider {
     if (!reason.trim()) throw new Error('A reject reason is required')
     const t = assertTransition(this.ctxFor(me, req), req.status, 'Rejected')
     await spMerge(item(REQUESTS, id), { RequestStatus: 'Rejected', RejectReason: reason.trim() })
+    await this.writeAudit(id, t.event, req.status, reason.trim(), req.ref)
+    return this.fetchRequest(id)
+  }
+
+  async returnRequest(id: string, reason: string): Promise<Request> {
+    const [me, req] = await Promise.all([this.me(), this.fetchRequest(id)])
+    if (!reason.trim()) throw new Error('A return reason is required')
+    const t = assertTransition(this.ctxFor(me, req), req.status, 'Returned')
+    await spMerge(item(REQUESTS, id), {
+      RequestStatus: 'Returned',
+      ReturnedAt: new Date().toISOString(), // pause marker — resubmit extends DueDate by the gap
+      RejectReason: reason.trim(), // shown to the requester; assignee is KEPT
+    })
     await this.writeAudit(id, t.event, req.status, reason.trim(), req.ref)
     return this.fetchRequest(id)
   }

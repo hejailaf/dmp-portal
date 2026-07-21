@@ -67,11 +67,18 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
 
 - Statuses: `Draft → Waiting to be started → In process → Completed`;
   `Rejected` from Waiting/In process (reason required); `Rejected → Draft`
-  (reopen — user decision). Only Completed is terminal.
+  (reopen — user decision). `Returned` from Waiting/In process (user
+  decision 2026-07-21): assigned maintainer/admin sends it back with a
+  reason; the requester EDITS DIRECTLY (no reopen) and resubmits →
+  Waiting (assignee kept). Reject RESETS dates on reopen+resubmit;
+  Return PAUSES the SLA — submittedAt stays and dueDate grows by the
+  returned interval (`extendDueDate`, `returnedAt` field / ReturnedAt
+  column; reason shares RejectReason; isOverdue is false while
+  Returned). Only Completed is terminal.
 - Transition permissions live in `src/domain/status.ts` TRANSITIONS table:
-  submit/reopen = owning requester or admin; start/complete = assigned
-  maintainer or admin; **reject = admin only** (spec-literal; change one row
-  if maintainers should reject).
+  submit/reopen/resubmit = owning requester or admin; start/complete/
+  return = assigned maintainer or admin; **reject = admin only**
+  (spec-literal).
 - Assignment: admins assign anyone; maintainers may self-claim unassigned
   requests (user decision). Enforced in providers, not just UI.
 - Roles: groups first; if a user has NO direct PMDC group, the SP provider

@@ -388,8 +388,14 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
     [requestId],
   )
 
+  // Returned requests are edited directly (no reopen) and resubmitted
+  const isReturned = existing.data?.request.status === 'Returned'
   usePageTitle(
-    requestId ? (existing.data ? S.editor.editTitle(existing.data.request.ref) : undefined) : S.editor.newTitle,
+    requestId
+      ? existing.data
+        ? (isReturned ? S.editor.editReturnedTitle : S.editor.editTitle)(existing.data.request.ref)
+        : undefined
+      : S.editor.newTitle,
   )
 
   // unsaved-changes guard: any edit flips the ref; save/submit clear it.
@@ -439,8 +445,13 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
 
   if (requestId && existing.loading) return <p className="text-muted-foreground">{S.detail.loading}</p>
   if (requestId && existing.error) return <p className="text-destructive">{existing.error}</p>
-  if (requestId && existing.data && existing.data.request.status !== 'Draft')
-    return <p className="text-destructive">{S.editor.editTitle(existing.data.request.ref)}: not a draft.</p>
+  if (
+    requestId &&
+    existing.data &&
+    existing.data.request.status !== 'Draft' &&
+    existing.data.request.status !== 'Returned'
+  )
+    return <p className="text-destructive">{S.editor.notEditable}</p>
 
   const update = (key: string, patch: Partial<EditorLine>) => {
     dirtyRef.current = true
@@ -628,7 +639,10 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
     }
   }
 
-  const title = requestId && existing.data ? S.editor.editTitle(existing.data.request.ref) : S.editor.newTitle
+  const title =
+    requestId && existing.data
+      ? (isReturned ? S.editor.editReturnedTitle : S.editor.editTitle)(existing.data.request.ref)
+      : S.editor.newTitle
   // the toolbars now live outside the tab panels, so they act on the OPEN tab
   const activeCfg = FIELD_MAP[tab]
   const activeSelected = selectedKeysInTab(tab).size
@@ -657,7 +671,7 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
             {busy === 'save' ? S.editor.saving : S.editor.saveDraft}
           </Button>
           <Button disabled={!!busy || !lines.some((l) => !isEmptyLine(l))} onClick={() => void onSubmit()}>
-            {busy === 'submit' ? S.editor.submitting : S.editor.submit}
+            {busy === 'submit' ? S.editor.submitting : isReturned ? S.editor.resubmit : S.editor.submit}
           </Button>
         </div>
       </div>
