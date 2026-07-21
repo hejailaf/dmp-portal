@@ -92,7 +92,10 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
 - Line SAP fields live in one JSON blob (`FieldData`) validated by Zod —
   never mirrored as SharePoint columns.
 - Drafts are visible only to their requester and admins.
-- Request `description` (business reason/reference): a ONE-LINE title,
+- Request `description`: a ONE-LINE title. Convention (user decision
+  2026-07-21): reference documents (MOC/WO/etc.) belong in ATTACHMENTS
+  and remarks in COMMENTS — never in the description; keep demo/seed
+  descriptions and examples free of reference codes. It is
   ≤60 chars (`DESCRIPTION_MAX_LENGTH`), free while drafting, REQUIRED at
   submit — enforced in `validateForSubmit(lines, description)` and thus
   in BOTH providers + the editor (single-line Input with counter).

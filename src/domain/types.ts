@@ -29,7 +29,11 @@ export interface User {
 export interface Request {
   id: string
   ref: string // DCR-YYNNNN
-  /** Business reason / reference (e.g. MOC no.) — required to submit, free while drafting. */
+  /**
+   * One-line title — required to submit, free while drafting. Convention
+   * (2026-07-21): reference documents go in ATTACHMENTS, remarks in
+   * COMMENTS — never in the description.
+   */
   description: string
   status: RequestStatus
   requesterId: string
