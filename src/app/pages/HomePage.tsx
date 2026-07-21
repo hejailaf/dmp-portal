@@ -404,21 +404,11 @@ export function HomePage() {
         </div>
       )}
 
-      {/* admin: command center — tiles, dispatch callouts, team load, activity */}
+      {/* admin: command center — dispatch callout, tiles, team load, activity */}
       {topRole === 'admin' && (
         <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-            <StatCard label={S.home.cards.all} value={all.length} to="/requests?scope=all" />
-            <StatCard label={S.home.cards.overdue} value={allOverdue.length} to="/requests?scope=all&overdue=1" tone="red" />
-            <StatCard label={S.home.cards.unassignedPool} value={unassigned.length} to="/requests?scope=unassigned" />
-            <StatCard
-              label={S.home.cards.completed}
-              value={all.filter((r) => r.status === 'Completed').length}
-              to="/requests?scope=all&status=Completed"
-            />
-          </div>
-          {/* one banner per request, worst facts combined — the Overdue tile
-              already carries the count, so no count-only callout */}
+          {/* one banner per request, worst facts combined, above the tiles —
+              the Overdue tile already carries the count, so no count-only callout */}
           {oldestUnassigned && unassignedDays >= 1 && (
             <Callout
               tone={isOverdue(oldestUnassigned) ? 'red' : 'amber'}
@@ -439,6 +429,16 @@ export function HomePage() {
               to={`/requests/${oldestUnassigned.id}`}
             />
           )}
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <StatCard label={S.home.cards.all} value={all.length} to="/requests?scope=all" />
+            <StatCard label={S.home.cards.overdue} value={allOverdue.length} to="/requests?scope=all&overdue=1" tone="red" />
+            <StatCard label={S.home.cards.unassignedPool} value={unassigned.length} to="/requests?scope=unassigned" />
+            <StatCard
+              label={S.home.cards.completed}
+              value={all.filter((r) => r.status === 'Completed').length}
+              to="/requests?scope=all&status=Completed"
+            />
+          </div>
           <div className="grid gap-3 lg:grid-cols-2">
             <Card className="min-w-0">
               <CardContent className="p-4">
