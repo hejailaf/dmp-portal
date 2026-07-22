@@ -281,9 +281,33 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
   headings + Requester tiles hidden for staff.
 - **Pending decisions**: (1) ~~site rename~~ DECIDED 2026-07-18: user chose
   **PM DataCare** (applied). (2) Migration off the personal site collection
-  to a team site before broad rollout.
-- **Next build phase**: Phase 3 — attachments UI, Excel EXPORT on detail
-  page (reuse excel-lines machinery), admin dashboard, polish.
+  to a team site — recipe ready (DEPLOY_SP.md "Moving to a new subsite"),
+  execution pending on-site.
+
+## Session handoff addendum (2026-07-22)
+
+- **ux-experiments MERGED to master** (merge d8ed525, deployment build
+  202607220321 committed): request-detail redesign (stepper, actions in
+  the header card, More menu, activity tabs, pinned lead columns),
+  warm-graphite dark mode, Description column in lists, 11-item polish
+  pass (sorting, sticky editor bar, router-level unsaved-changes
+  navGuard, skeletons, per-page titles, stored list filters, back-link,
+  Ctrl+Enter comments, overdue row edge, count + clear-search, empty-state
+  CTA), role-specific home pages (requester launchpad / maintainer
+  overview / admin command center; ONE section by highest role
+  Admin > Maintainer > Requester; full-bar link callouts), slim nav
+  (no Unassigned link; "+ Create a new request" CTA right of nav, hidden
+  on home + /new; maintainers never see it), Unassigned as a checkbox
+  next to Overdue (mutually exclusive), unified multi-sheet Excel
+  template, Returned flow, perspective status wording. The branch
+  `ux-experiments` + tag `pilot-baseline` stay on GitHub until the new
+  site passes SMOKE_TEST, then delete.
+- **Deploy**: build 202607220321 is a PMDC build → NEW subsite only,
+  full dist-sp upload + fresh provision there; the old personal-site
+  subsite keeps its pre-rename build until retired.
+- **Postponed by user**: script-redirect button (bounce classic list
+  pages to the app, with safety hatch); PPTX requester-guide screenshot
+  refresh (old UI + old wording — redo after the new site is live).
 
 ## Dev commands
 
