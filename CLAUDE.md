@@ -300,9 +300,9 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
   on home + /new; maintainers never see it), Unassigned as a checkbox
   next to Overdue (mutually exclusive), unified multi-sheet Excel
   template, Returned flow, perspective status wording. Branches
-  `ux-experiments` and `experiments` deleted 2026-07-22 (both fully
-  merged); tag `pilot-baseline` remains the rollback reference until
-  the new site passes SMOKE_TEST.
+  `ux-experiments`/`experiments` and tag `pilot-baseline` deleted
+  2026-07-22 (all fully merged); the pilot-baseline commit is 4898df3
+  in master history if a rollback reference is ever needed.
 - **Deploy**: build 202607220321 is a PMDC build → NEW subsite only,
   full dist-sp upload + fresh provision there; the old personal-site
   subsite keeps its pre-rename build until retired.
