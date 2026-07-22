@@ -109,3 +109,23 @@ export function summarizeLines(lines: Pick<RequestLine, 'objectType' | 'action'>
   }
   return parts.join(' · ')
 }
+
+/**
+ * Inverse of summarizeLines for list views (list rows carry only the
+ * denormalized summary string, never the lines): present type labels +
+ * total line count. Format is owned by summarizeLines above — the
+ * round-trip test in line-summary.test.ts keeps the two in sync.
+ */
+export function parseLineSummary(summary: string): { types: string[]; total: number } {
+  if (!summary) return { types: [], total: 0 }
+  const segments = summary.split(' · ')
+  return {
+    types: segments.map((s) => s.slice(0, s.indexOf(':'))),
+    total: segments.reduce(
+      (sum, s) =>
+        sum +
+        [...s.slice(s.indexOf(':') + 1).matchAll(/\d+/g)].reduce((a, m) => a + Number(m[0]), 0),
+      0,
+    ),
+  }
+}

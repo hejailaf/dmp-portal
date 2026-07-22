@@ -1,5 +1,5 @@
 import type { Request, RequestLine } from '@/domain/types'
-import { appliesTo, isRequired, OBJECT_TYPE_CONFIGS } from '@/domain/field-map'
+import { appliesTo, isRequired, OBJECT_TYPE_CONFIGS, parseLineSummary } from '@/domain/field-map'
 import { formatDate, formatDateTime } from './utils'
 import { AMBER, excel } from './excel-lines'
 
@@ -111,30 +111,35 @@ export async function makeRequestListExport(requests: Request[], title: string):
     'Ref',
     'Description',
     'Status',
+    'Req. Type',
     'Line items',
     'Requester',
     'Assignee',
     'Submitted',
     'Due date',
     'Completed',
+    'Line summary',
   ])
   header.font = { bold: true }
 
   for (const r of requests) {
+    const { types, total } = parseLineSummary(r.lineSummary)
     ws.addRow([
       r.ref,
       r.description,
       r.status,
-      r.lineSummary,
+      types.length > 1 ? 'Multiple' : (types[0] ?? ''),
+      total,
       r.requesterName,
       r.assigneeName ?? '',
       r.submittedAt ? formatDateTime(r.submittedAt) : '',
       r.dueDate ? formatDate(r.dueDate) : '',
       r.completedAt ? formatDateTime(r.completedAt) : '',
+      r.lineSummary,
     ])
   }
 
-  const widths = [11, 40, 22, 36, 20, 20, 18, 12, 18]
+  const widths = [11, 40, 22, 20, 10, 20, 20, 18, 12, 18, 40]
   widths.forEach((w, i) => {
     ws.getColumn(i + 1).width = w
   })

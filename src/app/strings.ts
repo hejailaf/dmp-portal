@@ -86,12 +86,14 @@ export const S = {
       ref: 'Ref',
       description: 'Description',
       status: 'Status',
+      reqType: 'Req. Type',
       lines: 'Line items',
       requester: 'Requester',
       assignee: 'Assignee',
       due: 'Due',
     },
     claim: 'Claim',
+    multipleTypes: 'Multiple', // Req. Type when a request spans several object types
     empty: 'No requests match.',
     loading: 'Loading requests…',
     count: (shown: number, total: number) =>

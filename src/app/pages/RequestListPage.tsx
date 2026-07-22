@@ -8,6 +8,7 @@ import {
 } from '@tanstack/react-table'
 import { Download, Plus, X } from 'lucide-react'
 import { getProvider, type RequestScope } from '@/data'
+import { parseLineSummary } from '@/domain/field-map'
 import { isOverdue } from '@/domain/sla'
 import { STATUSES, type Request, type User } from '@/domain/types'
 import { downloadBlob, formatDate } from '@/lib/utils'
@@ -49,6 +50,12 @@ export function scopesFor(user: User): RequestScope[] {
 }
 
 const columnHelper = createColumnHelper<Request>()
+
+/** "Req. Type" cell: the single object-type label, or "Multiple" across types. */
+const reqTypeOf = (r: Request) => {
+  const { types } = parseLineSummary(r.lineSummary)
+  return types.length > 1 ? S.list.multipleTypes : (types[0] ?? '—')
+}
 
 export function RequestListPage() {
   const user = useCurrentUser()
@@ -144,7 +151,7 @@ export function RequestListPage() {
     () => ({
       ref: autoColumnSize(S.list.columns.ref, filtered.map((r) => r.ref)),
       description: autoColumnSize(S.list.columns.description, filtered.map((r) => r.description)),
-      lines: autoColumnSize(S.list.columns.lines, filtered.map((r) => r.lineSummary)),
+      reqType: autoColumnSize(S.list.columns.reqType, filtered.map(reqTypeOf)),
       requester: autoColumnSize(S.list.columns.requester, filtered.map((r) => r.requesterName)),
       assignee: autoColumnSize(S.list.columns.assignee, filtered.map((r) => r.assigneeName ?? S.detail.unassigned)),
     }),
@@ -172,10 +179,17 @@ export function RequestListPage() {
         size: 170,
         cell: (info) => <StatusBadge status={info.getValue()} assigneeId={info.row.original.assigneeId} />,
       }),
-      columnHelper.accessor('lineSummary', {
+      columnHelper.accessor(reqTypeOf, {
+        id: 'reqType',
+        header: S.list.columns.reqType,
+        size: autoSizes.reqType,
+        cell: (info) => <ClippedCell value={info.getValue()} className="text-muted-foreground" />,
+      }),
+      columnHelper.accessor((r) => parseLineSummary(r.lineSummary).total, {
+        id: 'lines',
         header: S.list.columns.lines,
-        size: autoSizes.lines,
-        cell: (info) => <ClippedCell value={info.getValue() ?? ''} className="text-muted-foreground" />,
+        size: 90,
+        cell: (info) => <span className="text-muted-foreground">{info.getValue()}</span>,
       }),
       columnHelper.accessor('requesterName', {
         header: S.list.columns.requester,
