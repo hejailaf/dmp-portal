@@ -38,8 +38,10 @@ function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-30 bg-card">
-        {/* site content is centered and capped at 1920px (user decision) */}
-        <div className="mx-auto flex h-16 w-full max-w-[1920px] items-stretch gap-4 px-4">
+        {/* site content is centered; data pages cap at 1536px, home at 1280
+            (user decision 2026-07-23 — supersedes the old 1920px cap: fixed
+            grid columns never stretch, so the extra span was empty filler) */}
+        <div className="mx-auto flex h-16 w-full max-w-screen-2xl items-stretch gap-4 px-4">
           <a href={href('/')} className="flex items-center">
             {/* light/dark lockups swap on the `.dark` html class */}
             <img src={logoLight} alt={S.appName} className="h-[34px] w-auto dark:hidden" />
@@ -87,8 +89,8 @@ function Shell({ children }: { children: React.ReactNode }) {
         {/* letterhead rule — the brand's teal line under the masthead */}
         <div aria-hidden className="h-[2px] w-full bg-[var(--teal)]" />
       </header>
-      {/* home stays a bit tighter; data pages center under the 1920px site cap */}
-      <main className={`mx-auto px-4 py-6 ${route.path === '/' ? 'max-w-7xl' : 'max-w-[1920px]'}`}>
+      {/* home stays a bit tighter; data pages center under the 1536px site cap */}
+      <main className={`mx-auto px-4 py-6 ${route.path === '/' ? 'max-w-7xl' : 'max-w-screen-2xl'}`}>
         {children}
       </main>
       <footer className="border-t px-4 py-4 text-center text-[11px] tracking-[0.02em] text-muted-foreground">

@@ -284,7 +284,9 @@ tracking, assignment, SLA, audit, Excel export only.
   reduced-motion blanket, teal letterhead rules, drafting-grid home
   hero, teal grid header bands (table.tsx + DataGrid filler th
   TOGETHER). Detail line items = editor-style tab strip, collapsible
-  (click active tab / chevron). Big-data seeds DCR "Area 7" draft (46
+  (click active tab / chevron). Width caps (user decision 2026-07-23,
+  supersedes 1920): data pages max-w-screen-2xl (1536), home 1280 —
+  fixed grid columns never stretch, so the extra span was empty filler. Big-data seeds DCR "Area 7" draft (46
   lines) + "Warehouse 12" In-process (40 lines, 12 comments).
 
 ## Six pre-pilot features (2026-07-23, `experiments`)
