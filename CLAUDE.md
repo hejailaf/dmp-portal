@@ -320,7 +320,20 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
   Aramco logo in the app; lucide icons kept as accepted deviation
   (official icon library downloaded at `C:\ClaudeProjects\Iconography`,
   optional hybrid use open). Logo SVG recolor to Aramco hues = open
-  designer task. ON `experiments` ONLY — not merged, not deployed.
+  designer task. MERGED to master 2026-07-22 together with the
+  design-review fixes below — deployment to the new subsite still
+  pending.
+- **Design-review fixes** (2026-07-22, from an in-browser review of all
+  pages): Claim button visible on the Unassigned view (Assignee column
+  dropped there), editor Submit always clickable (validation banners
+  explain instead of a dead disabled button; empty-line pruning commits
+  only after validation passes), aria-sort on sortable headers, Ref
+  column pinned in lists, maintainer home tiles "My overdue"/"My
+  completed", dashboard KPI "Unassigned pool", detail error/not-found
+  states keep the back link (and ignore a stored list scope the viewer
+  can't browse), Assign is primary while unassigned, audit trail shows
+  viewer status wording (assignment at each entry inferred from earlier
+  Assigned events).
 
 ## Dev commands
 
