@@ -35,8 +35,10 @@ user's; the V1 palette shipped on the `experiments` branch.
    dark theme applies to every accent (brightening for contrast).
 2. Dark mode: guidelines don't define one. The warm-graphite neutral set
    is kept; accents are the V1 hues brightened for dark-surface contrast.
-3. PM DataCare logo SVGs keep the pre-review blues/teal — recoloring the
-   designer's artwork to the Aramco hues is a designer task (open item).
+3. PM DataCare logo SVGs keep the pre-review blues/teal — the user is
+   redesigning the wordmark in Figma (direction explored 2026-07-22:
+   bold "Data"/"Care" stacked, "PM" full stack height); swap the SVGs in
+   src/assets/ when the new artwork lands.
 4. Excel export cell fills (amber `#FCE4A6` mandatory / grey `#E9E9E9`
    inapplicable) unchanged — functional colors in the SAP handover sheet,
    visually within the Yellow/gray families already.
