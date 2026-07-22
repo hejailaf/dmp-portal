@@ -51,10 +51,12 @@ export function scopesFor(user: User): RequestScope[] {
 
 const columnHelper = createColumnHelper<Request>()
 
-/** "Req. Type" cell: the single object-type label, or "Multiple" across types. */
+/** "Req. Type" cell: the single object-type label (shortened), or "Multiple" across types. */
 const reqTypeOf = (r: Request) => {
   const { types } = parseLineSummary(r.lineSummary)
-  return types.length > 1 ? S.list.multipleTypes : (types[0] ?? '—')
+  if (types.length > 1) return S.list.multipleTypes
+  const label = types[0] ?? '—'
+  return S.list.typeShort[label] ?? label
 }
 
 export function RequestListPage() {
