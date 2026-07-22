@@ -175,6 +175,8 @@ export const S = {
     confirmDropHidden: (n: number) =>
       `${n} ${n === 1 ? 'value does' : 'values do'} not apply to their line's action and will be removed when this request is saved.\n\nContinue?`,
     confirmLeave: 'This request has unsaved changes. They will be lost if you leave now.\n\nLeave anyway?',
+    restoredNotice: 'Unsaved changes from your last visit were restored.',
+    restoredDiscard: 'Discard restored changes',
   },
 
   detail: {

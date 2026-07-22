@@ -361,20 +361,43 @@ function EditorGrid({
   )
 }
 
+interface AutosaveState {
+  description: string
+  tab: ObjectType
+  lines: EditorLine[]
+}
+const autosaveKeyFor = (requestId?: string) => `dmp-draft-autosave-${requestId ?? 'new'}`
+function readAutosave(key: string): AutosaveState | undefined {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(key) ?? '') as AutosaveState
+    return Array.isArray(parsed?.lines) ? parsed : undefined
+  } catch {
+    return undefined
+  }
+}
+
 export function RequestEditorPage({ requestId }: { requestId?: string }) {
   const provider = getProvider()
+  const autosaveKey = autosaveKeyFor(requestId)
+  // Autosave invariant: the key is cleared on every successful save/submit,
+  // so a surviving value ALWAYS holds unsaved changes newer than the server
+  // copy — restoring unconditionally is safe.
+  const [restored, setRestored] = useState(() => readAutosave(autosaveKey))
+  const [showRestored, setShowRestored] = useState(!!restored)
   // a new request opens ready to fill: one blank Equipment line (edit mode
-  // starts empty and the load effect fills it from the draft)
-  const [lines, setLines] = useState<EditorLine[]>(() =>
-    requestId ? [] : [{ key: crypto.randomUUID(), objectType: 'EQUIPMENT', action: 'ADD', fieldData: {} }],
-  )
-  const [description, setDescription] = useState('')
+  // starts empty and the load effect fills it from the draft or autosave)
+  const [lines, setLines] = useState<EditorLine[]>(() => {
+    if (requestId) return []
+    if (restored?.lines.length) return restored.lines
+    return [{ key: crypto.randomUUID(), objectType: 'EQUIPMENT', action: 'ADD', fieldData: {} }]
+  })
+  const [description, setDescription] = useState(!requestId && restored ? restored.description : '')
   const [errors, setErrors] = useState<ErrorsByLine>({})
   const [requestErrors, setRequestErrors] = useState<string[]>([])
   const [busy, setBusy] = useState<'save' | 'submit'>()
   const [banner, setBanner] = useState<string>()
   const [initialized, setInitialized] = useState(!requestId)
-  const [tab, setTab] = useState<ObjectType>('EQUIPMENT')
+  const [tab, setTab] = useState<ObjectType>(!requestId && restored ? restored.tab : 'EQUIPMENT')
   const [importNotes, setImportNotes] = useState<string[]>([])
   // checkbox selection drives the per-tab Duplicate/Delete toolbar buttons
   // (must live ABOVE the early returns — hooks may not be conditional)
@@ -400,7 +423,7 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
   // Hash navigation away (nav links, Cancel/back) goes through the router's
   // nav guard (a component listener would unmount mid-event and never run);
   // closing/reloading the tab hits the native beforeunload prompt.
-  const dirtyRef = useRef(false)
+  const dirtyRef = useRef(!!restored) // restored content IS unsaved changes
   useEffect(() => {
     setNavGuard(() => !dirtyRef.current || window.confirm(S.editor.confirmLeave))
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -417,6 +440,14 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
 
   useEffect(() => {
     if (requestId && existing.data && !initialized) {
+      if (restored) {
+        // autosaved (unsaved) changes beat the server copy — see invariant
+        setLines(restored.lines)
+        setDescription(restored.description)
+        setTab(restored.tab)
+        setInitialized(true)
+        return
+      }
       const loaded = existing.data.lines
       setLines(
         loaded.map((l) => ({
@@ -439,7 +470,18 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
       if (startTab) setTab(startTab.objectType)
       setInitialized(true)
     }
-  }, [requestId, existing.data, initialized])
+  }, [requestId, existing.data, initialized, restored])
+
+  // best-effort autosave of actual edits (dirty only — pristine mounts and
+  // discarded restores never write); cleared on successful save/submit
+  useEffect(() => {
+    if (!initialized || !dirtyRef.current) return
+    try {
+      localStorage.setItem(autosaveKey, JSON.stringify({ description, tab, lines }))
+    } catch {
+      // storage full/unavailable — autosave is best-effort
+    }
+  }, [lines, description, tab, initialized, autosaveKey])
 
   if (requestId && existing.loading) return <p className="text-muted-foreground">{S.detail.loading}</p>
   if (requestId && existing.error) return <p className="text-destructive">{existing.error}</p>
@@ -590,12 +632,31 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
       // drafts keep scratch rows — only submit prunes
       const id = await saveDraft(lines)
       dirtyRef.current = false // saved — leaving is safe now
+      localStorage.removeItem(autosaveKey)
       navigate(`/requests/${id}`)
     } catch (e) {
       setBanner(e instanceof Error ? e.message : String(e))
     } finally {
       setBusy(undefined)
     }
+  }
+
+  // throw away the restored autosave and go back to the pristine state
+  // (blank editor for new requests, the server copy for drafts)
+  const discardRestored = () => {
+    localStorage.removeItem(autosaveKey)
+    dirtyRef.current = false
+    setShowRestored(false)
+    setRestored(undefined)
+    if (requestId) {
+      setInitialized(false) // hydrate effect re-runs on the server path
+    } else {
+      setLines([{ key: crypto.randomUUID(), objectType: 'EQUIPMENT', action: 'ADD', fieldData: {} }])
+      setDescription('')
+      setTab('EQUIPMENT')
+    }
+    setErrors({})
+    setRequestErrors([])
   }
 
   const onSubmit = async () => {
@@ -624,6 +685,7 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
     try {
       const id = await saveDraft(kept)
       dirtyRef.current = false // lines are stored even if the submit below fails
+      localStorage.removeItem(autosaveKey)
       await provider.submitRequest(id)
       navigate(`/requests/${id}`)
     } catch (e) {
@@ -672,6 +734,18 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
         </div>
       </div>
 
+      {showRestored && (
+        <p className="flex items-center justify-between gap-3 rounded-md border border-[var(--warning-border)] bg-[var(--warning-tint)] p-3 text-sm">
+          <span>{S.editor.restoredNotice}</span>
+          <button
+            type="button"
+            className="flex-none font-medium text-primary hover:underline"
+            onClick={discardRestored}
+          >
+            {S.editor.restoredDiscard}
+          </button>
+        </p>
+      )}
       {banner && <p className="rounded-md border border-destructive/40 bg-[var(--danger-tint)] p-3 text-sm text-destructive">{banner}</p>}
       {requestErrors.map((e, i) => (
         <p key={i} className="rounded-md border border-destructive/40 bg-[var(--danger-tint)] p-3 text-sm text-destructive">
