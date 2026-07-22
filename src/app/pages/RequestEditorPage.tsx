@@ -260,6 +260,7 @@ function EditorGrid({
   onToggleSelect,
   onToggleAll,
   onAddLine,
+  onDownloadTemplate,
   onImport,
 }: {
   config: ObjectTypeConfig
@@ -269,8 +270,9 @@ function EditorGrid({
   selected: ReadonlySet<string>
   onToggleSelect: (key: string) => void
   onToggleAll: (keys: string[], select: boolean) => void
-  /** empty-state CTAs — the same actions as the toolbar, offered where the eye lands */
+  /** empty-state CTAs — the same actions as the toolbar/header, offered where the eye lands */
   onAddLine: () => void
+  onDownloadTemplate: () => void
   onImport: () => void
 }) {
   // auto-fit: header width by default, growing live with the longest typed
@@ -368,6 +370,9 @@ function EditorGrid({
       <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
         <Button size="sm" onClick={onAddLine}>
           <Plus className="h-4 w-4" /> {S.editor.addLine}
+        </Button>
+        <Button variant="outline" size="sm" onClick={onDownloadTemplate}>
+          <Download className="h-4 w-4" /> {S.editor.downloadTemplate}
         </Button>
         <Button variant="outline" size="sm" onClick={onImport}>
           <Upload className="h-4 w-4" /> {S.editor.importExcel}
@@ -948,19 +953,19 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
                 </p>
               )}
             </div>
-            <div className="flex flex-1 flex-wrap justify-end gap-2">
-              <Button variant="outline" size="sm" onClick={() => void downloadTemplate()}>
-                <Download className="h-4 w-4" /> {S.editor.downloadTemplate}
-              </Button>
-              {/* every action shows exactly ONCE per state: while the open tab
-                  is empty its panel owns Import (and Add line — the toolbar
-                  below hides too); with rows present they live up here */}
-              {activeTabHasLines && (
+            {/* every action shows exactly ONCE per state: while the open tab
+                is empty its panel owns Add line, Download template and Import
+                (the toolbar below hides too); with rows they live up here */}
+            {activeTabHasLines && (
+              <div className="flex flex-1 flex-wrap justify-end gap-2">
+                <Button variant="outline" size="sm" onClick={() => void downloadTemplate()}>
+                  <Download className="h-4 w-4" /> {S.editor.downloadTemplate}
+                </Button>
                 <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
                   <Upload className="h-4 w-4" /> {S.editor.importExcel}
                 </Button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           <Tabs value={tab} onValueChange={(v) => setTab(v as ObjectType)}>
@@ -1041,6 +1046,7 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
                   onToggleSelect={toggleSelect}
                   onToggleAll={toggleAll}
                   onAddLine={() => addLine(cfg.objectType)}
+                  onDownloadTemplate={() => void downloadTemplate()}
                   onImport={() => fileInputRef.current?.click()}
                 />
               </TabsContent>
