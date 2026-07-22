@@ -403,9 +403,9 @@ export function HomePage() {
             <div className="grid min-w-0 grid-cols-2 gap-3">
               <StatCard label={S.home.cards.myQueue} value={queueOpen.length} to="/requests?scope=queue" />
               <StatCard label={S.home.cards.unassignedPool} value={unassigned.length} to="/requests?scope=unassigned" />
-              <StatCard label={S.home.cards.overdue} value={overdue(queue).length} to="/requests?scope=queue&overdue=1" tone="red" />
+              <StatCard label={S.home.cards.myOverdue} value={overdue(queue).length} to="/requests?scope=queue&overdue=1" tone="red" />
               <StatCard
-                label={S.home.cards.completed}
+                label={S.home.cards.myCompleted}
                 value={queue.filter((r) => r.status === 'Completed').length}
                 to="/requests?scope=queue&status=Completed"
               />

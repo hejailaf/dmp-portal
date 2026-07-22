@@ -26,7 +26,7 @@ import {
   validateAttachment,
 } from '@/domain/schemas'
 import { availableTransitions, type TransitionCtx } from '@/domain/status'
-import type { Attachment, AuditEvent, Request, RequestLine } from '@/domain/types'
+import { STATUSES, type Attachment, type AuditEvent, type Request, type RequestLine } from '@/domain/types'
 import { downloadBlob, formatDate, formatDateValue } from '@/lib/utils'
 import { relativeDateTime } from '../format'
 import { useAsync, usePageTitle } from '../hooks'
@@ -368,8 +368,20 @@ export function RequestDetailPage({ id }: { id: string }) {
   }
 
   usePageTitle(detail.data?.request.ref)
-  // back to the list this request was opened from (last-used list state)
-  const backScope = readListState().scope ?? scopesFor(user)[0]
+  // back to the list this request was opened from (last-used list state);
+  // ignore a stored scope this user can't browse (e.g. after a role change)
+  const storedScope = readListState().scope
+  const backScope =
+    storedScope && scopesFor(user).includes(storedScope) ? storedScope : scopesFor(user)[0]
+
+  const backLink = (
+    <a
+      href={href(`/requests?scope=${backScope}`)}
+      className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+    >
+      <ArrowLeft className="h-3.5 w-3.5" /> {S.list.title[backScope]}
+    </a>
+  )
 
   if (detail.loading)
     return (
@@ -379,8 +391,21 @@ export function RequestDetailPage({ id }: { id: string }) {
         <Skeleton className="h-64 w-full rounded-[10px]" />
       </div>
     )
-  if (detail.error) return <p className="text-destructive">{detail.error}</p>
-  if (!detail.data) return <p className="text-destructive">{S.detail.notFound}</p>
+  // error/not-found still offer the way back to the list
+  if (detail.error)
+    return (
+      <div className="space-y-4">
+        {backLink}
+        <p className="text-destructive">{detail.error}</p>
+      </div>
+    )
+  if (!detail.data)
+    return (
+      <div className="space-y-4">
+        {backLink}
+        <p className="text-destructive">{S.detail.notFound}</p>
+      </div>
+    )
 
   const { request: req, lines } = detail.data
   const ctx: TransitionCtx = {
@@ -389,7 +414,22 @@ export function RequestDetailPage({ id }: { id: string }) {
     isAssignee: req.assigneeId === user.id,
   }
   const isAdmin = user.roles.includes('admin')
+  const isStaff = isAdmin || user.roles.includes('maintainer')
   const transitions = availableTransitions(ctx, req.status)
+
+  // Audit entries store raw status names; show the viewer wording used
+  // everywhere else. Whether "Waiting to be started" was Assigned at that
+  // moment is inferred from an Assigned event earlier in the trail.
+  // Non-status values (assignee names) pass through untouched.
+  const auditEvents = audit.data ?? []
+  const auditValueLabel = (value: string, chronIdx: number) =>
+    (STATUSES as readonly string[]).includes(value)
+      ? S.statusLabel(
+          value,
+          auditEvents.slice(0, chronIdx + 1).some((e) => e.event === 'Assigned'),
+          isStaff,
+        )
+      : value
   // Returned requests are edited directly by their requester (no reopen step)
   const canEditDraft = (req.status === 'Draft' || req.status === 'Returned') && (ctx.isOwner || isAdmin)
   const canClaim =
@@ -455,12 +495,7 @@ export function RequestDetailPage({ id }: { id: string }) {
 
   return (
     <div className="space-y-4">
-      <a
-        href={href(`/requests?scope=${backScope}`)}
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="h-3.5 w-3.5" /> {S.list.title[backScope]}
-      </a>
+      {backLink}
       {banner && (
         <p className="rounded-md border border-destructive/40 bg-[var(--danger-tint)] p-3 text-sm text-destructive">{banner}</p>
       )}
@@ -497,8 +532,10 @@ export function RequestDetailPage({ id }: { id: string }) {
                   </Button>
                 </a>
               )}
+              {/* while unassigned, Assign is the natural next step → primary;
+                  Start work takes over once someone owns the request */}
               {canAssign && (
-                <Button variant="outline" disabled={busy} onClick={openAssign}>
+                <Button variant={req.assigneeId ? 'outline' : 'default'} disabled={busy} onClick={openAssign}>
                   {req.assigneeId ? S.detail.reassign : S.detail.assign}
                 </Button>
               )}
@@ -514,7 +551,7 @@ export function RequestDetailPage({ id }: { id: string }) {
                 .map((t) => (
                   <Button
                     key={t.to}
-                    variant={t.to === 'Returned' ? 'outline' : 'default'}
+                    variant={t.to === 'Returned' || (canAssign && !req.assigneeId) ? 'outline' : 'default'}
                     disabled={busy}
                     onClick={() => doTransition(t.to)}
                   >
@@ -707,11 +744,15 @@ export function RequestDetailPage({ id }: { id: string }) {
                         {a.oldValue && a.newValue && (
                           <span className="text-muted-foreground">
                             {' '}
-                            ({a.oldValue} → {a.newValue})
+                            ({auditValueLabel(a.oldValue, all.length - 1 - i)} →{' '}
+                            {auditValueLabel(a.newValue, all.length - 1 - i)})
                           </span>
                         )}
                         {!a.oldValue && a.newValue && (
-                          <span className="text-muted-foreground"> ({a.newValue})</span>
+                          <span className="text-muted-foreground">
+                            {' '}
+                            ({auditValueLabel(a.newValue, all.length - 1 - i)})
+                          </span>
                         )}
                         <div className="mt-0.5 text-xs text-muted-foreground">{relativeDateTime(a.at)}</div>
                       </div>

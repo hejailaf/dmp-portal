@@ -347,6 +347,8 @@ export function RequestListPage() {
         ) : (
           <DataGrid
             table={table}
+            // Ref stays pinned while the rest scrolls — rows keep their identity
+            stickyIds={['ref']}
             // overdue rows carry a red left edge in addition to the badge
             rowClassName={(row) => (isOverdue(row.original) ? 'border-l-[3px] border-l-destructive' : undefined)}
           />

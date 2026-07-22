@@ -23,6 +23,10 @@ export const S = {
       myQueue: 'Assigned to me',
       unassignedPool: 'Unassigned pool',
       overdue: 'Overdue',
+      // maintainer tiles count MY queue — labeled so they don't read as
+      // pool-wide next to the unassigned-aging callout
+      myOverdue: 'My overdue',
+      myCompleted: 'My completed',
       all: 'All requests',
       completed: 'Completed',
       dashboardLink: 'Open the admin dashboard',
@@ -262,7 +266,7 @@ export const S = {
       inProcess: 'In process',
       completed: 'Completed',
       overdue: 'Overdue',
-      unassigned: 'Unassigned',
+      unassigned: 'Unassigned pool', // subset of the waiting KPI — named like the home tile
     },
     maintainersTitle: 'Maintainer performance',
     columns: {
