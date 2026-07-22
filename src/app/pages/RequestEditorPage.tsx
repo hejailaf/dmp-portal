@@ -412,6 +412,8 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
   const [description, setDescription] = useState(!requestId && restored ? restored.description : '')
   const [errors, setErrors] = useState<ErrorsByLine>({})
   const [requestErrors, setRequestErrors] = useState<string[]>([])
+  // description problems render AT the field, not as page banners
+  const [descriptionErrors, setDescriptionErrors] = useState<string[]>([])
   const [busy, setBusy] = useState<'save' | 'submit'>()
   const [banner, setBanner] = useState<string>()
   const [initialized, setInitialized] = useState(!requestId)
@@ -700,7 +702,8 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
     )
     const validation = validateForSubmit(toDomainLines(kept), description)
     setErrors(validation.lineResults)
-    setRequestErrors(validation.requestErrors)
+    setDescriptionErrors(validation.descriptionErrors)
+    setRequestErrors(validation.requestErrors.filter((e) => !validation.descriptionErrors.includes(e)))
     if (!validation.ok) {
       const firstBad = kept.find((l) => validation.lineResults[l.key] && !validation.lineResults[l.key].ok)
       if (firstBad) setTab(firstBad.objectType)
@@ -722,7 +725,8 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
     )
     const validation = validateForSubmit(toDomainLines(kept), description)
     setErrors(validation.lineResults)
-    setRequestErrors(validation.requestErrors)
+    setDescriptionErrors(validation.descriptionErrors)
+    setRequestErrors(validation.requestErrors.filter((e) => !validation.descriptionErrors.includes(e)))
     if (!validation.ok) {
       // jump to the first tab that has a problem
       const firstBad = kept.find((l) => validation.lineResults[l.key] && !validation.lineResults[l.key].ok)
@@ -884,7 +888,7 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
           {/* request details: the one-line description and the bulk-entry
               buttons, which act on the open tab */}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-3 px-4 py-3">
-            <div className="flex min-w-[280px] flex-[2] items-center gap-2">
+            <div className="flex min-w-[280px] flex-[2] flex-wrap items-center gap-2">
               <label className="flex-none text-sm font-medium" htmlFor="req-description">
                 {S.editor.descriptionLabel}:<span className="text-destructive">*</span>
               </label>
@@ -894,14 +898,22 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
                 onChange={(e) => {
                   dirtyRef.current = true
                   setDescription(e.target.value)
+                  setDescriptionErrors([]) // typing IS the fix — stale inline errors annoy
                 }}
                 placeholder={S.editor.descriptionPlaceholder}
                 maxLength={DESCRIPTION_MAX_LENGTH}
-                className="max-w-[640px]"
+                aria-invalid={descriptionErrors.length > 0 || undefined}
+                aria-describedby={descriptionErrors.length > 0 ? 'req-description-error' : undefined}
+                className={`max-w-[640px] ${descriptionErrors.length > 0 ? 'border-destructive focus-visible:border-destructive focus-visible:ring-destructive/30' : ''}`}
               />
               <span className="flex-none text-xs tabular-nums text-muted-foreground">
                 {description.length}/{DESCRIPTION_MAX_LENGTH}
               </span>
+              {descriptionErrors.length > 0 && (
+                <p id="req-description-error" className="w-full text-sm text-destructive">
+                  {descriptionErrors.join(' ')}
+                </p>
+              )}
             </div>
             <div className="flex flex-1 flex-wrap justify-end gap-2">
               <Button variant="outline" size="sm" onClick={() => void downloadTemplate()}>

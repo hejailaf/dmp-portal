@@ -96,6 +96,8 @@ export function isEmptyLine(line: Pick<RequestLine, 'fieldData'>): boolean {
 interface SubmitValidation {
   ok: boolean
   requestErrors: string[]
+  /** subset of requestErrors about the description — the editor renders these AT the field */
+  descriptionErrors: string[]
   /** keyed by line id */
   lineResults: Record<string, LineValidation>
 }
@@ -146,10 +148,13 @@ export function validateCommentBody(body: string): string | undefined {
 
 /** Everything that must hold before a draft may be submitted. */
 export function validateForSubmit(lines: RequestLine[], description: string): SubmitValidation {
-  const requestErrors: string[] = []
-  if (!description.trim()) requestErrors.push(DESCRIPTION_REQUIRED)
+  const descriptionErrors: string[] = []
+  if (!description.trim()) descriptionErrors.push(DESCRIPTION_REQUIRED)
   else if (description.trim().length > DESCRIPTION_MAX_LENGTH)
-    requestErrors.push(`The request description is limited to ${DESCRIPTION_MAX_LENGTH} characters`)
+    descriptionErrors.push(`The request description is limited to ${DESCRIPTION_MAX_LENGTH} characters`)
+  // requestErrors stays the COMPLETE list — providers surface it as-is; the
+  // editor subtracts descriptionErrors and shows those at the field instead
+  const requestErrors: string[] = [...descriptionErrors]
   if (lines.length === 0) requestErrors.push('Add at least one line item before submitting')
   const lineResults: Record<string, LineValidation> = {}
   let allOk = true
@@ -158,5 +163,5 @@ export function validateForSubmit(lines: RequestLine[], description: string): Su
     lineResults[line.id] = v
     if (!v.ok) allOk = false
   }
-  return { ok: allOk && requestErrors.length === 0, requestErrors, lineResults }
+  return { ok: allOk && requestErrors.length === 0, requestErrors, descriptionErrors, lineResults }
 }
