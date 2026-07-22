@@ -420,6 +420,8 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
   const [tab, setTab] = useState<ObjectType>(!requestId && restored ? restored.tab : 'EQUIPMENT')
   // Excel import outcome: count drives the callout tone (success/warning)
   const [importResult, setImportResult] = useState<{ count: number; title: string; notes: string[] }>()
+  // lets the import's own setLines/setTab pass without dismissing its callout
+  const importShownRef = useRef(false)
   // dry-run validation passed — cleared by any subsequent edit
   const [checkOk, setCheckOk] = useState(false)
   // checkbox selection drives the per-tab Duplicate/Delete toolbar buttons
@@ -499,6 +501,17 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
   useEffect(() => {
     setCheckOk(false)
   }, [lines, description])
+
+  // the import callout is transient: the next action (edit, add/delete line,
+  // tab switch — check/save/submit clear it explicitly) dismisses it. The
+  // ref skips exactly one run: the import's own lines/tab updates.
+  useEffect(() => {
+    if (importShownRef.current) {
+      importShownRef.current = false
+      return
+    }
+    setImportResult(undefined)
+  }, [lines, description, tab])
 
   // best-effort autosave of actual edits (dirty only — pristine mounts and
   // discarded restores never write); cleared on successful save/submit
@@ -612,6 +625,7 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
         n: imported.filter((l) => l.objectType === cfg.objectType).length,
       })).filter((t) => t.n > 0)
       if (perType.length > 0) setTab(perType[0].cfg.objectType)
+      importShownRef.current = true // setLines above re-runs the dismiss effect once
       setImportResult({
         count: imported.length,
         title: imported.length
@@ -661,6 +675,7 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
     if (!confirmHiddenLoss()) return
     setBusy('save')
     setBanner(undefined)
+    setImportResult(undefined)
     try {
       // drafts keep scratch rows — only submit prunes
       const id = await saveDraft(lines)
@@ -697,6 +712,7 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
   // confirmation (a silent button would feel broken when all is well).
   const onCheck = () => {
     setBanner(undefined)
+    setImportResult(undefined)
     const kept = lines.filter(
       (l) => !isEmptyLine({ fieldData: normalizeFieldData(l.objectType, l.action, l.fieldData) }),
     )
@@ -715,6 +731,7 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
   const onSubmit = async () => {
     setBanner(undefined)
     setCheckOk(false)
+    setImportResult(undefined)
     if (!confirmHiddenLoss()) return
     // Untouched lines are dropped silently instead of raising validation
     // errors. Emptiness is judged on the normalized data (what will actually be
