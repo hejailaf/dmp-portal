@@ -24,6 +24,7 @@ describe('mapRequest', () => {
       SubmittedAt: '2026-07-11T08:00:00Z',
       DueDate: '2026-07-14T08:00:00Z',
       CompletedAt: '2026-07-13T08:00:00Z',
+      ReturnedAt: '2026-07-12T08:00:00Z',
       SlaDays: 3,
       Description: 'Pump replacement - MOC-2100',
       RejectReason: null,
@@ -37,6 +38,7 @@ describe('mapRequest', () => {
       assigneeId: 'i:0#.w|corp\\malik',
       slaDays: 3,
       completedAt: '2026-07-13T08:00:00Z',
+      returnedAt: '2026-07-12T08:00:00Z',
       description: 'Pump replacement - MOC-2100',
       lineSummary: 'Equipment: 1 Change',
     })
@@ -48,6 +50,7 @@ describe('mapRequest', () => {
     expect(r.assigneeId).toBeUndefined()
     expect(r.submittedAt).toBeUndefined()
     expect(r.rejectReason).toBeUndefined()
+    expect(r.returnedAt).toBeUndefined()
     expect(r.lineSummary).toBe('')
   })
 })

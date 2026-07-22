@@ -1,6 +1,14 @@
+import type { Workbook, Worksheet } from 'exceljs'
 import type { LineAction, ObjectType } from '@/domain/types'
 import { LINE_ACTIONS } from '@/domain/types'
-import { appliesTo, applyDerivations, isRequired, type FieldDef, type ObjectTypeConfig } from '@/domain/field-map'
+import {
+  appliesTo,
+  applyDerivations,
+  isRequired,
+  OBJECT_TYPE_CONFIGS,
+  type FieldDef,
+  type ObjectTypeConfig,
+} from '@/domain/field-map'
 
 // Excel template generation + import for the AIW editor, both derived from
 // the field map so they can never drift from the grid or the validation.
@@ -25,9 +33,8 @@ export async function excel() {
 
 const actionsOf = (cfg: ObjectTypeConfig): readonly LineAction[] => cfg.actions ?? LINE_ACTIONS
 
-export async function makeTemplate(cfg: ObjectTypeConfig): Promise<Blob> {
-  const ExcelJS = await excel()
-  const wb = new ExcelJS.Workbook()
+/** One object type's sheet, added to the shared workbook (unified template). */
+function addTemplateSheet(wb: Workbook, cfg: ObjectTypeConfig, lists: { col: number }) {
   const ws = wb.addWorksheet(cfg.label)
   // derived fields are auto-filled from their source field — they have no
   // column in the template (they reappear on the detail page and export)
@@ -72,17 +79,17 @@ export async function makeTemplate(cfg: ObjectTypeConfig): Promise<Blob> {
   })
 
   // dropdowns — short lists inline; long lists (Excel caps inline lists at
-  // 255 chars) go on a veryHidden "Lists" sheet referenced by range
+  // 255 chars) go on a veryHidden "Lists" sheet referenced by range (shared
+  // across all sheets — `lists.col` is the workbook-wide column counter)
   const lastRow = 2 + ENTRY_ROWS
-  let listsSheetCol = 0
   const listValidation = (values: readonly string[]) => {
     const inline = `"${values.join(',')}"`
     let formula = inline
     if (inline.length > 250) {
       const listsSheet = wb.getWorksheet('Lists') ?? wb.addWorksheet('Lists', { state: 'veryHidden' })
-      listsSheetCol += 1
-      values.forEach((v, i) => (listsSheet.getCell(i + 1, listsSheetCol).value = v))
-      const colLetter = String.fromCharCode(64 + listsSheetCol) // A, B, … (few lists, ≤26)
+      lists.col += 1
+      values.forEach((v, i) => (listsSheet.getCell(i + 1, lists.col).value = v))
+      const colLetter = String.fromCharCode(64 + lists.col) // A, B, … (few lists, ≤26)
       formula = `Lists!$${colLetter}$1:$${colLetter}$${values.length}`
     }
     return {
@@ -153,11 +160,33 @@ export async function makeTemplate(cfg: ObjectTypeConfig): Promise<Blob> {
     })
   })
 
+}
+
+/**
+ * The ONE template workbook: a sheet per object type (unified — user
+ * decision 2026-07-21, so several types can be mass-filled and imported in
+ * one go). `active` picks the sheet Excel shows on open.
+ */
+export async function makeUnifiedTemplate(active?: ObjectType): Promise<Blob> {
+  const ExcelJS = await excel()
+  const wb = new ExcelJS.Workbook()
+  const lists = { col: 0 }
+  for (const cfg of OBJECT_TYPE_CONFIGS) addTemplateSheet(wb, cfg, lists)
+  const activeTab = Math.max(
+    0,
+    OBJECT_TYPE_CONFIGS.findIndex((c) => c.objectType === active),
+  )
+  wb.views = [
+    { x: 0, y: 0, width: 10000, height: 20000, firstSheet: 0, activeTab, visibility: 'visible' },
+  ]
   const buffer = await wb.xlsx.writeBuffer()
   return new Blob([buffer], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   })
 }
+
+/** Filename for the unified template download (home page + editor). */
+export const TEMPLATE_FILENAME = 'PMDC-template.xlsx'
 
 export interface ImportedLine {
   objectType: ObjectType
@@ -184,13 +213,8 @@ function cellText(value: any): string {
   return String(value).trim()
 }
 
-export async function parseTemplate(cfg: ObjectTypeConfig, data: ArrayBuffer): Promise<ImportResult> {
-  const ExcelJS = await excel()
-  const wb = new ExcelJS.Workbook()
-  await wb.xlsx.load(data)
-  const ws = wb.getWorksheet(cfg.label) ?? wb.worksheets[0]
-  if (!ws) return { lines: [], errors: ['The file contains no worksheets.'] }
-
+/** Parse one object type's sheet (column mapping + row extraction). */
+function parseSheet(ws: Worksheet, cfg: ObjectTypeConfig): ImportResult {
   // map columns to fields — by hidden key row when present, else by header
   // label; derived fields are never mapped (their values come from
   // applyDerivations below, even if an old template still carries them)
@@ -256,6 +280,30 @@ export async function parseTemplate(cfg: ObjectTypeConfig, data: ArrayBuffer): P
     lines.push({ objectType: cfg.objectType, action, fieldData: applyDerivations(cfg.objectType, fieldData) })
   }
 
+  return { lines, errors }
+}
+
+/**
+ * Import every recognizable sheet of the unified template. Old single-sheet
+ * templates still work: their sheet carries the same object-type label.
+ * Sheet-level problems come back prefixed with the sheet's label.
+ */
+export async function parseUnifiedTemplate(data: ArrayBuffer): Promise<ImportResult> {
+  const ExcelJS = await excel()
+  const wb = new ExcelJS.Workbook()
+  await wb.xlsx.load(data)
+  const lines: ImportedLine[] = []
+  const errors: string[] = []
+  let found = false
+  for (const cfg of OBJECT_TYPE_CONFIGS) {
+    const ws = wb.getWorksheet(cfg.label)
+    if (!ws) continue
+    found = true
+    const result = parseSheet(ws, cfg)
+    lines.push(...result.lines)
+    errors.push(...result.errors.map((e) => `${cfg.label}: ${e}`))
+  }
+  if (!found) return { lines: [], errors: ['No recognizable sheets found — is this the right template?'] }
   return { lines, errors }
 }
 

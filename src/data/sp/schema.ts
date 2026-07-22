@@ -56,8 +56,9 @@ export const LIST_SPECS: ListSpec[] = [
       dateTime('SubmittedAt'),
       dateTime('DueDate'),
       dateTime('CompletedAt'), // Phase 3 — provision re-run adds it to existing lists
+      dateTime('ReturnedAt'), // Returned flow (2026-07-21) — SLA pause marker
       number('SlaDays'),
-      note('Description'), // request purpose/reference — provision re-run adds it too
+      note('Description'), // one-line request title — provision re-run adds it too
       // Phase 4: scratch columns for the SPD email workflow's "already
       // notified" guards (docs/WORKFLOW_RECIPE.md) — the app never reads them
       text('LastNotifiedStatus'),

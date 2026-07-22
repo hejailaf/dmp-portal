@@ -49,11 +49,12 @@ Create a version each time = Yes). Attachments stay enabled (default).
 
 | Column | Type | Notes |
 |---|---|---|
-| RequestStatus | Choice | Draft; Waiting to be started; In process; Completed; Rejected |
+| RequestStatus | Choice | Draft; Waiting to be started; In process; Returned; Completed; Rejected |
 | RequesterLogin / RequesterName / AssigneeLogin / AssigneeName | Line | |
-| SubmittedAt / DueDate | Date and Time | Date & Time format |
+| SubmittedAt / DueDate / CompletedAt / ReturnedAt | Date and Time | Date & Time format |
 | SlaDays | Number | 0 decimals |
-| RejectReason / LineSummary | Multi (plain) | |
+| Description / RejectReason / LineSummary | Multi (plain) | |
+| LastNotifiedStatus / LastNotifiedAssignee | Line | workflow scratch (Phase 4) |
 
 **PMDC_RequestLines**
 
@@ -69,8 +70,8 @@ Create a version each time = Yes). Attachments stay enabled (default).
 
 **PMDC_AuditLog** — versioning ON. RequestId (Number, indexed), Event
 (Choice: Created; DraftUpdated; Submitted; Assigned; StatusChanged;
-Rejected; Reopened; CommentAdded; AttachmentAdded), OldValue (Multi plain),
-NewValue (Multi plain).
+Rejected; Returned; Reopened; CommentAdded; AttachmentAdded), OldValue
+(Multi plain), NewValue (Multi plain).
 
 ## §4 Permissions
 

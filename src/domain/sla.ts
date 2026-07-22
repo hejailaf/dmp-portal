@@ -32,6 +32,15 @@ export function isOverdue(
   return new Date(req.dueDate).getTime() < now.getTime()
 }
 
+/**
+ * SLA pause for the Returned flow: the due date grows by exactly the time
+ * the request spent with the requester. SubmittedAt is not touched.
+ */
+export function extendDueDate(dueDate: string, returnedAt: string, resubmittedAt: string): string {
+  const paused = new Date(resubmittedAt).getTime() - new Date(returnedAt).getTime()
+  return new Date(new Date(dueDate).getTime() + Math.max(0, paused)).toISOString()
+}
+
 /** Whole days until due (negative = overdue by that many days). For SLA countdown badges. */
 export function daysUntilDue(dueDate: string, now: Date = new Date()): number {
   return Math.ceil((new Date(dueDate).getTime() - now.getTime()) / 86_400_000)

@@ -100,7 +100,7 @@ export function buildSeed(): MockDb {
   add({
     status: 'Draft',
     requester: rana,
-    description: 'New feed pump for SITE-B (project WO-77812)',
+    description: 'New feed pump for SITE-B',
     lines: [
       {
         objectType: 'EQUIPMENT',
@@ -123,7 +123,7 @@ export function buildSeed(): MockDb {
     status: 'Waiting to be started',
     requester: rana,
     submittedDaysAgo: 1,
-    description: 'New air compressor AC-310 install - MOC-2201',
+    description: 'New air compressor AC-310 install',
     lines: [
       {
         objectType: 'EQUIPMENT',
@@ -159,7 +159,7 @@ export function buildSeed(): MockDb {
     requester: omar,
     assignee: malik,
     submittedDaysAgo: 2,
-    description: 'Create compressor bay functional location - MOC-2188',
+    description: 'Create compressor bay functional location',
     lines: [
       {
         objectType: 'FLOC',
@@ -178,7 +178,7 @@ export function buildSeed(): MockDb {
     requester: rana,
     assignee: mona,
     submittedDaysAgo: 9,
-    description: 'Cooling tower fan replacement - WO-77250', // overdue (max SLA here is 5)
+    description: 'Cooling tower fan replacement', // overdue (max SLA here is 5)
     lines: [
       {
         objectType: 'EQUIPMENT',
@@ -203,6 +203,18 @@ export function buildSeed(): MockDb {
     ],
   })
 
+  // Unassigned AND overdue — exercises the pool + overdue combination
+  // (list filters are mutually exclusive; this row shows red in the pool)
+  add({
+    status: 'Waiting to be started',
+    requester: omar,
+    submittedDaysAgo: 5, // CHANGE SLA is 3 days → 2 days overdue
+    description: 'Tank farm FLoc cost center correction',
+    lines: [
+      { objectType: 'FLOC', action: 'CHANGE', fieldData: { functionalLocation: 'SITE-A-TANK-TK-01', costCenter: '2300' } },
+    ],
+  })
+
   // In process — one on track, one overdue
   add({
     status: 'In process',
@@ -219,7 +231,7 @@ export function buildSeed(): MockDb {
     requester: rana,
     assignee: mona,
     submittedDaysAgo: 6,
-    description: 'Pump P-07 cost center + PM cycle extension - MOC-2144', // overdue (SLA 3 for change)
+    description: 'Pump P-07 cost center and PM cycle extension', // overdue (SLA 3 for change)
     lines: [
       { objectType: 'FLOC', action: 'CHANGE', fieldData: { functionalLocation: 'SITE-B-PROC-PMP-07', costCenter: '2200' } },
       { objectType: 'PM', action: 'CHANGE', fieldData: { equipmentNumber: '10002501', taskListNumber: '102', maintenanceItem: '458', changeDetails: 'Extend cycle to 6 months' } },
@@ -232,7 +244,7 @@ export function buildSeed(): MockDb {
     requester: rana,
     assignee: malik,
     submittedDaysAgo: 12,
-    description: 'New PM plan for boiler feed pump - MOC-2100',
+    description: 'New PM plan for boiler feed pump',
     completedDaysAgo: 0.2, // SLA 5d, submitted 12d ago → completed LATE (dashboard demo)
     lines: [
       {
@@ -252,7 +264,7 @@ export function buildSeed(): MockDb {
     requester: omar,
     assignee: mona,
     submittedDaysAgo: 20,
-    description: 'Remove BOM link for scrapped equipment - WO-76990',
+    description: 'Remove BOM link for scrapped equipment',
     completedDaysAgo: 19, // SLA 2d → completed ON TIME (dashboard demo)
     lines: [
       { objectType: 'BOM_LINKAGE', action: 'DELETE', fieldData: { parentNumber: '10001899', deletionReason: 'Equipment scrapped' } },

@@ -67,11 +67,23 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
 
 - Statuses: `Draft → Waiting to be started → In process → Completed`;
   `Rejected` from Waiting/In process (reason required); `Rejected → Draft`
-  (reopen — user decision). Only Completed is terminal.
+  (reopen — user decision). `Returned` from Waiting/In process (user
+  decision 2026-07-21): assigned maintainer/admin sends it back with a
+  reason; the requester EDITS DIRECTLY (no reopen) and resubmits →
+  Waiting (assignee kept). Reject RESETS dates on reopen+resubmit;
+  Return PAUSES the SLA — submittedAt stays and dueDate grows by the
+  returned interval (`extendDueDate`, `returnedAt` field / ReturnedAt
+  column; reason shares RejectReason; isOverdue is false while
+  Returned). Only Completed is terminal. DISPLAY (2026-07-21,
+  `S.statusLabel`): the stored "Waiting to be started" reads "Assigned"
+  once assigned; while unassigned it reads BY VIEWER — "Submitted" to
+  requesters, "Unassigned" to staff (maintainer/admin) — stored
+  value/choice column unchanged. Stepper track: Draft →
+  Submitted|Unassigned → Assigned → In process → Completed.
 - Transition permissions live in `src/domain/status.ts` TRANSITIONS table:
-  submit/reopen = owning requester or admin; start/complete = assigned
-  maintainer or admin; **reject = admin only** (spec-literal; change one row
-  if maintainers should reject).
+  submit/reopen/resubmit = owning requester or admin; start/complete/
+  return = assigned maintainer or admin; **reject = admin only**
+  (spec-literal).
 - Assignment: admins assign anyone; maintainers may self-claim unassigned
   requests (user decision). Enforced in providers, not just UI.
 - Roles: groups first; if a user has NO direct PMDC group, the SP provider
@@ -92,7 +104,10 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
 - Line SAP fields live in one JSON blob (`FieldData`) validated by Zod —
   never mirrored as SharePoint columns.
 - Drafts are visible only to their requester and admins.
-- Request `description` (business reason/reference): a ONE-LINE title,
+- Request `description`: a ONE-LINE title. Convention (user decision
+  2026-07-21): reference documents (MOC/WO/etc.) belong in ATTACHMENTS
+  and remarks in COMMENTS — never in the description; keep demo/seed
+  descriptions and examples free of reference codes. It is
   ≤60 chars (`DESCRIPTION_MAX_LENGTH`), free while drafting, REQUIRED at
   submit — enforced in `validateForSubmit(lines, description)` and thus
   in BOTH providers + the editor (single-line Input with counter).
@@ -132,9 +147,14 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
   only Add/Delete (`actions` on ObjectTypeConfig) and links to equipment
   only; PM Change/Delete are identified by Maintenance Item; several SAP
   number fields use strict numeric validation.
-- Excel line import/export templates (`src/lib/excel-lines.ts`): per-tab
-  template download + validating import in the editor, both derived from the
-  field map. exceljs loads as a lazy chunk — keep it out of the main bundle.
+- Excel line import/export templates (`src/lib/excel-lines.ts`): ONE
+  unified workbook, a sheet per object type (`makeUnifiedTemplate` /
+  `parseUnifiedTemplate`, ux-experiments 2026-07-21) — the importer reads
+  ALL recognizable sheets so several types mass-import at once; old
+  single-sheet files still import by sheet name. The editor's download
+  opens on the active tab's sheet (workbook.views activeTab); the home
+  page's Excel card downloads it directly. Both derived from the field
+  map. exceljs loads as a lazy chunk — keep it out of the main bundle.
   The template sheet is UNPROTECTED (user decision 2026-07-21): a grey
   banner + amber Action header advise the layout rules; the importer
   validates everything.

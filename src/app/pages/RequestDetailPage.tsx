@@ -1,6 +1,20 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createColumnHelper, getCoreRowModel, useReactTable } from '@tanstack/react-table'
-import { FileSpreadsheet, Paperclip, Pencil, X } from 'lucide-react'
+import {
+  ArrowLeft,
+  ArrowRight,
+  CornerUpLeft,
+  MessageSquare,
+  MoreHorizontal,
+  Paperclip,
+  Pencil,
+  Plus,
+  RotateCcw,
+  Send,
+  UserCheck,
+  X,
+  type LucideIcon,
+} from 'lucide-react'
 import { getProvider } from '@/data'
 import { makeRequestExport } from '@/lib/excel-export'
 import { appliesTo, OBJECT_TYPE_CONFIGS, type ObjectTypeConfig } from '@/domain/field-map'
@@ -11,18 +25,23 @@ import {
   isEmptyLine,
   validateAttachment,
 } from '@/domain/schemas'
+import { daysUntilDue, isOverdue } from '@/domain/sla'
 import { availableTransitions, type TransitionCtx } from '@/domain/status'
-import type { Request, RequestLine } from '@/domain/types'
-import { formatDate, formatDateTime, formatDateValue } from '@/lib/utils'
-import { useAsync } from '../hooks'
+import type { Attachment, AuditEvent, Request, RequestLine } from '@/domain/types'
+import { formatDate, formatDateValue } from '@/lib/utils'
+import { relativeDateTime } from '../format'
+import { useAsync, usePageTitle } from '../hooks'
 import { href } from '../router'
 import { S } from '../strings'
 import { useCurrentUser } from '../user-context'
-import { SlaBadge, StatusBadge } from '../components/badges'
+import { readListState } from './RequestListPage'
+import { StatusStepper } from '../components/badges'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Dialog, DialogContent, DialogTitle } from '../components/ui/dialog'
 import { Select, Textarea } from '../components/ui/input'
+import { Skeleton } from '../components/ui/skeleton'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { autoColumnSize, ClippedCell, DataGrid, usePersistedColumnSizing } from '../components/DataGrid'
 
 const lineColumnHelper = createColumnHelper<RequestLine>()
@@ -92,7 +111,51 @@ function DetailLineGrid({ config, lines }: { config: ObjectTypeConfig; lines: Re
     state: { columnSizing: sizing.columnSizing, columnVisibility },
     onColumnSizingChange: sizing.onColumnSizingChange,
   })
-  return <DataGrid table={table} />
+  // #, Action and (where present) Description stay pinned while SAP fields scroll
+  return <DataGrid table={table} stickyIds={['no', 'action', 'description']} />
+}
+
+/** Overflow menu for secondary/destructive header actions — hand-rolled, no dependency. */
+function MoreMenu({
+  items,
+}: {
+  items: { label: string; destructive?: boolean; disabled?: boolean; onClick: () => void }[]
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!open) return
+    const close = (e: MouseEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [open])
+  return (
+    <div ref={ref} className="relative">
+      <Button variant="outline" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+        <MoreHorizontal className="h-4 w-4" /> {S.detail.more}
+      </Button>
+      {open && (
+        <div role="menu" className="absolute right-0 top-full z-40 mt-1 min-w-[180px] rounded-md border bg-card p-1 shadow-lg">
+          {items.map((item) => (
+            <button
+              key={item.label}
+              role="menuitem"
+              disabled={item.disabled}
+              className={`block w-full rounded px-2.5 py-1.5 text-left text-sm hover:bg-accent disabled:opacity-50 ${item.destructive ? 'text-destructive' : ''}`}
+              onClick={() => {
+                setOpen(false)
+                item.onClick()
+              }}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
 }
 
 /** One cell of the header meta strip: tiny uppercase label over the value. */
@@ -107,9 +170,24 @@ function StripItem({ label, strong, children }: { label: string; strong?: boolea
   )
 }
 
-function AttachmentsCard({ requestId, onAdded }: { requestId: string; onAdded: () => void }) {
+interface AttachmentsState {
+  data?: Attachment[]
+  loading: boolean
+  error?: string
+  reload: () => void
+}
+
+/** Attachments tab panel — list state lives on the page (the tab label needs the count). */
+function AttachmentsPanel({
+  requestId,
+  attachments,
+  onAdded,
+}: {
+  requestId: string
+  attachments: AttachmentsState
+  onAdded: () => void
+}) {
   const provider = getProvider()
-  const attachments = useAsync(() => provider.listAttachments(requestId), [requestId])
   const fileRef = useRef<HTMLInputElement>(null)
   // staged picks live ONLY in the browser until the user hits Upload — the
   // single commit point; removing a pending file means it never left the PC
@@ -158,11 +236,7 @@ function AttachmentsCard({ requestId, onAdded }: { requestId: string; onAdded: (
   const kb = (size: number) => `${Math.max(1, Math.round(size / 1024))} KB`
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{S.detail.attachmentsTitle}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
+    <div className="space-y-3">
         {attachments.loading && <p className="text-sm text-muted-foreground">{S.detail.loading}</p>}
         {attachments.error && <p className="text-sm text-destructive">{attachments.error}</p>}
         {attachments.data && attachments.data.length === 0 && pending.length === 0 && (
@@ -243,10 +317,23 @@ function AttachmentsCard({ requestId, onAdded }: { requestId: string; onAdded: (
             {S.detail.attachmentCount(totalCount, ATTACHMENT_MAX_COUNT)}
           </span>
         </div>
-      </CardContent>
-    </Card>
+    </div>
   )
 }
+
+const AUDIT_ICONS: Record<AuditEvent, LucideIcon> = {
+  Created: Plus,
+  DraftUpdated: Pencil,
+  Submitted: Send,
+  Assigned: UserCheck,
+  StatusChanged: ArrowRight,
+  Rejected: X,
+  Returned: CornerUpLeft,
+  Reopened: RotateCcw,
+  CommentAdded: MessageSquare,
+  AttachmentAdded: Paperclip,
+}
+
 
 export function RequestDetailPage({ id }: { id: string }) {
   const user = useCurrentUser()
@@ -254,12 +341,14 @@ export function RequestDetailPage({ id }: { id: string }) {
   const detail = useAsync(() => provider.getRequest(id), [id])
   const comments = useAsync(() => provider.listComments(id), [id])
   const audit = useAsync(() => provider.listAudit(id), [id])
+  const attachments = useAsync(() => provider.listAttachments(id), [id])
   const maintainers = useAsync(() => provider.listAssignableUsers(), [])
 
   const [busy, setBusy] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [banner, setBanner] = useState<string>()
-  const [rejectOpen, setRejectOpen] = useState(false)
+  // one reason dialog serves Reject (admin) and Return to requester (maintainer)
+  const [reasonTarget, setReasonTarget] = useState<'Rejected' | 'Returned'>()
   const [rejectReason, setRejectReason] = useState('')
   const [assignOpen, setAssignOpen] = useState(false)
   const [assigneeId, setAssigneeId] = useState('')
@@ -279,7 +368,18 @@ export function RequestDetailPage({ id }: { id: string }) {
     }
   }
 
-  if (detail.loading) return <p className="text-muted-foreground">{S.detail.loading}</p>
+  usePageTitle(detail.data?.request.ref)
+  // back to the list this request was opened from (last-used list state)
+  const backScope = readListState().scope ?? (user.roles.includes('admin') ? 'all' : user.roles.includes('maintainer') ? 'queue' : 'mine')
+
+  if (detail.loading)
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-44 w-full rounded-[10px]" />
+        <Skeleton className="h-56 w-full rounded-[10px]" />
+        <Skeleton className="h-64 w-full rounded-[10px]" />
+      </div>
+    )
   if (detail.error) return <p className="text-destructive">{detail.error}</p>
   if (!detail.data) return <p className="text-destructive">{S.detail.notFound}</p>
 
@@ -291,18 +391,21 @@ export function RequestDetailPage({ id }: { id: string }) {
   }
   const isAdmin = user.roles.includes('admin')
   const transitions = availableTransitions(ctx, req.status)
-  const canEditDraft = req.status === 'Draft' && (ctx.isOwner || isAdmin)
+  // Returned requests are edited directly by their requester (no reopen step)
+  const canEditDraft = (req.status === 'Draft' || req.status === 'Returned') && (ctx.isOwner || isAdmin)
   const canClaim =
     user.roles.includes('maintainer') && !req.assigneeId && req.status === 'Waiting to be started'
   const canAssign = isAdmin && (req.status === 'Waiting to be started' || req.status === 'In process')
 
   const doTransition = (to: Request['status']) => {
-    if (to === 'Rejected') {
+    if (to === 'Rejected' || to === 'Returned') {
       setRejectReason('')
-      setRejectOpen(true)
+      setReasonTarget(to)
       return
     }
-    if (to === 'Waiting to be started' && req.status === 'Draft') {
+    // submit (Draft) and resubmit (Returned) go through submitRequest —
+    // validation + SLA compute/extension live there, not in setStatus
+    if (to === 'Waiting to be started' && (req.status === 'Draft' || req.status === 'Returned')) {
       void run(() => provider.submitRequest(req.id))
       return
     }
@@ -321,73 +424,51 @@ export function RequestDetailPage({ id }: { id: string }) {
   // comments, attachments) writes one, so it tracks true last activity
   const lastChangedAt = audit.data?.length ? audit.data[audit.data.length - 1].at : req.createdAt
 
+  const doExport = async () => {
+    setExporting(true)
+    setBanner(undefined)
+    try {
+      const blob = await makeRequestExport(req, visibleLines)
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${req.ref}.xlsx`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (e) {
+      setBanner(e instanceof Error ? e.message : String(e))
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  const openAssign = () => {
+    setAssigneeId(req.assigneeId ?? maintainers.data?.[0]?.id ?? '')
+    setAssignOpen(true)
+  }
+
+  // one primary CTA per state; Export + the destructive Reject sit one
+  // deliberate click away in the More menu (misclick-proofing Reject)
+  const rejectTransition = transitions.find((t) => t.to === 'Rejected')
+  const dueDays = req.dueDate ? daysUntilDue(req.dueDate) : 0
+  const dueActive = !!req.dueDate && req.status !== 'Completed' && req.status !== 'Rejected'
+  const stripLink = 'text-primary hover:underline'
+
+  const postComment = () =>
+    void run(async () => {
+      await provider.addComment(req.id, commentBody)
+      setCommentBody('')
+      comments.reload()
+    })
+
   return (
     <div className="space-y-4">
-      {/* actions — top right; the document header card follows below */}
-      <div className="flex flex-wrap items-start justify-end gap-3">
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            disabled={exporting || visibleLines.length === 0}
-            onClick={() =>
-              void (async () => {
-                setExporting(true)
-                setBanner(undefined)
-                try {
-                  const blob = await makeRequestExport(req, visibleLines)
-                  const url = URL.createObjectURL(blob)
-                  const a = document.createElement('a')
-                  a.href = url
-                  a.download = `${req.ref}.xlsx`
-                  a.click()
-                  URL.revokeObjectURL(url)
-                } catch (e) {
-                  setBanner(e instanceof Error ? e.message : String(e))
-                } finally {
-                  setExporting(false)
-                }
-              })()
-            }
-          >
-            <FileSpreadsheet className="h-4 w-4" /> {exporting ? S.detail.exporting : S.detail.exportExcel}
-          </Button>
-          {canEditDraft && (
-            <a href={href(`/requests/${req.id}/edit`)}>
-              <Button variant="outline">
-                <Pencil className="h-4 w-4" /> {S.detail.editDraft}
-              </Button>
-            </a>
-          )}
-          {canClaim && (
-            <Button disabled={busy} onClick={() => void run(() => provider.assignRequest(req.id, user.id))}>
-              {S.detail.claim}
-            </Button>
-          )}
-          {canAssign && (
-            <Button
-              variant="outline"
-              disabled={busy}
-              onClick={() => {
-                setAssigneeId(req.assigneeId ?? maintainers.data?.[0]?.id ?? '')
-                setAssignOpen(true)
-              }}
-            >
-              {req.assigneeId ? S.detail.reassign : S.detail.assign}
-            </Button>
-          )}
-          {transitions.map((t) => (
-            <Button
-              key={t.to}
-              disabled={busy}
-              variant={t.to === 'Rejected' ? 'destructive' : 'default'}
-              onClick={() => doTransition(t.to)}
-            >
-              {t.label}
-            </Button>
-          ))}
-        </div>
-      </div>
-
+      <a
+        href={href(`/requests?scope=${backScope}`)}
+        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="h-3.5 w-3.5" /> {S.list.title[backScope]}
+      </a>
       {banner && (
         <p className="rounded-md border border-destructive/40 bg-[var(--danger-tint)] p-3 text-sm text-destructive">{banner}</p>
       )}
@@ -397,25 +478,77 @@ export function RequestDetailPage({ id }: { id: string }) {
           {req.rejectReason}
         </p>
       )}
+      {req.status === 'Returned' && req.rejectReason && (
+        <p className="rounded-md border border-[rgba(225,154,47,.4)] bg-[var(--warning-tint)] p-3 text-sm">
+          <span className="font-semibold">{S.detail.returnReason}: </span>
+          {req.rejectReason}
+        </p>
+      )}
 
-      {/* document header, variant A (2026-07-19): title headline with the
-          ref as a small label, line-summary chip on the right, meta as a
-          divided strip beneath — fills any screen width with no dead middle */}
+      {/* document header (ux-experiments 2026-07-21): actions live IN the
+          card on the ref row; the status pill grew into a lifecycle stepper;
+          due date carries its countdown inline */}
       <Card>
         <CardContent className="p-5">
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             {req.description ? (
               <span className="text-sm font-medium tracking-wide text-muted-foreground">{req.ref}</span>
             ) : (
               <h1 className="text-2xl font-semibold text-secondary-foreground">{req.ref}</h1>
             )}
-            <StatusBadge status={req.status} />
-            <SlaBadge request={req} />
-            {req.lineSummary && (
-              <span className="ml-auto inline-flex items-center rounded-md bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">
-                {req.lineSummary}
-              </span>
-            )}
+            <div className="flex flex-wrap items-center gap-2">
+              {canEditDraft && (
+                <a href={href(`/requests/${req.id}/edit`)}>
+                  <Button variant="outline">
+                    <Pencil className="h-4 w-4" />{' '}
+                    {req.status === 'Draft' ? S.detail.editDraft : S.detail.editRequest}
+                  </Button>
+                </a>
+              )}
+              {canAssign && (
+                <Button variant="outline" disabled={busy} onClick={openAssign}>
+                  {req.assigneeId ? S.detail.reassign : S.detail.assign}
+                </Button>
+              )}
+              {canClaim && (
+                <Button disabled={busy} onClick={() => void run(() => provider.assignRequest(req.id, user.id))}>
+                  {S.detail.claim}
+                </Button>
+              )}
+              {/* Return is a routine maintainer action → visible outline button;
+                  Reject stays admin-only in the More menu */}
+              {transitions
+                .filter((t) => t.to !== 'Rejected')
+                .map((t) => (
+                  <Button
+                    key={t.to}
+                    variant={t.to === 'Returned' ? 'outline' : 'default'}
+                    disabled={busy}
+                    onClick={() => doTransition(t.to)}
+                  >
+                    {t.label}
+                  </Button>
+                ))}
+              <MoreMenu
+                items={[
+                  {
+                    label: exporting ? S.detail.exporting : S.detail.exportExcel,
+                    disabled: exporting || visibleLines.length === 0,
+                    onClick: () => void doExport(),
+                  },
+                  ...(rejectTransition
+                    ? [
+                        {
+                          label: rejectTransition.label,
+                          destructive: true,
+                          disabled: busy,
+                          onClick: () => doTransition('Rejected'),
+                        },
+                      ]
+                    : []),
+                ]}
+              />
+            </div>
           </div>
           {req.description && (
             <h1
@@ -425,12 +558,35 @@ export function RequestDetailPage({ id }: { id: string }) {
               {req.description}
             </h1>
           )}
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <StatusStepper status={req.status} assigneeId={req.assigneeId} />
+            {req.lineSummary && (
+              <span className="ml-auto inline-flex items-center rounded-md bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">
+                {req.lineSummary}
+              </span>
+            )}
+          </div>
           <div className="mt-3 flex flex-wrap divide-x divide-border border-t pt-2.5">
             <StripItem label={S.detail.requester} strong>
               {req.requesterName}
             </StripItem>
             <StripItem label={S.detail.assignee}>
               {req.assigneeName ?? <span className="text-muted-foreground">{S.detail.unassigned}</span>}
+              {canAssign && (
+                <button type="button" className={`ml-1.5 ${stripLink}`} disabled={busy} onClick={openAssign}>
+                  · {req.assigneeId ? S.detail.reassign : S.detail.assign}
+                </button>
+              )}
+              {canClaim && (
+                <button
+                  type="button"
+                  className={`ml-1.5 ${stripLink}`}
+                  disabled={busy}
+                  onClick={() => void run(() => provider.assignRequest(req.id, user.id))}
+                >
+                  · {S.list.claim}
+                </button>
+              )}
             </StripItem>
             <StripItem label={S.detail.submittedAt}>{formatDate(req.submittedAt)}</StripItem>
             <StripItem label={S.detail.changedAt}>{formatDate(lastChangedAt)}</StripItem>
@@ -439,6 +595,20 @@ export function RequestDetailPage({ id }: { id: string }) {
             )}
             <StripItem label={S.detail.dueDate} strong>
               {formatDate(req.dueDate)}
+              {dueActive && (
+                <span
+                  className={
+                    isOverdue(req)
+                      ? 'text-destructive'
+                      : dueDays <= 1
+                        ? 'text-[var(--warning)]'
+                        : 'text-muted-foreground'
+                  }
+                >
+                  {' '}
+                  · {isOverdue(req) ? S.sla.overdue(-dueDays) : dueDays <= 0 ? S.sla.dueToday : S.sla.dueIn(dueDays)}
+                </span>
+              )}
             </StripItem>
           </div>
         </CardContent>
@@ -460,106 +630,144 @@ export function RequestDetailPage({ id }: { id: string }) {
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        {/* comments — min-w-0 on both grid children: grid items default to
-            min-width:auto, letting unbreakable text stretch the column */}
-        <Card className="min-w-0">
-          <CardHeader>
-            <CardTitle>{S.detail.commentsTitle}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {/* the list scrolls; the composer below stays visible */}
-            <div className="max-h-80 space-y-3 overflow-y-auto">
-              {comments.data?.length === 0 && (
-                <p className="text-sm text-muted-foreground">{S.detail.noComments}</p>
-              )}
-              {comments.data?.map((c) => (
-                <div key={c.id} className="rounded-md bg-muted/60 p-3">
-                  <div className="flex items-baseline justify-between gap-2">
-                    <span className="text-sm font-medium">{c.authorName}</span>
-                    <span className="text-xs text-muted-foreground">{formatDateTime(c.createdAt)}</span>
+      {/* activity — one card, three tabs (browser-tab styling shared with the editor) */}
+      <Card>
+        <CardContent className="p-0">
+          <Tabs defaultValue="comments">
+            <div className="border-b px-4 pt-3">
+              <TabsList>
+                <TabsTrigger value="comments">
+                  {S.detail.commentsTitle}
+                  <span className="ml-1 text-xs text-muted-foreground">
+                    {S.editor.tabCount(comments.data?.length ?? 0)}
+                  </span>
+                </TabsTrigger>
+                <TabsTrigger value="attachments">
+                  {S.detail.attachmentsTitle}
+                  <span className="ml-1 text-xs text-muted-foreground">
+                    {S.editor.tabCount(attachments.data?.length ?? 0)}
+                  </span>
+                </TabsTrigger>
+                <TabsTrigger value="audit">
+                  {S.detail.auditTitle}
+                  <span className="ml-1 text-xs text-muted-foreground">
+                    {S.editor.tabCount(audit.data?.length ?? 0)}
+                  </span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            <TabsContent value="comments" className="space-y-3 px-4 pb-4">
+              {/* the list scrolls; the composer below stays visible */}
+              <div className="max-h-80 space-y-3 overflow-y-auto">
+                {comments.data?.length === 0 && (
+                  <p className="text-sm text-muted-foreground">{S.detail.noComments}</p>
+                )}
+                {comments.data?.map((c) => (
+                  <div key={c.id} className="rounded-md bg-muted/60 p-3">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <span className="text-sm font-medium">{c.authorName}</span>
+                      <span className="text-xs text-muted-foreground">{relativeDateTime(c.createdAt)}</span>
+                    </div>
+                    <p className="mt-1 whitespace-pre-wrap break-words text-sm">{c.body}</p>
                   </div>
-                  <p className="mt-1 whitespace-pre-wrap break-words text-sm">{c.body}</p>
-                </div>
-              ))}
-            </div>
-            <div className="space-y-2 pt-1">
-              <Textarea
-                value={commentBody}
-                onChange={(e) => setCommentBody(e.target.value)}
-                placeholder={S.detail.commentPlaceholder}
-                maxLength={COMMENT_MAX_LENGTH}
-              />
-              <Button
-                size="sm"
-                disabled={busy || !commentBody.trim()}
-                onClick={() =>
-                  void run(async () => {
-                    await provider.addComment(req.id, commentBody)
-                    setCommentBody('')
-                    comments.reload()
-                  })
-                }
-              >
-                {S.detail.commentAdd}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="min-w-0 space-y-4">
-          <AttachmentsCard requestId={req.id} onAdded={() => audit.reload()} />
-
-          {/* audit timeline */}
-          <Card>
-            <CardHeader>
-              <CardTitle>{S.detail.auditTitle}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {/* scroll on a wrapper with left padding so the timeline dots
-                  (which overhang the ol) aren't clipped */}
-              <div className="max-h-80 overflow-y-auto pl-1.5">
-                <ol className="space-y-0 border-l pl-4">
-                {audit.data?.map((a) => (
-                  <li key={a.id} className="relative break-words pb-3 text-sm">
-                    <span className="absolute -left-[21.5px] top-1.5 h-2.5 w-2.5 rounded-full border-2 border-card bg-primary" />
-                    <span className="font-medium">{a.actorName}</span> {S.audit[a.event]}
-                    {a.oldValue && a.newValue && (
-                      <span className="text-muted-foreground">
-                        {' '}
-                        ({a.oldValue} → {a.newValue})
-                      </span>
-                    )}
-                    {!a.oldValue && a.newValue && <span className="text-muted-foreground"> ({a.newValue})</span>}
-                    <div className="text-xs text-muted-foreground">{formatDateTime(a.at)}</div>
-                  </li>
                 ))}
-              </ol>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+              <div className="space-y-2 pt-1">
+                <Textarea
+                  value={commentBody}
+                  onChange={(e) => setCommentBody(e.target.value)}
+                  onKeyDown={(e) => {
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && commentBody.trim() && !busy) {
+                      e.preventDefault()
+                      postComment()
+                    }
+                  }}
+                  placeholder={S.detail.commentPlaceholder}
+                  maxLength={COMMENT_MAX_LENGTH}
+                />
+                <div className="flex items-center gap-2">
+                  <Button size="sm" disabled={busy || !commentBody.trim()} onClick={postComment}>
+                    {S.detail.commentAdd}
+                  </Button>
+                  <span className="text-xs text-muted-foreground">{S.detail.commentHint}</span>
+                </div>
+              </div>
+            </TabsContent>
 
-      {/* reject dialog */}
-      <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
+            <TabsContent value="attachments" className="px-4 pb-4">
+              <AttachmentsPanel requestId={req.id} attachments={attachments} onAdded={() => audit.reload()} />
+            </TabsContent>
+
+            <TabsContent value="audit" className="px-4 pb-4">
+              {/* newest first; each event carries its icon and a relative time */}
+              <div className="max-h-80 overflow-y-auto">
+                {[...(audit.data ?? [])].reverse().map((a, i, all) => {
+                  const Icon = AUDIT_ICONS[a.event]
+                  return (
+                    <div key={a.id} className="flex gap-3">
+                      <div className="flex flex-col items-center">
+                        <span
+                          className={`flex h-7 w-7 flex-none items-center justify-center rounded-full ${
+                            i === 0
+                              ? 'bg-accent text-primary'
+                              : 'border bg-muted/60 text-muted-foreground'
+                          }`}
+                        >
+                          <Icon className="h-3.5 w-3.5" />
+                        </span>
+                        {i < all.length - 1 && <span className="my-1 w-px flex-1 bg-border" />}
+                      </div>
+                      <div className="min-w-0 break-words pb-4 text-sm">
+                        <span className="font-medium">{a.actorName}</span> {S.audit[a.event]}
+                        {a.oldValue && a.newValue && (
+                          <span className="text-muted-foreground">
+                            {' '}
+                            ({a.oldValue} → {a.newValue})
+                          </span>
+                        )}
+                        {!a.oldValue && a.newValue && (
+                          <span className="text-muted-foreground"> ({a.newValue})</span>
+                        )}
+                        <div className="mt-0.5 text-xs text-muted-foreground">{relativeDateTime(a.at)}</div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+
+      {/* reason dialog — Reject (admin) and Return to requester share it */}
+      <Dialog open={!!reasonTarget} onOpenChange={(open) => !open && setReasonTarget(undefined)}>
         <DialogContent>
-          <DialogTitle>{S.detail.rejectTitle}</DialogTitle>
-          <label className="mb-1 block text-sm font-medium">{S.detail.rejectReasonLabel}</label>
+          <DialogTitle>
+            {reasonTarget === 'Returned' ? S.detail.returnTitle : S.detail.rejectTitle}
+          </DialogTitle>
+          <label className="mb-1 block text-sm font-medium">
+            {reasonTarget === 'Returned' ? S.detail.returnReasonLabel : S.detail.rejectReasonLabel}
+          </label>
           <Textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} autoFocus />
           <div className="mt-4 flex justify-end gap-2">
-            <Button variant="ghost" onClick={() => setRejectOpen(false)}>
+            <Button variant="ghost" onClick={() => setReasonTarget(undefined)}>
               {S.editor.cancel}
             </Button>
             <Button
-              variant="destructive"
+              variant={reasonTarget === 'Returned' ? 'default' : 'destructive'}
               disabled={!rejectReason.trim() || busy}
               onClick={() => {
-                setRejectOpen(false)
-                void run(() => provider.rejectRequest(req.id, rejectReason))
+                const target = reasonTarget
+                setReasonTarget(undefined)
+                void run(() =>
+                  target === 'Returned'
+                    ? provider.returnRequest(req.id, rejectReason)
+                    : provider.rejectRequest(req.id, rejectReason),
+                )
               }}
             >
-              {S.detail.rejectConfirm}
+              {reasonTarget === 'Returned' ? S.detail.returnConfirm : S.detail.rejectConfirm}
             </Button>
           </div>
         </DialogContent>

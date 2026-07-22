@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { getProvider, PROVIDER_NAME } from '@/data'
 import type { ProvisionResult } from '@/data/provider'
 import { checkDmpGroups, runConnectionSelfTest, setAppAsSiteHome, setListsHidden } from '@/data/sp'
+import { usePageTitle } from '../hooks'
 import { S } from '../strings'
 import { useCurrentUser } from '../user-context'
 import { Badge } from '../components/ui/badge'
@@ -21,6 +22,7 @@ export function ProvisionPage() {
   const [hideResult, setHideResult] = useState<string[]>()
   const [busy, setBusy] = useState<string>()
   const [error, setError] = useState<string>()
+  usePageTitle(S.provision.title)
 
   if (!user.roles.includes('admin')) {
     return <p className="text-destructive">{S.provision.adminOnly}</p>

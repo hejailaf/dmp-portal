@@ -9,19 +9,15 @@ export const S = {
     home: 'Home',
     myRequests: 'My requests',
     myQueue: 'My queue',
-    unassigned: 'Unassigned',
     allRequests: 'All requests',
-    newRequest: 'New request',
     dashboard: 'Dashboard',
     setup: 'Site setup',
   },
 
   home: {
     welcome: (name: string) => `Welcome, ${name}`,
-    roleLabel: 'Your roles',
-    sectionRequester: 'As a Requester',
-    sectionMaintainer: 'As a Data Maintainer',
-    sectionAdmin: 'As an Admin',
+    // only the HIGHEST role is shown (Admin > Maintainer > Requester)
+    roleLabel: 'Your role',
     newRequestCta: 'Create a new request',
     open: 'Open',
     cards: {
@@ -35,6 +31,35 @@ export const S = {
       completed: 'Completed',
       dashboardLink: 'Open the admin dashboard',
     },
+    // requester launchpad (home redesign 2026-07-21)
+    newRequestCardBody: 'Equipment, FLoc, BOM, or PM changes.',
+    myRequestsCardBody: (drafts: number, open: number, completed: number) =>
+      `${drafts} ${drafts === 1 ? 'draft' : 'drafts'} · ${open} open · ${completed} completed`,
+    templatesCardTitle: 'Excel template',
+    templatesCardBody: 'One workbook, a sheet per data type — fill and import in the editor.',
+    rejectedCallout: (ref: string) => `${ref} was rejected — fix and resubmit.`,
+    returnedCallout: (ref: string) => `${ref} was returned — update and resubmit.`,
+    recentTitle: 'Recent requests',
+    viewAll: 'View all',
+    howSteps: [
+      'Fill in the SAP data lines and submit.',
+      'The data team reviews and keys it into SAP.',
+      "Track progress here until it's completed.",
+    ],
+    // maintainer overview
+    queueByStatus: 'My queue by status',
+    dueThisWeek: 'Due this week',
+    nothingDue: 'Nothing due this week.',
+    // admin command center — callouts name SPECIFIC requests; counts stay
+    // on the tiles (the old "N requests are overdue" line duplicated the tile)
+    unassignedAging: (ref: string, days: number, overdueDays?: number) =>
+      `${ref} has waited unassigned for ${days} ${days === 1 ? 'day' : 'days'}` +
+      (overdueDays ? ` and is ${overdueDays} ${overdueDays === 1 ? 'day' : 'days'} overdue` : '') +
+      '.',
+    teamLoad: 'Team load (open requests)',
+    latestActivity: 'Latest activity',
+    activitySubmitted: 'submitted',
+    activityCompleted: 'completed',
     errorLoading: 'Could not load your overview.',
   },
 
@@ -55,9 +80,11 @@ export const S = {
     searchPlaceholder: 'Search ref, content, requester…',
     statusFilter: 'Status',
     allStatuses: 'All statuses',
-    overdueOnly: 'Overdue only',
+    overdueOnly: 'Overdue',
+    unassignedOnly: 'Unassigned',
     columns: {
       ref: 'Ref',
+      description: 'Description',
       status: 'Status',
       lines: 'Line items',
       requester: 'Requester',
@@ -67,15 +94,41 @@ export const S = {
     claim: 'Claim',
     empty: 'No requests match.',
     loading: 'Loading requests…',
+    count: (shown: number, total: number) =>
+      shown === total
+        ? `${total} ${total === 1 ? 'request' : 'requests'}`
+        : `${shown} of ${total} requests`,
+    clearSearch: 'Clear search',
+    emptyMineTitle: 'No requests yet',
+    emptyMineBody: 'Your submitted requests and drafts will appear here.',
   },
 
+  // stored → display names; the waiting entry serves places meaning BOTH
+  // sub-states (filter dropdown, dashboard KPI) — badges use statusLabel
   status: {
     Draft: 'Draft',
-    'Waiting to be started': 'Waiting to be started',
+    'Waiting to be started': 'Submitted / Assigned',
     'In process': 'In process',
+    Returned: 'Returned',
     Completed: 'Completed',
     Rejected: 'Rejected',
   } as Record<string, string>,
+
+  /**
+   * Dynamic display name (user decisions 2026-07-21): a stored
+   * "Waiting to be started" request reads "Assigned" once a maintainer is
+   * set; while unassigned it reads by PERSPECTIVE — "Submitted" to
+   * requesters ("I submitted it"), "Unassigned" to staff ("nobody owns it
+   * yet"). Stored values never change.
+   */
+  statusLabel: (status: string, hasAssignee: boolean, staffView = false): string =>
+    status === 'Waiting to be started'
+      ? hasAssignee
+        ? 'Assigned'
+        : staffView
+          ? 'Unassigned'
+          : 'Submitted'
+      : (S.status[status] ?? status),
 
   sla: {
     overdue: (days: number) => `Overdue by ${days} ${days === 1 ? 'day' : 'days'}`,
@@ -87,6 +140,8 @@ export const S = {
   editor: {
     newTitle: 'New request',
     editTitle: (ref: string) => `Edit draft ${ref}`,
+    editReturnedTitle: (ref: string) => `Edit and resubmit ${ref}`,
+    notEditable: 'This request is not editable in its current status.',
     descriptionLabel: 'Request description',
     descriptionPlaceholder: 'e.g. Create SCBA Equipment at WIP Area',
     addLine: 'Add line',
@@ -99,6 +154,7 @@ export const S = {
     notApplicable: 'n/a',
     saveDraft: 'Save draft',
     submit: 'Submit request',
+    resubmit: 'Resubmit request',
     saving: 'Saving…',
     submitting: 'Submitting…',
     cancel: 'Cancel',
@@ -115,6 +171,7 @@ export const S = {
     importIssuesTitle: 'Import notes:',
     confirmDropHidden: (n: number) =>
       `${n} ${n === 1 ? 'value does' : 'values do'} not apply to their line's action and will be removed when this request is saved.\n\nContinue?`,
+    confirmLeave: 'This request has unsaved changes. They will be lost if you leave now.\n\nLeave anyway?',
   },
 
   detail: {
@@ -132,6 +189,7 @@ export const S = {
     commentsTitle: 'Comments',
     commentPlaceholder: 'Write a comment…',
     commentAdd: 'Add comment',
+    commentHint: 'Ctrl+Enter to send',
     noComments: 'No comments yet.',
     auditTitle: 'Audit trail',
     attachmentsTitle: 'Attachments',
@@ -144,6 +202,7 @@ export const S = {
     attachmentCount: (n: number, max: number) => `${n} of ${max} attachments used`,
     exportExcel: 'Export to Excel',
     exporting: 'Exporting…',
+    more: 'More',
     completedAt: 'Completed',
     editDraft: 'Edit draft',
     claim: 'Claim this request',
@@ -154,6 +213,11 @@ export const S = {
     rejectTitle: 'Reject request',
     rejectReasonLabel: 'Reason (required — the requester will see this)',
     rejectConfirm: 'Reject',
+    returnTitle: 'Return to requester',
+    returnReasonLabel: 'What should the requester change? (required — the requester will see this)',
+    returnConfirm: 'Return to requester',
+    returnReason: 'Return reason',
+    editRequest: 'Edit request',
     submitBlocked: 'This draft has validation errors — open "Edit draft" to fix them.',
     notFound: 'Request not found.',
     loading: 'Loading request…',
@@ -166,6 +230,7 @@ export const S = {
     Assigned: 'changed the assignee',
     StatusChanged: 'changed the status',
     Rejected: 'rejected the request',
+    Returned: 'returned the request to the requester',
     Reopened: 'reopened the request as a draft',
     CommentAdded: 'added a comment',
     AttachmentAdded: 'added an attachment',
@@ -201,7 +266,7 @@ export const S = {
     adminOnly: 'The dashboard is only available to PMDC Admins.',
     kpis: {
       total: 'All requests',
-      waiting: 'Waiting to be started',
+      waiting: 'Unassigned / Assigned', // the dashboard is admin-only — staff wording
       inProcess: 'In process',
       completed: 'Completed',
       overdue: 'Overdue',
@@ -223,6 +288,11 @@ export const S = {
   theme: {
     toDark: 'Switch to dark mode',
     toLight: 'Switch to light mode',
+  },
+
+  time: {
+    todayAt: (t: string) => `today, ${t}`,
+    yesterdayAt: (t: string) => `yesterday, ${t}`,
   },
 
   footer: {

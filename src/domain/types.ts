@@ -12,6 +12,7 @@ export const STATUSES = [
   'Draft',
   'Waiting to be started',
   'In process',
+  'Returned',
   'Completed',
   'Rejected',
 ] as const
@@ -29,7 +30,11 @@ export interface User {
 export interface Request {
   id: string
   ref: string // DCR-YYNNNN
-  /** Business reason / reference (e.g. MOC no.) — required to submit, free while drafting. */
+  /**
+   * One-line title — required to submit, free while drafting. Convention
+   * (2026-07-21): reference documents go in ATTACHMENTS, remarks in
+   * COMMENTS — never in the description.
+   */
   description: string
   status: RequestStatus
   requesterId: string
@@ -41,6 +46,13 @@ export interface Request {
   slaDays?: number
   dueDate?: string
   completedAt?: string // stamped on the transition to Completed (Phase 3)
+  /**
+   * Set while the request is Returned to the requester; cleared on resubmit.
+   * The SLA clock pauses over this interval — resubmit extends dueDate by
+   * (resubmittedAt − returnedAt). SubmittedAt is NOT reset (unlike reject).
+   */
+  returnedAt?: string
+  /** Reject OR return reason — the requester sees it; cleared on reopen/resubmit. */
   rejectReason?: string
   lineSummary: string // denormalized, for list views
 }
@@ -72,6 +84,7 @@ export const AUDIT_EVENTS = [
   'Assigned',
   'StatusChanged',
   'Rejected',
+  'Returned',
   'Reopened',
   'CommentAdded',
   'AttachmentAdded',
