@@ -6,7 +6,7 @@ import {
   type CellContext,
   type HeaderContext,
 } from '@tanstack/react-table'
-import { AlertCircle, CalendarDays, CheckCircle2, Copy, Download, Plus, Trash2, Upload, X } from 'lucide-react'
+import { AlertCircle, CalendarDays, CheckCircle2, ClipboardCheck, Copy, Download, Plus, Trash2, Upload, X } from 'lucide-react'
 import { getProvider, type DraftLineInput } from '@/data'
 import {
   appliesTo,
@@ -418,6 +418,8 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
   const [tab, setTab] = useState<ObjectType>(!requestId && restored ? restored.tab : 'EQUIPMENT')
   // Excel import outcome: count drives the callout tone (success/warning)
   const [importResult, setImportResult] = useState<{ count: number; title: string; notes: string[] }>()
+  // dry-run validation passed — cleared by any subsequent edit
+  const [checkOk, setCheckOk] = useState(false)
   // checkbox selection drives the per-tab Duplicate/Delete toolbar buttons
   // (must live ABOVE the early returns — hooks may not be conditional)
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set())
@@ -490,6 +492,11 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
       setInitialized(true)
     }
   }, [requestId, existing.data, initialized, restored])
+
+  // a passed check is only true for the state it checked — any edit voids it
+  useEffect(() => {
+    setCheckOk(false)
+  }, [lines, description])
 
   // best-effort autosave of actual edits (dirty only — pristine mounts and
   // discarded restores never write); cleared on successful save/submit
@@ -683,8 +690,28 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
     setRequestErrors([])
   }
 
+  // dry run of the submit validation: same rules, same error panel and red
+  // cells, but nothing is pruned, saved or submitted. Success shows a teal
+  // confirmation (a silent button would feel broken when all is well).
+  const onCheck = () => {
+    setBanner(undefined)
+    const kept = lines.filter(
+      (l) => !isEmptyLine({ fieldData: normalizeFieldData(l.objectType, l.action, l.fieldData) }),
+    )
+    const validation = validateForSubmit(toDomainLines(kept), description)
+    setErrors(validation.lineResults)
+    setRequestErrors(validation.requestErrors)
+    if (!validation.ok) {
+      const firstBad = kept.find((l) => validation.lineResults[l.key] && !validation.lineResults[l.key].ok)
+      if (firstBad) setTab(firstBad.objectType)
+      return
+    }
+    setCheckOk(true)
+  }
+
   const onSubmit = async () => {
     setBanner(undefined)
+    setCheckOk(false)
     if (!confirmHiddenLoss()) return
     // Untouched lines are dropped silently instead of raising validation
     // errors. Emptiness is judged on the normalized data (what will actually be
@@ -757,6 +784,9 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
           <Button variant="ghost" onClick={() => window.history.back()}>
             {S.editor.cancel}
           </Button>
+          <Button variant="ghost" disabled={!!busy} onClick={onCheck}>
+            <ClipboardCheck className="h-4 w-4" /> {S.editor.check}
+          </Button>
           <Button variant="outline" disabled={!!busy} onClick={() => void onSave()}>
             {busy === 'save' ? S.editor.saving : S.editor.saveDraft}
           </Button>
@@ -778,6 +808,12 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
           >
             {S.editor.restoredDiscard}
           </button>
+        </p>
+      )}
+      {checkOk && (
+        <p className="flex items-center gap-2.5 rounded-md border border-ring/40 border-l-[3px] border-l-[var(--teal)] bg-[var(--teal-tint)] p-3 text-sm">
+          <CheckCircle2 className="h-4 w-4 flex-none text-[var(--teal)]" />
+          {S.editor.checkOk}
         </p>
       )}
       {banner && <p className="rounded-md border border-destructive/40 bg-[var(--danger-tint)] p-3 text-sm text-destructive">{banner}</p>}

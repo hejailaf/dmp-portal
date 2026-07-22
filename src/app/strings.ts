@@ -161,6 +161,8 @@ export const S = {
     lineNo: '#',
     notApplicable: 'n/a',
     saveDraft: 'Save draft',
+    check: 'Check for errors',
+    checkOk: 'No problems found — this request is ready to submit.',
     submit: 'Submit request',
     resubmit: 'Resubmit request',
     saving: 'Saving…',
