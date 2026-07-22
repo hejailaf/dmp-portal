@@ -183,6 +183,8 @@ export const S = {
     rejectReason: 'Reject reason',
     linesTitle: 'Line items',
     noLines: 'No line items yet.',
+    linesCollapse: 'Collapse line items',
+    linesExpand: 'Expand line items',
     commentsTitle: 'Comments',
     commentPlaceholder: 'Write a comment…',
     commentAdd: 'Add comment',

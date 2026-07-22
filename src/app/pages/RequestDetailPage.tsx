@@ -3,6 +3,7 @@ import { createColumnHelper, getCoreRowModel, useReactTable } from '@tanstack/re
 import {
   ArrowLeft,
   ArrowRight,
+  ChevronDown,
   CornerUpLeft,
   MessageSquare,
   MoreHorizontal,
@@ -26,7 +27,7 @@ import {
   validateAttachment,
 } from '@/domain/schemas'
 import { availableTransitions, type TransitionCtx } from '@/domain/status'
-import { STATUSES, type Attachment, type AuditEvent, type Request, type RequestLine } from '@/domain/types'
+import { STATUSES, type Attachment, type AuditEvent, type ObjectType, type Request, type RequestLine } from '@/domain/types'
 import { downloadBlob, formatDate, formatDateValue } from '@/lib/utils'
 import { relativeDateTime } from '../format'
 import { useAsync, usePageTitle } from '../hooks'
@@ -352,6 +353,9 @@ export function RequestDetailPage({ id }: { id: string }) {
   const [assignOpen, setAssignOpen] = useState(false)
   const [assigneeId, setAssigneeId] = useState('')
   const [commentBody, setCommentBody] = useState('')
+  // Line items tab strip: default = first present type; collapsed = strip only
+  const [linesTab, setLinesTab] = useState<ObjectType>()
+  const [linesOpen, setLinesOpen] = useState(true)
 
   const run = async (fn: () => Promise<unknown>) => {
     setBusy(true)
@@ -458,6 +462,7 @@ export function RequestDetailPage({ id }: { id: string }) {
     cfg,
     lines: visibleLines.filter((l) => l.objectType === cfg.objectType),
   })).filter((g) => g.lines.length > 0)
+  const activeLinesTab = linesTab ?? groups[0]?.cfg.objectType
 
   // "Changed" = the newest audit entry: every update (edits, status moves,
   // comments, attachments) writes one, so it tracks true last activity
@@ -637,20 +642,65 @@ export function RequestDetailPage({ id }: { id: string }) {
         </CardContent>
       </Card>
 
-      {/* line items */}
+      {/* line items — editor-style tab strip, one PRESENT type per tab;
+          clicking the active tab (or the chevron) collapses to the strip */}
       <Card className="reveal" style={{ '--stagger-i': 1 } as React.CSSProperties}>
-        <CardHeader>
-          <CardTitle>{S.detail.linesTitle}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-5">
-          {groups.length === 0 && <p className="text-sm text-muted-foreground">{S.detail.noLines}</p>}
-          {groups.map(({ cfg, lines: groupLines }) => (
-            <div key={cfg.objectType}>
-              <h4 className="mb-2 text-section text-muted-foreground">{cfg.label}</h4>
-              <DetailLineGrid config={cfg} lines={groupLines} />
-            </div>
-          ))}
-        </CardContent>
+        {groups.length === 0 ? (
+          <>
+            <CardHeader>
+              <CardTitle>{S.detail.linesTitle}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">{S.detail.noLines}</p>
+            </CardContent>
+          </>
+        ) : (
+          <CardContent className="p-0">
+            <Tabs value={activeLinesTab}>
+              <div className="flex items-center justify-between gap-2 border-b px-4 pt-3">
+                <TabsList>
+                  {groups.map(({ cfg, lines: groupLines }) => (
+                    <TabsTrigger
+                      key={cfg.objectType}
+                      value={cfg.objectType}
+                      onClick={() => {
+                        if (activeLinesTab === cfg.objectType) {
+                          setLinesOpen((o) => !o)
+                        } else {
+                          setLinesTab(cfg.objectType)
+                          setLinesOpen(true)
+                        }
+                      }}
+                    >
+                      {cfg.label}
+                      <span className="ml-1 text-xs text-muted-foreground">
+                        {S.editor.tabCount(groupLines.length)}
+                      </span>
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+                <button
+                  type="button"
+                  aria-expanded={linesOpen}
+                  aria-label={linesOpen ? S.detail.linesCollapse : S.detail.linesExpand}
+                  title={linesOpen ? S.detail.linesCollapse : S.detail.linesExpand}
+                  className="mb-1 self-center rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground"
+                  onClick={() => setLinesOpen((o) => !o)}
+                >
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform ${linesOpen ? '' : '-rotate-90'}`}
+                  />
+                </button>
+              </div>
+              {linesOpen &&
+                groups.map(({ cfg, lines: groupLines }) => (
+                  <TabsContent key={cfg.objectType} value={cfg.objectType} className="px-4 pb-4">
+                    <DetailLineGrid config={cfg} lines={groupLines} />
+                  </TabsContent>
+                ))}
+            </Tabs>
+          </CardContent>
+        )}
       </Card>
 
       {/* activity — one card, three tabs (browser-tab styling shared with the
