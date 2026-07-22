@@ -3,7 +3,10 @@ import { daysUntilDue, isOverdue } from '@/domain/sla'
 import type { Request } from '@/domain/types'
 import lockupLight from '@/assets/logo-horizontal-text.svg'
 import lockupDark from '@/assets/logo-horizontal-text-dark.svg'
-import { AlertCircle, ClipboardList, CornerUpLeft, FileSpreadsheet, Plus, UserPlus } from 'lucide-react'
+import { AlertCircle, CornerUpLeft, Plus, UserPlus } from 'lucide-react'
+import addItemSvg from '@/assets/icons/add_item.svg?raw'
+import listSvg from '@/assets/icons/list.svg?raw'
+import sheetSvg from '@/assets/icons/sheet.svg?raw'
 import { relativeDateTime } from '../format'
 import { useAsync } from '../hooks'
 import { href } from '../router'
@@ -15,6 +18,16 @@ import { Badge } from '../components/ui/badge'
 import { Card, CardContent } from '../components/ui/card'
 import { Skeleton } from '../components/ui/skeleton'
 import { StatCard } from '../components/StatCard'
+
+/** Official Aramco-library icon (docs/BRAND_REVIEW.md) — stroke follows the text color. */
+function AramcoIcon({ svg, className }: { svg: string; className?: string }) {
+  return (
+    <span
+      className={`block [&>svg]:h-full [&>svg]:w-full ${className ?? ''}`}
+      dangerouslySetInnerHTML={{ __html: svg }}
+    />
+  )
+}
 
 /** Launchpad-style action card (requester home) — link, or in-place action via onClick. */
 function ActionCard({
@@ -242,13 +255,13 @@ export function HomePage() {
             <ActionCard
               to="/new"
               primary
-              icon={<Plus className="h-5 w-5" />}
+              icon={<AramcoIcon svg={addItemSvg} className="h-5 w-5" />}
               title={S.home.newRequestCta}
               body={S.home.newRequestCardBody}
             />
             <ActionCard
               to="/requests?scope=mine"
-              icon={<ClipboardList className="h-5 w-5" />}
+              icon={<AramcoIcon svg={listSvg} className="h-5 w-5" />}
               title={
                 <>
                   {S.home.cards.myRequests}{' '}
@@ -269,7 +282,7 @@ export function HomePage() {
                   downloadBlob(await makeUnifiedTemplate(), TEMPLATE_FILENAME)
                 })()
               }
-              icon={<FileSpreadsheet className="h-5 w-5" />}
+              icon={<AramcoIcon svg={sheetSvg} className="h-5 w-5" />}
               title={S.home.templatesCardTitle}
               body={S.home.templatesCardBody}
             />
