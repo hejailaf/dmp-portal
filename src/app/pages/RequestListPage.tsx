@@ -6,11 +6,11 @@ import {
   useReactTable,
   type SortingState,
 } from '@tanstack/react-table'
-import { Plus, X } from 'lucide-react'
+import { Download, Plus, X } from 'lucide-react'
 import { getProvider, type RequestScope } from '@/data'
 import { isOverdue } from '@/domain/sla'
 import { STATUSES, type Request, type User } from '@/domain/types'
-import { formatDate } from '@/lib/utils'
+import { downloadBlob, formatDate } from '@/lib/utils'
 import { useAsync, usePageTitle } from '../hooks'
 import { href, navigate, useRoute } from '../router'
 import { S } from '../strings'
@@ -72,6 +72,7 @@ export function RequestListPage() {
   const [sorting, setSorting] = useState<SortingState>([])
   const [claiming, setClaiming] = useState<string>()
   const [claimError, setClaimError] = useState<string>()
+  const [exporting, setExporting] = useState(false)
 
   usePageTitle(S.list.title[scope])
   useEffect(() => {
@@ -106,6 +107,23 @@ export function RequestListPage() {
   }, [requests.data, statusFilter, overdueOnly, search])
 
   const showClaim = scope === 'unassigned' && user.roles.includes('maintainer')
+
+  // exports exactly the filtered view; module + exceljs stay lazy chunks
+  const exportView = async () => {
+    setExporting(true)
+    setClaimError(undefined)
+    try {
+      const { makeRequestListExport } = await import('@/lib/excel-export')
+      downloadBlob(
+        await makeRequestListExport(filtered, S.list.title[scope]),
+        S.list.exportFilename(new Date().toISOString().slice(0, 10)),
+      )
+    } catch (e) {
+      setClaimError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setExporting(false)
+    }
+  }
 
   const claim = async (id: string) => {
     setClaiming(id)
@@ -311,6 +329,14 @@ export function RequestListPage() {
             {S.list.count(filtered.length, requests.data.length)}
           </span>
         )}
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={exporting || filtered.length === 0}
+          onClick={() => void exportView()}
+        >
+          <Download className="h-4 w-4" /> {exporting ? S.list.exporting : S.list.export}
+        </Button>
       </div>
 
       {claimError && <p className="text-sm text-destructive">{claimError}</p>}

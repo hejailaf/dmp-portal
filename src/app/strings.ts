@@ -99,6 +99,9 @@ export const S = {
         ? `${total} ${total === 1 ? 'request' : 'requests'}`
         : `${shown} of ${total} requests`,
     clearSearch: 'Clear search',
+    export: 'Export view',
+    exporting: 'Exporting…',
+    exportFilename: (date: string) => `PMDC requests ${date}.xlsx`,
     emptyMineTitle: 'No requests yet',
     emptyMineBody: 'Your submitted requests and drafts will appear here.',
   },

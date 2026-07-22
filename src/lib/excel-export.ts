@@ -96,3 +96,48 @@ export async function makeRequestExport(req: Request, lines: RequestLine[]): Pro
 
   return new Blob([await wb.xlsx.writeBuffer()], { type: XLSX_MIME })
 }
+
+/**
+ * List-page export: one sheet, one row per request, exactly what the
+ * filtered table shows plus the useful dates. Stored status names on
+ * purpose — this is a report, not a per-viewer UI surface.
+ */
+export async function makeRequestListExport(requests: Request[], title: string): Promise<Blob> {
+  const ExcelJS = await excel()
+  const wb = new ExcelJS.Workbook()
+  const ws = wb.addWorksheet(title.slice(0, 31) || 'Requests') // sheet names cap at 31 chars
+
+  const header = ws.addRow([
+    'Ref',
+    'Description',
+    'Status',
+    'Line items',
+    'Requester',
+    'Assignee',
+    'Submitted',
+    'Due date',
+    'Completed',
+  ])
+  header.font = { bold: true }
+
+  for (const r of requests) {
+    ws.addRow([
+      r.ref,
+      r.description,
+      r.status,
+      r.lineSummary,
+      r.requesterName,
+      r.assigneeName ?? '',
+      r.submittedAt ? formatDateTime(r.submittedAt) : '',
+      r.dueDate ? formatDate(r.dueDate) : '',
+      r.completedAt ? formatDateTime(r.completedAt) : '',
+    ])
+  }
+
+  const widths = [11, 40, 22, 36, 20, 20, 18, 12, 18]
+  widths.forEach((w, i) => {
+    ws.getColumn(i + 1).width = w
+  })
+
+  return new Blob([await wb.xlsx.writeBuffer()], { type: XLSX_MIME })
+}
