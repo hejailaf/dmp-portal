@@ -309,6 +309,19 @@ intake, tracking, assignment, SLA, audit, and Excel export only.
   pages to the app, with safety hatch); PPTX requester-guide screenshot
   refresh (old UI + old wording — redo after the new site is live).
 
+## Session handoff addendum 2 (2026-07-22, `experiments` branch)
+
+- **Aramco brand alignment** (docs/BRAND_REVIEW.md): reviewed
+  brand.aramco.com corporate guidelines; user selected palette variant
+  **V1 "Teal internal"** from 3 in-browser mockups — applied in
+  styles.css (Dark Blue #0033A0 interactive, Teal #26A8AB accents,
+  official gray ramp, Aramco status colors) + badge/dialog hex tweaks.
+  Segoe UI was already the sanctioned business font. User decisions: NO
+  Aramco logo in the app; lucide icons kept as accepted deviation
+  (official icon library downloaded at `C:\ClaudeProjects\Iconography`,
+  optional hybrid use open). Logo SVG recolor to Aramco hues = open
+  designer task. ON `experiments` ONLY — not merged, not deployed.
+
 ## Dev commands
 
 - `npm run dev` — app on MockProvider at http://localhost:5173 (role switcher

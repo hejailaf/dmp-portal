@@ -9,7 +9,7 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        neutral: 'bg-secondary text-[#607D8B] dark:text-[#8AA5B8]',
+        neutral: 'bg-secondary text-[#5F6369] dark:text-[#A0A099]',
         blue: 'bg-[var(--sky-tint)] text-primary',
         green: 'bg-[var(--teal-tint)] text-[var(--teal)]',
         amber: 'bg-[var(--warning-tint)] text-[var(--warning)]',
