@@ -9,6 +9,7 @@ import {
   type FieldDef,
   type ObjectTypeConfig,
 } from '@/domain/field-map'
+import { parseUsDate } from './utils'
 
 // Excel template generation + import for the AIW editor, both derived from
 // the field map so they can never drift from the grid or the validation.
@@ -32,6 +33,8 @@ export async function excel() {
 }
 
 const actionsOf = (cfg: ObjectTypeConfig): readonly LineAction[] => cfg.actions ?? LINE_ACTIONS
+
+const colLetter = (n: number) => String.fromCharCode(64 + n) // A, B, … (≤26 columns everywhere here)
 
 /** One object type's sheet, added to the shared workbook (unified template). */
 function addTemplateSheet(wb: Workbook, cfg: ObjectTypeConfig, lists: { col: number }) {
@@ -89,8 +92,8 @@ function addTemplateSheet(wb: Workbook, cfg: ObjectTypeConfig, lists: { col: num
       const listsSheet = wb.getWorksheet('Lists') ?? wb.addWorksheet('Lists', { state: 'veryHidden' })
       lists.col += 1
       values.forEach((v, i) => (listsSheet.getCell(i + 1, lists.col).value = v))
-      const colLetter = String.fromCharCode(64 + lists.col) // A, B, … (few lists, ≤26)
-      formula = `Lists!$${colLetter}$1:$${colLetter}$${values.length}`
+      const col = colLetter(lists.col)
+      formula = `Lists!$${col}$1:$${col}$${values.length}`
     }
     return {
       type: 'list' as const,
@@ -128,7 +131,7 @@ function addTemplateSheet(wb: Workbook, cfg: ObjectTypeConfig, lists: { col: num
 
   // Action itself lights up amber when a row holds data but no action —
   // mirroring the importer, which skips exactly those rows
-  const lastColLetter = String.fromCharCode(64 + columns.length) // ≤26 template columns
+  const lastColLetter = colLetter(columns.length)
   ws.addConditionalFormatting({
     ref: `A3:A${lastRow}`,
     rules: [
@@ -145,15 +148,15 @@ function addTemplateSheet(wb: Workbook, cfg: ObjectTypeConfig, lists: { col: num
   // row's Action is chosen in Excel, its mandatory-and-empty cells tint amber
   fields.forEach((f, i) => {
     if (!f.requiredFor?.length) return
-    const colLetter = String.fromCharCode(64 + i + 2) // ≤26 template columns
+    const col = colLetter(i + 2)
     const actionMatch = f.requiredFor.map((a) => `$A3="${cfg.actionLabels[a]}"`).join(',')
     ws.addConditionalFormatting({
-      ref: `${colLetter}3:${colLetter}${lastRow}`,
+      ref: `${col}3:${col}${lastRow}`,
       rules: [
         {
           type: 'expression',
           priority: 1,
-          formulae: [`AND(OR(${actionMatch}),ISBLANK(${colLetter}3))`],
+          formulae: [`AND(OR(${actionMatch}),ISBLANK(${col}3))`],
           style: { fill: { type: 'pattern', pattern: 'solid', bgColor: { argb: AMBER } } },
         },
       ],
@@ -188,13 +191,13 @@ export async function makeUnifiedTemplate(active?: ObjectType): Promise<Blob> {
 /** Filename for the unified template download (home page + editor). */
 export const TEMPLATE_FILENAME = 'PMDC-template.xlsx'
 
-export interface ImportedLine {
+interface ImportedLine {
   objectType: ObjectType
   action: LineAction
   fieldData: Record<string, string>
 }
 
-export interface ImportResult {
+interface ImportResult {
   lines: ImportedLine[]
   /** row-level problems (unknown action, unrecognized sheet layout) */
   errors: string[]
@@ -270,10 +273,7 @@ function parseSheet(ws: Worksheet, cfg: ObjectTypeConfig): ImportResult {
     for (const [col, field] of fieldForColumn) {
       let text = values.get(col)
       // US-typed dates (MM/DD/YYYY) are converted to the stored ISO form
-      if (text && field.input === 'date') {
-        const us = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(text)
-        if (us) text = `${us[3]}-${us[1].padStart(2, '0')}-${us[2].padStart(2, '0')}`
-      }
+      if (text && field.input === 'date') text = parseUsDate(text)
       // silently drop values in cells that don't apply to this row's action
       if (text && appliesTo(field, action)) fieldData[field.key] = text
     }

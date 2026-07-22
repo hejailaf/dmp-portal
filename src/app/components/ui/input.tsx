@@ -21,7 +21,3 @@ export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSel
   ({ className, ...props }, ref) => <select ref={ref} className={cn(fieldClasses, 'pr-8', className)} {...props} />,
 )
 Select.displayName = 'Select'
-
-export function Label({ className, ...props }: React.LabelHTMLAttributes<HTMLLabelElement>) {
-  return <label className={cn('text-sm font-medium leading-none', className)} {...props} />
-}

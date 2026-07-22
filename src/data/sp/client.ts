@@ -134,12 +134,6 @@ export function spDelete(path: string): Promise<any> {
   return writeRequest(path, undefined, { 'X-HTTP-Method': 'DELETE', 'IF-MATCH': '*' })
 }
 
-/** Raw-body POST (attachments). */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function spPostRaw(path: string, body: ArrayBuffer): Promise<any> {
-  return writeRequest(path, body, {})
-}
-
 /** REST path for a list by title. */
 export function listPath(title: string): string {
   return `/_api/web/lists/getbytitle('${title}')`

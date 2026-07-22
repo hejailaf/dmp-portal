@@ -24,8 +24,8 @@ import { autoColumnSize, ClippedCell, DataGrid, usePersistedColumnSizing } from 
 
 // last-used scope/filters, restored when the list is opened without a query
 // (the detail page's back-link reads it too)
-export const LIST_STATE_KEY = 'dmp-list-state'
-export interface StoredListState {
+const LIST_STATE_KEY = 'dmp-list-state'
+interface StoredListState {
   scope?: RequestScope
   status?: string
   overdue?: boolean
@@ -38,7 +38,8 @@ export function readListState(): StoredListState {
   }
 }
 
-function scopesFor(user: User): RequestScope[] {
+/** Scopes the user may browse, best-first — [0] is their default list (the detail back-link uses it). */
+export function scopesFor(user: User): RequestScope[] {
   const scopes: RequestScope[] = []
   if (user.roles.includes('admin')) scopes.push('all')
   if (user.roles.includes('maintainer')) scopes.push('queue')

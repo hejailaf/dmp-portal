@@ -4,7 +4,7 @@
 import { isOverdue } from './sla'
 import type { Request } from './types'
 
-export interface DashboardKpis {
+interface DashboardKpis {
   total: number
   waiting: number
   inProcess: number
@@ -13,7 +13,7 @@ export interface DashboardKpis {
   unassigned: number
 }
 
-export interface MaintainerStats {
+interface MaintainerStats {
   id: string
   name: string
   /** Waiting + In process requests currently assigned to them. */

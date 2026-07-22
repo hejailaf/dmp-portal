@@ -21,7 +21,7 @@ export interface TransitionCtx {
   isAssignee?: boolean // current user is the assignee
 }
 
-export interface Transition {
+interface Transition {
   from: RequestStatus
   to: RequestStatus
   event: AuditEvent
@@ -36,7 +36,7 @@ const owningRequester = (c: TransitionCtx) =>
 const assignedMaintainer = (c: TransitionCtx) =>
   admin(c) || (c.roles.includes('maintainer') && !!c.isAssignee)
 
-export const TRANSITIONS: Transition[] = [
+const TRANSITIONS: Transition[] = [
   { from: 'Draft', to: 'Waiting to be started', event: 'Submitted', label: 'Submit', allowed: owningRequester },
   { from: 'Waiting to be started', to: 'In process', event: 'StatusChanged', label: 'Start work', allowed: assignedMaintainer },
   { from: 'In process', to: 'Completed', event: 'StatusChanged', label: 'Mark completed', allowed: assignedMaintainer },
@@ -47,9 +47,6 @@ export const TRANSITIONS: Transition[] = [
   { from: 'In process', to: 'Returned', event: 'Returned', label: 'Return to requester', allowed: assignedMaintainer },
   { from: 'Returned', to: 'Waiting to be started', event: 'Submitted', label: 'Resubmit', allowed: owningRequester },
 ]
-
-/** Statuses from which no further transition exists. Rejected is reopenable, so only Completed is terminal. */
-export const TERMINAL_STATUSES: readonly RequestStatus[] = ['Completed']
 
 export function findTransition(from: RequestStatus, to: RequestStatus): Transition | undefined {
   return TRANSITIONS.find((t) => t.from === from && t.to === to)

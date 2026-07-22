@@ -9,7 +9,8 @@ import { useAsync } from '../hooks'
 import { href } from '../router'
 import { S } from '../strings'
 import { useCurrentUser } from '../user-context'
-import { StatusBadge } from '../components/badges'
+import { DueSuffix, StatusBadge } from '../components/badges'
+import { downloadBlob } from '@/lib/utils'
 import { Badge } from '../components/ui/badge'
 import { Card, CardContent } from '../components/ui/card'
 import { Skeleton } from '../components/ui/skeleton'
@@ -75,18 +76,6 @@ function Callout({
       {icon}
       <span className="min-w-0">{text}</span>
     </a>
-  )
-}
-
-/** Due-date suffix colored by urgency (shared by the due-this-week rows). */
-function DueSuffix({ request }: { request: Request }) {
-  if (!request.dueDate) return null
-  const days = daysUntilDue(request.dueDate)
-  if (isOverdue(request)) return <span className="flex-none text-destructive">{S.sla.overdue(-days)}</span>
-  return (
-    <span className={`flex-none ${days <= 1 ? 'text-[var(--warning)]' : 'text-muted-foreground'}`}>
-      {days <= 0 ? S.sla.dueToday : S.sla.dueIn(days)}
-    </span>
   )
 }
 
@@ -188,6 +177,30 @@ export function HomePage() {
     .sort((a, b) => b.at.localeCompare(a.at))
     .slice(0, 4)
 
+  // dispatch alert shared by the maintainer + admin homes (maintainers CLAIM
+  // from the pool instead of assigning; admins assign). One banner, worst
+  // facts combined — the Overdue tile already carries the count.
+  const dispatchCallout = oldestUnassigned && unassignedDays >= 1 && (
+    <Callout
+      tone={isOverdue(oldestUnassigned) ? 'red' : 'amber'}
+      icon={
+        isOverdue(oldestUnassigned) ? (
+          <AlertCircle className="h-4 w-4 flex-none text-destructive" />
+        ) : (
+          <UserPlus className="h-4 w-4 flex-none text-[var(--warning)]" />
+        )
+      }
+      text={S.home.unassignedAging(
+        oldestUnassigned.ref,
+        unassignedDays,
+        isOverdue(oldestUnassigned) && oldestUnassigned.dueDate
+          ? -daysUntilDue(oldestUnassigned.dueDate)
+          : undefined,
+      )}
+      to={`/requests/${oldestUnassigned.id}`}
+    />
+  )
+
   return (
     <div className="space-y-6">
       {/* text-only brand lockup (the header shows the icon on this page);
@@ -253,13 +266,7 @@ export function HomePage() {
                 void (async () => {
                   // direct download — exceljs loads lazily on first use
                   const { makeUnifiedTemplate, TEMPLATE_FILENAME } = await import('@/lib/excel-lines')
-                  const blob = await makeUnifiedTemplate()
-                  const url = URL.createObjectURL(blob)
-                  const a = document.createElement('a')
-                  a.href = url
-                  a.download = TEMPLATE_FILENAME
-                  a.click()
-                  URL.revokeObjectURL(url)
+                  downloadBlob(await makeUnifiedTemplate(), TEMPLATE_FILENAME)
                 })()
               }
               icon={<FileSpreadsheet className="h-5 w-5" />}
@@ -331,28 +338,7 @@ export function HomePage() {
       {/* maintainer: queue bar + due-this-week + tiles */}
       {topRole === 'maintainer' && (
         <div className="space-y-3">
-          {/* same dispatch alert as the admin home — maintainers CLAIM from
-              the pool instead of assigning */}
-          {oldestUnassigned && unassignedDays >= 1 && (
-            <Callout
-              tone={isOverdue(oldestUnassigned) ? 'red' : 'amber'}
-              icon={
-                isOverdue(oldestUnassigned) ? (
-                  <AlertCircle className="h-4 w-4 flex-none text-destructive" />
-                ) : (
-                  <UserPlus className="h-4 w-4 flex-none text-[var(--warning)]" />
-                )
-              }
-              text={S.home.unassignedAging(
-                oldestUnassigned.ref,
-                unassignedDays,
-                isOverdue(oldestUnassigned) && oldestUnassigned.dueDate
-                  ? -daysUntilDue(oldestUnassigned.dueDate)
-                  : undefined,
-              )}
-              to={`/requests/${oldestUnassigned.id}`}
-            />
-          )}
+          {dispatchCallout}
           {queueOpen.length > 0 && (
             <Card>
               <CardContent className="p-4">
@@ -418,28 +404,7 @@ export function HomePage() {
       {/* admin: command center — dispatch callout, tiles, team load, activity */}
       {topRole === 'admin' && (
         <div className="space-y-3">
-          {/* one banner per request, worst facts combined, above the tiles —
-              the Overdue tile already carries the count, so no count-only callout */}
-          {oldestUnassigned && unassignedDays >= 1 && (
-            <Callout
-              tone={isOverdue(oldestUnassigned) ? 'red' : 'amber'}
-              icon={
-                isOverdue(oldestUnassigned) ? (
-                  <AlertCircle className="h-4 w-4 flex-none text-destructive" />
-                ) : (
-                  <UserPlus className="h-4 w-4 flex-none text-[var(--warning)]" />
-                )
-              }
-              text={S.home.unassignedAging(
-                oldestUnassigned.ref,
-                unassignedDays,
-                isOverdue(oldestUnassigned) && oldestUnassigned.dueDate
-                  ? -daysUntilDue(oldestUnassigned.dueDate)
-                  : undefined,
-              )}
-              to={`/requests/${oldestUnassigned.id}`}
-            />
-          )}
+          {dispatchCallout}
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             <StatCard label={S.home.cards.all} value={all.length} to="/requests?scope=all" />
             <StatCard label={S.home.cards.overdue} value={allOverdue.length} to="/requests?scope=all&overdue=1" tone="red" />

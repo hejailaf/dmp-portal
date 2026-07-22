@@ -20,7 +20,7 @@ import type {
   RequestDetail,
   RequestScope,
 } from '../provider'
-import { listPath, spDelete, spGet, spMerge, spPost, spPostRaw } from './client'
+import { listPath, spDelete, spGet, spMerge, spPost } from './client'
 import { PMDC_GROUPS, LIST_SPECS } from './schema'
 import {
   filterByScope,
@@ -342,7 +342,7 @@ export class SharePointProvider implements DataProvider {
     const attError = validateAttachment(file.name, file.size, (await this.listAttachments(id)).length)
     if (attError) throw new Error(attError)
     const safe = file.name.replace(/[\\/:*?"<>|#%&~]/g, '-')
-    const created = await spPostRaw(
+    const created = await spPost(
       `${item(REQUESTS, id)}/AttachmentFiles/add(FileName='${encodeURIComponent(safe.replace(/'/g, "''"))}')`,
       await file.arrayBuffer(),
     )
@@ -448,10 +448,6 @@ export async function checkDmpGroups(): Promise<{ name: string; exists: boolean 
 }
 
 /**
- * Provision-screen extra: spike-style write cycle on the scratch list —
- * including DELETE, the one verb Phase 0 did not exercise.
- */
-/**
  * Point the site's welcome page at the app, so opening the bare site URL
  * (…/pmdc) serves index.aspx directly. Path is web-root-relative.
  * VERIFY-ON-SITE: rootfolder MERGE is standard REST but untested on this
@@ -485,6 +481,10 @@ export async function setListsHidden(hidden: boolean): Promise<string[]> {
   return log
 }
 
+/**
+ * Provision-screen extra: spike-style write cycle on the scratch list —
+ * including DELETE, the one verb Phase 0 did not exercise.
+ */
 export async function runConnectionSelfTest(): Promise<string[]> {
   const log: string[] = []
   try {
@@ -500,7 +500,7 @@ export async function runConnectionSelfTest(): Promise<string[]> {
   log.push(`Created item ${created.Id}`)
   await spMerge(item('PMDC_Spike', created.Id), { Title: 'self-test (updated)' })
   log.push('MERGE update OK')
-  await spPostRaw(
+  await spPost(
     `${item('PMDC_Spike', created.Id)}/AttachmentFiles/add(FileName='selftest.txt')`,
     new TextEncoder().encode('PMDC connection self-test').buffer as ArrayBuffer,
   )

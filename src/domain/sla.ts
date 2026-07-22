@@ -2,7 +2,7 @@ import type { LineAction, Request, RequestLine } from './types'
 
 // SLA config — calendar days per action type (spec §4.4). configurable:
 // tune these values to match site SLAs; nothing else needs to change.
-export const SLA_DAYS: Record<LineAction, number> = {
+const SLA_DAYS: Record<LineAction, number> = {
   ADD: 5,
   CHANGE: 3,
   DELETE: 2,

@@ -95,10 +95,6 @@ export function fieldsFor(objectType: ObjectType, action: LineAction): FieldDef[
   return FIELD_MAP[objectType].fields.filter((f) => appliesTo(f, action))
 }
 
-export function actionLabel(objectType: ObjectType, action: LineAction): string {
-  return FIELD_MAP[objectType].actionLabels[action]
-}
-
 /** Denormalized one-line summary for list views, e.g. "Equipment: 2 Add, 1 Change · PM: 1 Add". */
 export function summarizeLines(lines: Pick<RequestLine, 'objectType' | 'action'>[]): string {
   const parts: string[] = []

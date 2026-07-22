@@ -26,7 +26,7 @@ import {
 } from '@/domain/schemas'
 import { makeUnifiedTemplate, parseUnifiedTemplate, TEMPLATE_FILENAME } from '@/lib/excel-lines'
 import { LINE_ACTIONS, type LineAction, type ObjectType, type RequestLine } from '@/domain/types'
-import { cn, formatDateValue } from '@/lib/utils'
+import { cn, downloadBlob, formatDateValue, parseUsDate } from '@/lib/utils'
 import { useAsync, usePageTitle } from '../hooks'
 import { navigate, setNavGuard } from '../router'
 import { S } from '../strings'
@@ -148,9 +148,7 @@ function FieldCell(info: EditorCell) {
     // Storage stays ISO; only the visible text is MM/DD/YYYY.
     const storeDate = (raw: string) => {
       const cleaned = raw.replace(/[^\d/]/g, '')
-      const us = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(cleaned)
-      const stored = us ? `${us[3]}-${us[1].padStart(2, '0')}-${us[2].padStart(2, '0')}` : cleaned
-      onChange(line.key, { fieldData: { ...line.fieldData, [field.key]: stored } })
+      onChange(line.key, { fieldData: { ...line.fieldData, [field.key]: parseUsDate(cleaned) } })
     }
     return (
       <div className="relative h-8">
@@ -521,13 +519,7 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
 
   const downloadTemplate = async () => {
     // the unified workbook opens on the sheet matching the open tab
-    const blob = await makeUnifiedTemplate(tab)
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = TEMPLATE_FILENAME
-    a.click()
-    URL.revokeObjectURL(url)
+    downloadBlob(await makeUnifiedTemplate(tab), TEMPLATE_FILENAME)
   }
 
   const importFile = async (file: File) => {

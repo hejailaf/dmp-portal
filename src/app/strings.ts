@@ -3,7 +3,6 @@
 
 export const S = {
   appName: 'PM DataCare',
-  appTagline: 'Caring for your SAP PM master data',
 
   nav: {
     home: 'Home',
@@ -19,11 +18,8 @@ export const S = {
     // only the HIGHEST role is shown (Admin > Maintainer > Requester)
     roleLabel: 'Your role',
     newRequestCta: 'Create a new request',
-    open: 'Open',
     cards: {
       myRequests: 'My requests',
-      myDrafts: 'Drafts',
-      myOpen: 'Open',
       myQueue: 'Assigned to me',
       unassignedPool: 'Unassigned pool',
       overdue: 'Overdue',
@@ -134,7 +130,6 @@ export const S = {
     overdue: (days: number) => `Overdue by ${days} ${days === 1 ? 'day' : 'days'}`,
     dueIn: (days: number) => `Due in ${days} ${days === 1 ? 'day' : 'days'}`,
     dueToday: 'Due today',
-    noDue: 'No due date',
   },
 
   editor: {
@@ -178,11 +173,9 @@ export const S = {
     requester: 'Requester',
     assignee: 'Assignee',
     unassigned: 'Unassigned',
-    createdAt: 'Created',
     changedAt: 'Changed',
     submittedAt: 'Submitted',
     dueDate: 'Due date',
-    slaDays: 'SLA days',
     rejectReason: 'Reject reason',
     linesTitle: 'Line items',
     noLines: 'No line items yet.',
@@ -218,7 +211,6 @@ export const S = {
     returnConfirm: 'Return to requester',
     returnReason: 'Return reason',
     editRequest: 'Edit request',
-    submitBlocked: 'This draft has validation errors — open "Edit draft" to fix them.',
     notFound: 'Request not found.',
     loading: 'Loading request…',
   },

@@ -25,17 +25,16 @@ import {
   isEmptyLine,
   validateAttachment,
 } from '@/domain/schemas'
-import { daysUntilDue, isOverdue } from '@/domain/sla'
 import { availableTransitions, type TransitionCtx } from '@/domain/status'
 import type { Attachment, AuditEvent, Request, RequestLine } from '@/domain/types'
-import { formatDate, formatDateValue } from '@/lib/utils'
+import { downloadBlob, formatDate, formatDateValue } from '@/lib/utils'
 import { relativeDateTime } from '../format'
 import { useAsync, usePageTitle } from '../hooks'
 import { href } from '../router'
 import { S } from '../strings'
 import { useCurrentUser } from '../user-context'
-import { readListState } from './RequestListPage'
-import { StatusStepper } from '../components/badges'
+import { readListState, scopesFor } from './RequestListPage'
+import { DueSuffix, StatusStepper } from '../components/badges'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Dialog, DialogContent, DialogTitle } from '../components/ui/dialog'
@@ -370,7 +369,7 @@ export function RequestDetailPage({ id }: { id: string }) {
 
   usePageTitle(detail.data?.request.ref)
   // back to the list this request was opened from (last-used list state)
-  const backScope = readListState().scope ?? (user.roles.includes('admin') ? 'all' : user.roles.includes('maintainer') ? 'queue' : 'mine')
+  const backScope = readListState().scope ?? scopesFor(user)[0]
 
   if (detail.loading)
     return (
@@ -428,13 +427,7 @@ export function RequestDetailPage({ id }: { id: string }) {
     setExporting(true)
     setBanner(undefined)
     try {
-      const blob = await makeRequestExport(req, visibleLines)
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `${req.ref}.xlsx`
-      a.click()
-      URL.revokeObjectURL(url)
+      downloadBlob(await makeRequestExport(req, visibleLines), `${req.ref}.xlsx`)
     } catch (e) {
       setBanner(e instanceof Error ? e.message : String(e))
     } finally {
@@ -450,7 +443,6 @@ export function RequestDetailPage({ id }: { id: string }) {
   // one primary CTA per state; Export + the destructive Reject sit one
   // deliberate click away in the More menu (misclick-proofing Reject)
   const rejectTransition = transitions.find((t) => t.to === 'Rejected')
-  const dueDays = req.dueDate ? daysUntilDue(req.dueDate) : 0
   const dueActive = !!req.dueDate && req.status !== 'Completed' && req.status !== 'Rejected'
   const stripLink = 'text-primary hover:underline'
 
@@ -596,18 +588,10 @@ export function RequestDetailPage({ id }: { id: string }) {
             <StripItem label={S.detail.dueDate} strong>
               {formatDate(req.dueDate)}
               {dueActive && (
-                <span
-                  className={
-                    isOverdue(req)
-                      ? 'text-destructive'
-                      : dueDays <= 1
-                        ? 'text-[var(--warning)]'
-                        : 'text-muted-foreground'
-                  }
-                >
-                  {' '}
-                  · {isOverdue(req) ? S.sla.overdue(-dueDays) : dueDays <= 0 ? S.sla.dueToday : S.sla.dueIn(dueDays)}
-                </span>
+                <>
+                  {' · '}
+                  <DueSuffix request={req} />
+                </>
               )}
             </StripItem>
           </div>

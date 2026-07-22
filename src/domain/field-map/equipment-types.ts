@@ -1,7 +1,7 @@
 // GENERATED from docs/tech_object_types.xlsx by scripts/import-equipment-types.ts
 // — do not hand-edit; update the spreadsheet and re-run the script.
 
-export interface EquipmentTypeRow {
+interface EquipmentTypeRow {
   equipmentType: string
   equipmentCategory: string
   technicalObjectType: string

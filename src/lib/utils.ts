@@ -36,3 +36,19 @@ export function formatDateValue(value: string): string {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
   return m ? `${m[2]}/${m[3]}/${m[1]}` : value
 }
+
+/** Inverse of formatDateValue: MM/DD/YYYY → YYYY-MM-DD. Non-matching strings pass through unchanged. */
+export function parseUsDate(value: string): string {
+  const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(value)
+  return m ? `${m[3]}-${m[1].padStart(2, '0')}-${m[2].padStart(2, '0')}` : value
+}
+
+/** Browser file download for a generated blob (Excel export/template). */
+export function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}

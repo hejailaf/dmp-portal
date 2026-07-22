@@ -97,6 +97,18 @@ export function StatusStepper({ status, assigneeId }: { status: RequestStatus; a
   )
 }
 
+/** Due-date suffix colored by urgency (due-this-week rows, detail meta strip). */
+export function DueSuffix({ request }: { request: Request }) {
+  if (!request.dueDate) return null
+  const days = daysUntilDue(request.dueDate)
+  if (isOverdue(request)) return <span className="flex-none text-destructive">{S.sla.overdue(-days)}</span>
+  return (
+    <span className={`flex-none ${days <= 1 ? 'text-[var(--warning)]' : 'text-muted-foreground'}`}>
+      {days <= 0 ? S.sla.dueToday : S.sla.dueIn(days)}
+    </span>
+  )
+}
+
 /** SLA countdown / overdue badge — derived at render time, never stored. */
 export function SlaBadge({ request }: { request: Pick<Request, 'status' | 'dueDate'> }) {
   if (!request.dueDate) return null

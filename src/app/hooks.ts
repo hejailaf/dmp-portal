@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { S } from './strings'
 
-export interface AsyncState<T> {
+interface AsyncState<T> {
   data?: T
   error?: string
   loading: boolean

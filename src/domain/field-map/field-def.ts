@@ -35,8 +35,6 @@ export interface FieldDef {
    * grids, and included in the Phase-3 Excel export.
    */
   derived?: boolean
-  /** true = the mandatory set may be tuned later without code changes */
-  configurable?: boolean
 }
 
 export interface ObjectTypeConfig {

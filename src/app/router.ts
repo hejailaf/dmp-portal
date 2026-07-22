@@ -4,7 +4,7 @@ import { useSyncExternalStore } from 'react'
 // page from a document library, so path-based routing can never work there —
 // and a router dependency isn't justified for five routes.
 
-export interface Route {
+interface Route {
   /** hash path without query, e.g. "/requests/r-1" */
   path: string
   segments: string[]

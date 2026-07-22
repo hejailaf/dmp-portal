@@ -9,7 +9,7 @@ import { AUDIT_EVENTS, LINE_ACTIONS, OBJECT_TYPES, STATUSES } from '@/domain/typ
 // claims login + display name, not Person fields — person-field writes were
 // not spike-verified and the custom UI never uses people-column features.
 
-export interface FieldSpec {
+interface FieldSpec {
   internalName: string
   schemaXml: string
 }

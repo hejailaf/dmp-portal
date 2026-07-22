@@ -38,7 +38,7 @@ function fieldSchema(fd: FieldDef, action: LineAction): z.ZodTypeAny {
     .refine((v) => !v || !fd.maxLength || v.length <= fd.maxLength, lengthMessage)
 }
 
-export function lineSchemaFor(objectType: ObjectType, action: LineAction) {
+function lineSchemaFor(objectType: ObjectType, action: LineAction) {
   const fields = fieldsFor(objectType, action)
   const shape: Record<string, z.ZodTypeAny> = {}
   for (const fd of fields) shape[fd.key] = fieldSchema(fd, action)
@@ -93,14 +93,14 @@ export function isEmptyLine(line: Pick<RequestLine, 'fieldData'>): boolean {
   return Object.values(line.fieldData).every((v) => !v?.trim())
 }
 
-export interface SubmitValidation {
+interface SubmitValidation {
   ok: boolean
   requestErrors: string[]
   /** keyed by line id */
   lineResults: Record<string, LineValidation>
 }
 
-export const DESCRIPTION_REQUIRED = 'Write a description of your request before submitting.'
+const DESCRIPTION_REQUIRED = 'Write a description of your request before submitting.'
 export const DESCRIPTION_MAX_LENGTH = 60 // single-line title (user decision 2026-07-19)
 
 export const COMMENT_MAX_LENGTH = 1000
@@ -110,7 +110,7 @@ export const COMMENT_MAX_LENGTH = 1000
 // upload limit and blocked-extension list still apply beneath these.
 export const ATTACHMENT_MAX_SIZE = 100 * 1024 * 1024
 export const ATTACHMENT_MAX_COUNT = 6
-export const ATTACHMENT_ALLOWED_EXTENSIONS = [
+const ATTACHMENT_ALLOWED_EXTENSIONS = [
   'pdf',
   'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp',
   'msg', 'eml',
