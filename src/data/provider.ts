@@ -48,8 +48,6 @@ export interface DataProvider {
   rejectRequest(id: string, reason: string): Promise<Request>
   /** Assigned maintainer/admin sends the request back for changes; the SLA clock pauses until resubmit. */
   returnRequest(id: string, reason: string): Promise<Request>
-  /** Assignee/admin ticks a line as keyed into SAP (In process only; no audit — user decision 2026-07-22). */
-  setLineKeyed(requestId: string, lineId: string, keyed: boolean): Promise<void>
   addComment(id: string, body: string): Promise<Comment>
   listComments(id: string): Promise<Comment[]>
   addAttachment(id: string, file: File): Promise<Attachment>

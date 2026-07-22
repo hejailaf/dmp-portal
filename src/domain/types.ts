@@ -64,13 +64,6 @@ export interface RequestLine {
   objectType: ObjectType
   action: LineAction
   order: number
-  /**
-   * Stamped when the assignee ticks the line as keyed into SAP (In process
-   * only; no audit — user decision 2026-07-22). First-class field, NOT part
-   * of fieldData (normalization would strip it). Reset whenever lines are
-   * rewritten (draft edit, Returned resubmit) — content changed, re-verify.
-   */
-  keyedAt?: string
   // SAP field values keyed by FieldDef.key — stored as a JSON blob (never as
   // list columns) so the field map stays config-driven. Validated by Zod.
   fieldData: Record<string, string>

@@ -76,7 +76,6 @@ export const LIST_SPECS: ListSpec[] = [
       choice('LineAction', LINE_ACTIONS),
       number('LineOrder'),
       note('FieldData'),
-      dateTime('KeyedAt'), // keying progress (2026-07-22) — provision re-run adds it
     ],
   },
   {

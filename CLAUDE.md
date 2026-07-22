@@ -285,8 +285,7 @@ tracking, assignment, SLA, audit, Excel export only.
   hero, teal grid header bands (table.tsx + DataGrid filler th
   TOGETHER). Detail line items = editor-style tab strip, collapsible
   (click active tab / chevron). Big-data seeds DCR "Area 7" draft (46
-  lines) + "Warehouse 12" In-process (40 lines, 15 pre-keyed,
-  12 comments).
+  lines) + "Warehouse 12" In-process (40 lines, 12 comments).
 
 ## Six pre-pilot features (2026-07-23, `experiments`)
 
@@ -295,13 +294,9 @@ tracking, assignment, SLA, audit, Excel export only.
   both providers, zero provider changes. Choice value ships in schema;
   provisioning never edits existing choice columns — provision the new
   subsite with a 2026-07-22+ build (DEPLOY_SP §5 note).
-- **Per-line keying** (user decision: checkbox only, no counts, no
-  audit): RequestLine.keyedAt (first-class, NOT fieldData);
-  provider.setLineKeyed guarded In process + assignee/admin; SP KeyedAt
-  dateTime column (ReturnedAt 3-place precedent) + first single-line
-  spMerge path. writeLines full-replace resets flags on rewrite (draft
-  edit / Returned resubmit) — intentional. Detail grid: pinned checkbox
-  column, optimistic ticks (reload would replay reveal).
+- **Per-line keying**: built 2026-07-23, REMOVED same day (user
+  decision: not necessary). No KeyedAt column anywhere; if it ever
+  returns, follow the ReturnedAt 3-place SP precedent.
 - **Duplicate as draft** (More menu, requester/admin): visibleLines →
   createRequest — normalization/ref/audit free; attachments NOT copied
   (no copy API).

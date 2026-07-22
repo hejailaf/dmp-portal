@@ -47,20 +47,7 @@ import { autoColumnSize, ClippedCell, DataGrid, usePersistedColumnSizing } from 
 
 const lineColumnHelper = createColumnHelper<RequestLine>()
 
-function DetailLineGrid({
-  config,
-  lines,
-  canKey,
-  isKeyed,
-  onToggleKeyed,
-}: {
-  config: ObjectTypeConfig
-  lines: RequestLine[]
-  /** assignee/admin while In process — shows the keying checkbox column */
-  canKey?: boolean
-  isKeyed?: (lineId: string) => boolean
-  onToggleKeyed?: (lineId: string, keyed: boolean) => void
-}) {
+function DetailLineGrid({ config, lines }: { config: ObjectTypeConfig; lines: RequestLine[] }) {
   // auto-fit from the (static) line values — header width at minimum, capped
   const autoSizes: Record<string, number> = {
     action: autoColumnSize(S.editor.action, lines.map((l) => config.actionLabels[l.action])),
@@ -73,26 +60,6 @@ function DetailLineGrid({
   }
 
   const columns = [
-    ...(canKey
-      ? [
-          lineColumnHelper.display({
-            id: 'keyed',
-            header: S.detail.lineKeyed,
-            size: 56,
-            minSize: 56,
-            enableResizing: false,
-            cell: (info) => (
-              <input
-                type="checkbox"
-                aria-label={S.detail.lineKeyed}
-                className="mx-auto block h-4 w-4 accent-primary"
-                checked={isKeyed?.(info.row.original.id) ?? false}
-                onChange={(e) => onToggleKeyed?.(info.row.original.id, e.target.checked)}
-              />
-            ),
-          }),
-        ]
-      : []),
     lineColumnHelper.display({
       id: 'no',
       header: S.editor.lineNo,
@@ -145,8 +112,8 @@ function DetailLineGrid({
     state: { columnSizing: sizing.columnSizing, columnVisibility },
     onColumnSizingChange: sizing.onColumnSizingChange,
   })
-  // keyed-checkbox, #, Action and (where present) Description stay pinned
-  return <DataGrid table={table} stickyIds={['keyed', 'no', 'action', 'description']} />
+  // #, Action and (where present) Description stay pinned while SAP fields scroll
+  return <DataGrid table={table} stickyIds={['no', 'action', 'description']} />
 }
 
 /** Overflow menu for secondary/destructive header actions — hand-rolled, no dependency. */
@@ -391,8 +358,6 @@ export function RequestDetailPage({ id }: { id: string }) {
   // Line items tab strip: default = first present type; collapsed = strip only
   const [linesTab, setLinesTab] = useState<ObjectType>()
   const [linesOpen, setLinesOpen] = useState(true)
-  // optimistic keying ticks — no reload per tick (it would replay the reveal)
-  const [keyedOverride, setKeyedOverride] = useState<Record<string, boolean>>({})
 
   const run = async (fn: () => Promise<unknown>) => {
     setBusy(true)
@@ -476,17 +441,6 @@ export function RequestDetailPage({ id }: { id: string }) {
   const canClaim =
     user.roles.includes('maintainer') && !req.assigneeId && req.status === 'Waiting to be started'
   const canAssign = isAdmin && (req.status === 'Waiting to be started' || req.status === 'In process')
-  // keying checkboxes: assignee/admin while the request is being keyed
-  const canKey = req.status === 'In process' && (ctx.isAssignee || isAdmin)
-  const isKeyed = (lineId: string) =>
-    keyedOverride[lineId] ?? !!lines.find((l) => l.id === lineId)?.keyedAt
-  const toggleKeyed = (lineId: string, keyed: boolean) => {
-    setKeyedOverride((o) => ({ ...o, [lineId]: keyed }))
-    provider.setLineKeyed(req.id, lineId, keyed).catch((e) => {
-      setKeyedOverride((o) => ({ ...o, [lineId]: !keyed })) // revert on failure
-      setBanner(e instanceof Error ? e.message : String(e))
-    })
-  }
 
   const doTransition = (to: Request['status']) => {
     if (to === 'Rejected' || to === 'Returned') {
@@ -784,13 +738,7 @@ export function RequestDetailPage({ id }: { id: string }) {
               {linesOpen &&
                 groups.map(({ cfg, lines: groupLines }) => (
                   <TabsContent key={cfg.objectType} value={cfg.objectType} className="px-4 pb-4">
-                    <DetailLineGrid
-                      config={cfg}
-                      lines={groupLines}
-                      canKey={canKey}
-                      isKeyed={isKeyed}
-                      onToggleKeyed={toggleKeyed}
-                    />
+                    <DetailLineGrid config={cfg} lines={groupLines} />
                   </TabsContent>
                 ))}
             </Tabs>

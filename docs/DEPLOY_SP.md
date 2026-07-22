@@ -102,7 +102,7 @@ security group into PMDC Requesters.
 
 **5. Lists** — open `index.aspx` → **Site setup** → **Verify & provision
 lists** (all green — this creates all four lists with every current
-column, CompletedAt/Description/LastNotified*/KeyedAt included, and the
+column, CompletedAt/Description/LastNotified* included, and the
 `Withdrawn` status choice, so no re-run needed later) → **Run connection
 self-test** (ends "DELETE OK"). Provision with a build from 2026-07-22
 or later: earlier builds create the RequestStatus choice WITHOUT

@@ -357,13 +357,6 @@ export function buildSeed(): MockDb {
     description: 'Warehouse 12 spare motor fleet registration',
     lines: Array.from({ length: 40 }, (_, i) => motorLine(i)),
   })
-  // Mona is mid-keying: first 15 of the 40 motors already ticked
-  db.lines
-    .filter((l) => l.requestId === bigOpen.id)
-    .slice(0, 15)
-    .forEach((l, i) => {
-      l.keyedAt = daysAgo(1 - i * 0.05)
-    })
   const chat = [malik, mona, rana, aya]
   for (let i = 0; i < 12; i++) {
     const author = chat[i % chat.length]
