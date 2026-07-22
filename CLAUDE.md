@@ -225,107 +225,56 @@ tracking, assignment, SLA, audit, Excel export only.
   subsite"): fresh provision, workflow per recipe, smoke test, then
   pilot.
 
-## Session handoff (2026-07-18) — read before continuing
+## Deployment
 
-- **Deployment pipeline**: push to GitHub `hejailaf/dmp-portal` (public;
-  dist-sp/ committed on purpose — it's the payload). At work user opens
+- Pipeline: push to GitHub `hejailaf/dmp-portal` (public; dist-sp/
+  committed on purpose — it's the payload). At work user opens
   `stackblitz.com/github/hejailaf/dmp-portal` (anonymous; GitHub blocked
   there), downloads project zip, uploads `dist-sp/` files into app
   library on SharePoint subsite (old: `DMPApp` under
   `/personal/<user>/pmdc`; new: `PMDCApp` under team-site subsite once
   created). Typical update = replace `index.aspx` + `assets/index.js` +
-  `assets/index.css`. ALWAYS `npm run package:sp` + commit + push after
+  `assets/index.css` (+ `assets/logo-icon.png` favicon if not already
+  uploaded). ALWAYS `npm run package:sp` + commit + push after
   user-visible changes.
-- **On-site state**: Phase 2 verified (provision green, self-test incl.
-  DELETE green, roles map correctly). §4 permissions applied per
-  LIST_SETUP.md. VERIFIED ON-SITE 2026-07-19: requester colleagues open
-  app as non-owners with correct roles (after group "view membership:
-  Everyone" — the no-role fix), AND 1,000-member AD security group flow
-  works "flawlessly" (permission-probe requester role, LIST_SETUP.md
-  §6). All on OLD (pre-rename) site; still to do on-site: new-subsite
-  move (DEPLOY_SP.md) with fresh PMDC provision, then one full vertical
-  slice (submit → assign → complete) with real data.
-- **Brand restyle applied** (2026-07-18, from
-  `design_handoff_pm_datacare_restyle/README.md` §1–5): PM DataCare
-  tokens in styles.css (light + dark, plus plain hex brand vars for
-  badges/cells), badge dots, 64px header with logo PNGs (`src/assets/`,
-  swap on `.dark`), underline nav, DCR-YYNNNN refs, card/dialog/input
-  polish, favicon (inline SVG data URI in index.html — regenerate base64
-  from src/assets/logo-icon.svg if icon changes; no favicon file).
-  Header logos + home lockup = SVGs inlined as data URIs into index.js
-  (`assetsInlineLimit: 65536` in vite.config.ts). All pages (incl. home)
-  show full logo-header pair in header; home banner = TEXT-ONLY
-  horizontal lockup (user decision after trying icon-only home header).
-  Derived assets (scripted edits of designer files, src/assets/): dark
-  variants via fill map navy→#E6F2FA, blue→#5B9BE8, teal→#2BC0AE,
-  slate→#84A0B5; text-only lockups DESIGNER-SUPPLIED (bundle assets,
-  viewBox "0 0 585 160" with padding — home banner uses h-20 so rendered
-  wordmark matches size approved at h-16 with old tight crop; designer
-  dark tagline #8FA8C4). Artwork revs applied 2026-07-18 (emblem) +
-  2026-07-19 (wordmark, official text-only files) — deployment contains
-  ZERO image files — no logo files in uploads; header PNGs uploaded
-  earlier to SharePoint = harmless orphans. Bell + overdue pill deferred
-  to Phase 3. Deploy note: usual three files plus
-  `assets/logo-icon.png` (favicon) if not already uploaded.
-- **Recent UI additions** (all pushed): dark mode (system-following +
-  header toggle, `color-scheme` for native scrollbars/pickers), footer
-  credit (Abdullah F. Alharbi / abdullah.hejaili@aramco.com), editor
-  hint "Highlighted" chip styled like mandatory cells, per-role home
-  section headings + Requester tiles hidden for staff.
-- **Pending decisions**: (1) ~~site rename~~ DECIDED 2026-07-18: user
-  chose **PM DataCare** (applied). (2) Migration off personal site
-  collection to team site — recipe ready (DEPLOY_SP.md "Moving to a new
-  subsite"), execution pending on-site.
-
-## Session handoff addendum (2026-07-22)
-
-- **ux-experiments MERGED to master** (merge d8ed525, deployment build
-  202607220321 committed): request-detail redesign (stepper, actions in
-  header card, More menu, activity tabs, pinned lead columns),
-  warm-graphite dark mode, Description column in lists, 11-item polish
-  pass (sorting, sticky editor bar, router-level unsaved-changes
-  navGuard, skeletons, per-page titles, stored list filters, back-link,
-  Ctrl+Enter comments, overdue row edge, count + clear-search,
-  empty-state CTA), role-specific home pages (requester launchpad /
-  maintainer overview / admin command center; ONE section by highest
-  role Admin > Maintainer > Requester; full-bar link callouts), slim nav
-  (no Unassigned link; "+ Create a new request" CTA right of nav, hidden
-  on home + /new; maintainers never see it), Unassigned as checkbox next
-  to Overdue (mutually exclusive), unified multi-sheet Excel template,
-  Returned flow, perspective status wording. Branches
-  `ux-experiments`/`experiments` and tag `pilot-baseline` deleted
-  2026-07-22 (all fully merged); pilot-baseline commit = 4898df3 in
-  master history if rollback reference ever needed.
-- **Deploy**: build 202607220321 = PMDC build → NEW subsite only, full
-  dist-sp upload + fresh provision; old personal-site subsite keeps
+- Current dist-sp = PMDC build → NEW subsite only (fresh provision
+  creates all current columns); old personal-site subsite keeps
   pre-rename build until retired.
-- **Postponed by user**: script-redirect button (bounce classic list
-  pages to app, with safety hatch); PPTX requester-guide screenshot
-  refresh (old UI + old wording — redo after new site live).
 
-## Session handoff addendum 2 (2026-07-22, `experiments` branch)
+## Brand & assets
 
-- **Aramco brand alignment** (docs/BRAND_REVIEW.md): reviewed
-  brand.aramco.com corporate guidelines; user selected palette variant
-  **V1 "Teal internal"** from 3 in-browser mockups — applied in
-  styles.css (Dark Blue #0033A0 interactive, Teal #26A8AB accents,
-  official gray ramp, Aramco status colors) + badge/dialog hex tweaks.
-  Segoe UI already sanctioned business font. User decisions: NO Aramco
-  logo in app; lucide icons kept as accepted deviation (official icon
-  library at `C:\ClaudeProjects\Iconography`, optional hybrid use open).
-  Logo SVG recolor to Aramco hues = open designer task. MERGED to master
-  2026-07-22 with design-review fixes below — deployment to new subsite
-  still pending.
-- **Design-review fixes** (2026-07-22, in-browser review of all pages):
-  Claim button visible on Unassigned view (Assignee column dropped
-  there), editor Submit always clickable (validation banners explain
-  instead of dead disabled button; empty-line pruning commits only after
-  validation passes), aria-sort on sortable headers, Ref column pinned
-  in lists, maintainer home tiles "My overdue"/"My completed", dashboard
-  KPI "Unassigned pool", detail error/not-found states keep back link
-  (ignore stored list scope viewer can't browse), Assign primary while
-  unassigned, audit trail shows viewer status wording (assignment at
-  each entry inferred from earlier Assigned events).
+- Logos/lockups = SVGs inlined as data URIs into index.js
+  (`assetsInlineLimit: 65536` in vite.config.ts); favicon = inline SVG
+  data URI in index.html (regenerate base64 from
+  src/assets/logo-icon.svg if icon changes). Deployment contains ZERO
+  image files.
+- Home banner = TEXT-ONLY horizontal lockup at h-20 (user decision);
+  text-only lockups DESIGNER-SUPPLIED (viewBox "0 0 585 160" with
+  padding; designer dark tagline #8FA8C4). Dark variants of derived
+  assets via fill map navy→#E6F2FA, blue→#5B9BE8, teal→#2BC0AE,
+  slate→#84A0B5.
+- Aramco alignment (docs/BRAND_REVIEW.md, 2026-07-22): palette **V1
+  "Teal internal"** in styles.css (Dark Blue #0033A0 interactive, Teal
+  #26A8AB accents, official gray ramp, Aramco status colors). Segoe UI =
+  sanctioned business font. User decisions: NO Aramco logo in app;
+  lucide icons kept as accepted deviation (official icon library at
+  `C:\ClaudeProjects\Iconography`, optional hybrid use open). Logo SVG
+  recolor to Aramco hues = open designer task.
+
+## Current state (2026-07-22)
+
+- Everything merged to master: ux-experiments UI overhaul (merge
+  d8ed525), Aramco palette, design-review fixes (Claim visibility,
+  always-clickable Submit, aria-sort, pinned Ref column, KPI scoping,
+  detail polish — details in git history). Branches
+  `ux-experiments`/`experiments` + tag `pilot-baseline` deleted (all
+  fully merged); pilot-baseline commit = 4898df3 in master history if
+  rollback reference ever needed.
+- Next: on-site new-subsite move — see Phase 4 bullet (fresh provision,
+  workflow, smoke test, pilot).
+- Postponed by user: script-redirect button (bounce classic list pages
+  to app, with safety hatch); PPTX requester-guide screenshot refresh
+  (old UI + old wording — redo after new site live).
 
 ## Dev commands
 
