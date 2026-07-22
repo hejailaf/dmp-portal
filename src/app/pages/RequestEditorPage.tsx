@@ -777,13 +777,29 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
   // are GROUPED — "lines 1, 3, 7: Cost Center must be a whole number" —
   // instead of one near-identical bullet per row (mass imports made walls)
   const activeErrors = (() => {
+    // fold a line's missing-mandatory fields into ONE sentence first —
+    // "X is required" is the exact wording schemas.ts emits (kept in sync)
+    const messagesFor = (v: NonNullable<ErrorsByLine[string]>): string[] => {
+      const required: string[] = []
+      const other: string[] = []
+      for (const m of Object.values(v.fieldErrors)) {
+        const match = /^(.+) is required$/.exec(m)
+        if (match) required.push(match[1])
+        else other.push(m)
+      }
+      const merged =
+        required.length > 1
+          ? [S.editor.requiredMany(required)]
+          : required.map((f) => `${f} is required`)
+      return [...v.lineErrors, ...merged, ...other]
+    }
     const byMessage = new Map<string, number[]>()
     lines
       .filter((l) => l.objectType === tab)
       .forEach((l, i) => {
         const v = errors[l.key]
         if (!v || v.ok) return
-        for (const m of [...v.lineErrors, ...Object.values(v.fieldErrors)]) {
+        for (const m of messagesFor(v)) {
           byMessage.set(m, [...(byMessage.get(m) ?? []), i + 1])
         }
       })

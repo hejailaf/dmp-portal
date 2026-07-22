@@ -172,6 +172,9 @@ export const S = {
     lineErrorsTitle: (n: number) => (n === 1 ? 'Fix this before submitting:' : 'Fix these before submitting:'),
     lineError: (tab: string, n: number, msg: string) => `${tab} line ${n}: ${msg}`,
     lineErrorGrouped: (tab: string, nums: string, msg: string) => `${tab} lines ${nums}: ${msg}`,
+    // several missing mandatory fields on one line fold into one sentence
+    requiredMany: (fields: string[]) =>
+      `${fields.slice(0, -1).join(', ')} and ${fields[fields.length - 1]} are required`,
     noLinesTitle: (tab: string) => `No ${tab} lines yet`,
     noLinesBody: 'Add lines one by one, or fill the Excel template and import it.',
     requiredHintHighlighted: 'Highlighted',
