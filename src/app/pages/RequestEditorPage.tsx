@@ -773,6 +773,7 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
   // the toolbars now live outside the tab panels, so they act on the OPEN tab
   const activeCfg = FIELD_MAP[tab]
   const activeSelected = selectedKeysInTab(tab).size
+  const activeTabHasLines = lines.some((l) => l.objectType === tab)
   // line numbers stay per-tab, as they read in the grid. Identical messages
   // are GROUPED — "lines 1, 3, 7: Cost Center must be a whole number" —
   // instead of one near-identical bullet per row (mass imports made walls)
@@ -951,9 +952,14 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
               <Button variant="outline" size="sm" onClick={() => void downloadTemplate()}>
                 <Download className="h-4 w-4" /> {S.editor.downloadTemplate}
               </Button>
-              <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                <Upload className="h-4 w-4" /> {S.editor.importExcel}
-              </Button>
+              {/* every action shows exactly ONCE per state: while the open tab
+                  is empty its panel owns Import (and Add line — the toolbar
+                  below hides too); with rows present they live up here */}
+              {activeTabHasLines && (
+                <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                  <Upload className="h-4 w-4" /> {S.editor.importExcel}
+                </Button>
+              )}
             </div>
           </div>
 
@@ -998,28 +1004,32 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
                 </ul>
               </div>
             )}
-            {/* per-line actions for the OPEN tab, directly above the grid */}
-            <div className="flex flex-wrap gap-2 px-4 pt-3">
-              <Button variant="outline" size="sm" onClick={() => addLine(tab)}>
-                <Plus className="h-4 w-4" /> {S.editor.addLine}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={activeSelected === 0}
-                onClick={() => duplicateSelected(tab)}
-              >
-                <Copy className="h-4 w-4" /> {S.editor.duplicate(activeSelected)}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={activeSelected === 0}
-                onClick={() => deleteSelected(tab)}
-              >
-                <Trash2 className="h-4 w-4" /> {S.editor.deleteLines(activeSelected)}
-              </Button>
-            </div>
+            {/* per-line actions for the OPEN tab, directly above the grid —
+                hidden while the tab is empty (its panel carries the actions;
+                Duplicate/Delete would be dead weight with nothing to select) */}
+            {activeTabHasLines && (
+              <div className="flex flex-wrap gap-2 px-4 pt-3">
+                <Button variant="outline" size="sm" onClick={() => addLine(tab)}>
+                  <Plus className="h-4 w-4" /> {S.editor.addLine}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={activeSelected === 0}
+                  onClick={() => duplicateSelected(tab)}
+                >
+                  <Copy className="h-4 w-4" /> {S.editor.duplicate(activeSelected)}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={activeSelected === 0}
+                  onClick={() => deleteSelected(tab)}
+                >
+                  <Trash2 className="h-4 w-4" /> {S.editor.deleteLines(activeSelected)}
+                </Button>
+              </div>
+            )}
             {OBJECT_TYPE_CONFIGS.map((cfg) => (
               <TabsContent key={cfg.objectType} value={cfg.objectType} className="px-4 pb-4">
                 <EditorGrid
