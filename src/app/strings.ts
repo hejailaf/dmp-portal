@@ -169,6 +169,7 @@ export const S = {
     tabCount: (n: number) => `(${n})`,
     lineErrorsTitle: 'Fix these before submitting:',
     lineError: (tab: string, n: number, msg: string) => `${tab} line ${n}: ${msg}`,
+    lineErrorGrouped: (tab: string, nums: string, msg: string) => `${tab} lines ${nums}: ${msg}`,
     noLinesTitle: (tab: string) => `No ${tab} lines yet`,
     noLinesBody: 'Add lines one by one, or fill the Excel template and import it.',
     requiredHintHighlighted: 'Highlighted',

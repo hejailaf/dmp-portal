@@ -726,16 +726,26 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
   // the toolbars now live outside the tab panels, so they act on the OPEN tab
   const activeCfg = FIELD_MAP[tab]
   const activeSelected = selectedKeysInTab(tab).size
-  // line numbers stay per-tab, as they read in the grid
-  const activeErrors = lines
-    .filter((l) => l.objectType === tab)
-    .flatMap((l, i) => {
-      const v = errors[l.key]
-      if (!v || v.ok) return []
-      return [...v.lineErrors, ...Object.values(v.fieldErrors)].map((m) =>
-        S.editor.lineError(activeCfg.label, i + 1, m),
-      )
-    })
+  // line numbers stay per-tab, as they read in the grid. Identical messages
+  // are GROUPED — "lines 1, 3, 7: Cost Center must be a whole number" —
+  // instead of one near-identical bullet per row (mass imports made walls)
+  const activeErrors = (() => {
+    const byMessage = new Map<string, number[]>()
+    lines
+      .filter((l) => l.objectType === tab)
+      .forEach((l, i) => {
+        const v = errors[l.key]
+        if (!v || v.ok) return
+        for (const m of [...v.lineErrors, ...Object.values(v.fieldErrors)]) {
+          byMessage.set(m, [...(byMessage.get(m) ?? []), i + 1])
+        }
+      })
+    return [...byMessage].map(([m, nums]) =>
+      nums.length === 1
+        ? S.editor.lineError(activeCfg.label, nums[0], m)
+        : S.editor.lineErrorGrouped(activeCfg.label, nums.join(', '), m),
+    )
+  })()
 
   return (
     <div className="space-y-5">
