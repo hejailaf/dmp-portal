@@ -6,7 +6,7 @@ import {
   type CellContext,
   type HeaderContext,
 } from '@tanstack/react-table'
-import { CalendarDays, Copy, Download, Plus, Trash2, Upload } from 'lucide-react'
+import { AlertCircle, CalendarDays, CheckCircle2, Copy, Download, Plus, Trash2, Upload, X } from 'lucide-react'
 import { getProvider, type DraftLineInput } from '@/data'
 import {
   appliesTo,
@@ -416,7 +416,8 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
   const [banner, setBanner] = useState<string>()
   const [initialized, setInitialized] = useState(!requestId)
   const [tab, setTab] = useState<ObjectType>(!requestId && restored ? restored.tab : 'EQUIPMENT')
-  const [importNotes, setImportNotes] = useState<string[]>([])
+  // Excel import outcome: count drives the callout tone (success/warning)
+  const [importResult, setImportResult] = useState<{ count: number; title: string; notes: string[] }>()
   // checkbox selection drives the per-tab Duplicate/Delete toolbar buttons
   // (must live ABOVE the early returns — hooks may not be conditional)
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set())
@@ -602,14 +603,19 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
         n: imported.filter((l) => l.objectType === cfg.objectType).length,
       })).filter((t) => t.n > 0)
       if (perType.length > 0) setTab(perType[0].cfg.objectType)
-      setImportNotes([
-        imported.length
+      setImportResult({
+        count: imported.length,
+        title: imported.length
           ? `${S.editor.imported(imported.length)} (${perType.map((t) => `${t.cfg.label} ${t.n}`).join(' · ')})`
           : S.editor.importNothing,
-        ...result.errors,
-      ])
+        notes: result.errors,
+      })
     } catch (e) {
-      setImportNotes([e instanceof Error ? e.message : String(e)])
+      setImportResult({
+        count: 0,
+        title: S.editor.importNothing,
+        notes: [e instanceof Error ? e.message : String(e)],
+      })
     }
   }
 
@@ -770,14 +776,46 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
           {e}
         </p>
       ))}
-      {importNotes.length > 0 && (
-        <div className="rounded-md border bg-accent/50 p-3 text-sm">
-          {importNotes.map((n, i) => (
-            <p key={i} className={i === 0 ? 'font-medium' : 'text-muted-foreground'}>
-              {i === 1 && <span className="font-medium">{S.editor.importIssuesTitle} </span>}
-              {n}
-            </p>
-          ))}
+      {/* import outcome callout — teal for a successful import, the warning
+          trio when nothing came in; left accent bar = the app's callout
+          language. A failed import offers the template right here. */}
+      {importResult && (
+        <div
+          className={`flex items-start gap-2.5 rounded-md border border-l-[3px] p-3 text-sm ${
+            importResult.count > 0
+              ? 'border-ring/40 border-l-[var(--teal)] bg-[var(--teal-tint)]'
+              : 'border-[var(--warning-border)] border-l-[var(--warning)] bg-[var(--warning-tint)]'
+          }`}
+        >
+          {importResult.count > 0 ? (
+            <CheckCircle2 className="mt-0.5 h-4 w-4 flex-none text-[var(--teal)]" />
+          ) : (
+            <AlertCircle className="mt-0.5 h-4 w-4 flex-none text-[var(--warning)]" />
+          )}
+          <div className="min-w-0 flex-1">
+            <p className="font-medium">{importResult.title}</p>
+            {importResult.notes.length > 0 && (
+              <ul className="mt-1 list-disc space-y-0.5 pl-4 text-muted-foreground">
+                {importResult.notes.map((n, i) => (
+                  <li key={i}>{n}</li>
+                ))}
+              </ul>
+            )}
+            {importResult.count === 0 && (
+              <Button variant="outline" size="sm" className="mt-2.5" onClick={() => void downloadTemplate()}>
+                <Download className="h-4 w-4" /> {S.editor.downloadTemplate}
+              </Button>
+            )}
+          </div>
+          <button
+            type="button"
+            aria-label={S.editor.dismiss}
+            title={S.editor.dismiss}
+            className="flex-none rounded p-0.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+            onClick={() => setImportResult(undefined)}
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
       )}
       {/* request-level details: the one-line description (free while drafting,

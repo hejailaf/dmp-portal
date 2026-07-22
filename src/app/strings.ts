@@ -177,7 +177,7 @@ export const S = {
     importExcel: 'Import from Excel',
     imported: (n: number) => `Imported ${n} ${n === 1 ? 'line' : 'lines'} from Excel.`,
     importNothing: 'No lines were imported.',
-    importIssuesTitle: 'Import notes:',
+    dismiss: 'Dismiss',
     confirmDropHidden: (n: number) =>
       `${n} ${n === 1 ? 'value does' : 'values do'} not apply to their line's action and will be removed when this request is saved.\n\nContinue?`,
     confirmLeave: 'This request has unsaved changes. They will be lost if you leave now.\n\nLeave anyway?',
