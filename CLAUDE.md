@@ -275,6 +275,46 @@ tracking, assignment, SLA, audit, Excel export only.
 - Postponed by user: script-redirect button (bounce classic list pages
   to app, with safety hatch); PPTX requester-guide screenshot refresh
   (old UI + old wording — redo after new site live).
+- **Identity revamp** ("engineering document", 2026-07-22, on
+  `experiments`): radius/shadow/scrim tokens, unified amber trio
+  (--warning #84630d light — AA fix from #997310), Segoe UI Variable
+  stacks (keep DataGrid canvas stack in sync), type scale
+  display/title/section (NEVER through cn() next to a text color —
+  tailwind-merge treats them as colors), rise-in reveal + --stagger-i +
+  reduced-motion blanket, teal letterhead rules, drafting-grid home
+  hero, teal grid header bands (table.tsx + DataGrid filler th
+  TOGETHER). Detail line items = editor-style tab strip, collapsible
+  (click active tab / chevron). Big-data seeds DCR "Area 7" draft (46
+  lines) + "Warehouse 12" In-process (40 lines, 15 pre-keyed,
+  12 comments).
+
+## Six pre-pilot features (2026-07-23, `experiments`)
+
+- **Withdrawn status** (user decision): Waiting-only, reopenable →
+  Draft (event Reopened, SLA cleared), NO reason — rides setStatus in
+  both providers, zero provider changes. Choice value ships in schema;
+  provisioning never edits existing choice columns — provision the new
+  subsite with a 2026-07-22+ build (DEPLOY_SP §5 note).
+- **Per-line keying** (user decision: checkbox only, no counts, no
+  audit): RequestLine.keyedAt (first-class, NOT fieldData);
+  provider.setLineKeyed guarded In process + assignee/admin; SP KeyedAt
+  dateTime column (ReturnedAt 3-place precedent) + first single-line
+  spMerge path. writeLines full-replace resets flags on rewrite (draft
+  edit / Returned resubmit) — intentional. Detail grid: pinned checkbox
+  column, optimistic ticks (reload would replay reveal).
+- **Duplicate as draft** (More menu, requester/admin): visibleLines →
+  createRequest — normalization/ref/audit free; attachments NOT copied
+  (no copy API).
+- **List export**: makeRequestListExport in excel-export.ts; Export
+  button exports the FILTERED array; module dynamically imported so
+  exceljs stays lazy.
+- **Draft autosave**: dmp-draft-autosave-<id|new>; INVARIANT — key
+  cleared on every successful save/submit, so a surviving value is
+  always newer than the server copy → restore wins unconditionally;
+  amber notice + Discard (back to blank/server copy).
+- **Dashboard window**: filterByWindow (all/month/quarter on
+  submittedAt, local calendar) pre-filters before computeDashboard;
+  drafts drop from windowed views; KPI links stay window-less.
 
 ## Dev commands
 
