@@ -169,7 +169,7 @@ export const S = {
     submitting: 'Submitting…',
     cancel: 'Cancel',
     tabCount: (n: number) => `(${n})`,
-    lineErrorsTitle: 'Fix these before submitting:',
+    lineErrorsTitle: (n: number) => (n === 1 ? 'Fix this before submitting:' : 'Fix these before submitting:'),
     lineError: (tab: string, n: number, msg: string) => `${tab} line ${n}: ${msg}`,
     lineErrorGrouped: (tab: string, nums: string, msg: string) => `${tab} lines ${nums}: ${msg}`,
     noLinesTitle: (tab: string) => `No ${tab} lines yet`,

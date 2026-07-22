@@ -975,7 +975,7 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
             {/* validation for the OPEN tab, above its toolbar */}
             {activeErrors.length > 0 && (
               <div className="mx-4 mt-3 rounded-md border border-destructive/40 bg-[var(--danger-tint)] p-3 text-sm text-destructive">
-                <div className="font-medium">{S.editor.lineErrorsTitle}</div>
+                <div className="font-medium">{S.editor.lineErrorsTitle(activeErrors.length)}</div>
                 <ul className="mt-1 max-h-40 list-inside list-disc overflow-y-auto">
                   {activeErrors.map((e, i) => (
                     <li key={i}>{e}</li>
