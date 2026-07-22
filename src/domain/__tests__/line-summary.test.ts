@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseLineSummary, summarizeLines } from '../field-map'
+import { parseLineSummary, summarizeLines, summarizeLinesParts } from '../field-map'
 import type { RequestLine } from '../types'
 
 // parseLineSummary must stay the exact inverse of summarizeLines — list
@@ -31,5 +31,16 @@ describe('parseLineSummary round-trips summarizeLines', () => {
 
   it('no lines: empty summary parses to zero', () => {
     expect(parseLineSummary(summarizeLines([]))).toEqual({ types: [], total: 0 })
+  })
+})
+
+describe('summarizeLinesParts (detail-header chips)', () => {
+  it('one part per present type, action counts joined', () => {
+    expect(
+      summarizeLinesParts([line('FLOC', 'CHANGE'), line('PM', 'CHANGE'), line('FLOC', 'ADD')]),
+    ).toEqual([
+      { objectType: 'FLOC', label: 'Functional Locations', text: '1 Add, 1 Change' },
+      { objectType: 'PM', label: 'PM', text: '1 Change' },
+    ])
   })
 })

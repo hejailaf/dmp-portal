@@ -95,9 +95,14 @@ export function fieldsFor(objectType: ObjectType, action: LineAction): FieldDef[
   return FIELD_MAP[objectType].fields.filter((f) => appliesTo(f, action))
 }
 
-/** Denormalized one-line summary for list views, e.g. "Equipment: 2 Add, 1 Change · PM: 1 Add". */
-export function summarizeLines(lines: Pick<RequestLine, 'objectType' | 'action'>[]): string {
-  const parts: string[] = []
+/**
+ * Per-type summary parts in config (editor tab) order — the structured
+ * source behind summarizeLines; the detail header renders these as chips.
+ */
+export function summarizeLinesParts(
+  lines: Pick<RequestLine, 'objectType' | 'action'>[],
+): Array<{ objectType: ObjectType; label: string; text: string }> {
+  const parts: Array<{ objectType: ObjectType; label: string; text: string }> = []
   for (const cfg of OBJECT_TYPE_CONFIGS) {
     const ofType = lines.filter((l) => l.objectType === cfg.objectType)
     if (ofType.length === 0) continue
@@ -105,9 +110,16 @@ export function summarizeLines(lines: Pick<RequestLine, 'objectType' | 'action'>
       .map((a) => ({ a, n: ofType.filter((l) => l.action === a).length }))
       .filter(({ n }) => n > 0)
       .map(({ a, n }) => `${n} ${cfg.actionLabels[a]}`)
-    parts.push(`${cfg.label}: ${byAction.join(', ')}`)
+    parts.push({ objectType: cfg.objectType, label: cfg.label, text: byAction.join(', ') })
   }
-  return parts.join(' · ')
+  return parts
+}
+
+/** Denormalized one-line summary for list views, e.g. "Equipment: 2 Add, 1 Change · PM: 1 Add". */
+export function summarizeLines(lines: Pick<RequestLine, 'objectType' | 'action'>[]): string {
+  return summarizeLinesParts(lines)
+    .map((p) => `${p.label}: ${p.text}`)
+    .join(' · ')
 }
 
 /**

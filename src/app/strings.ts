@@ -94,9 +94,9 @@ export const S = {
     },
     claim: 'Claim',
     multipleTypes: 'Multiple', // Req. Type when a request spans several object types
-    // compact Req. Type display names — "FLoc" is the app's established
-    // abbreviation (home tile: "Equipment, FLoc, BOM, or PM changes.")
-    typeShort: { 'Functional Locations': 'FLoc' } as Record<string, string>,
+    // compact type display names (Req. Type column + detail header chips) —
+    // the home tile's abbreviations: "Equipment, FLoc, BOM, or PM changes."
+    typeShort: { 'Functional Locations': 'FLoc', 'BOM Linkage': 'BOM' } as Record<string, string>,
     empty: 'No requests match.',
     loading: 'Loading requests…',
     count: (shown: number, total: number) =>

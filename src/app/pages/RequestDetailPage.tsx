@@ -19,7 +19,7 @@ import {
 } from 'lucide-react'
 import { getProvider } from '@/data'
 import { makeRequestExport } from '@/lib/excel-export'
-import { appliesTo, OBJECT_TYPE_CONFIGS, type ObjectTypeConfig } from '@/domain/field-map'
+import { appliesTo, OBJECT_TYPE_CONFIGS, summarizeLinesParts, type ObjectTypeConfig } from '@/domain/field-map'
 import {
   ATTACHMENT_ACCEPT,
   ATTACHMENT_MAX_COUNT,
@@ -639,9 +639,20 @@ export function RequestDetailPage({ id }: { id: string }) {
           )}
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <StatusStepper status={req.status} assigneeId={req.assigneeId} />
-            {req.lineSummary && (
-              <span className="ml-auto inline-flex items-center rounded-md bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">
-                {req.lineSummary}
+            {/* one chip per present type — short label + action counts,
+                full name on hover (computed from lines, not the summary string) */}
+            {visibleLines.length > 0 && (
+              <span className="ml-auto flex flex-wrap items-center justify-end gap-1.5">
+                {summarizeLinesParts(visibleLines).map((p) => (
+                  <span
+                    key={p.objectType}
+                    title={`${p.label}: ${p.text}`}
+                    className="inline-flex items-center gap-1.5 rounded-md bg-secondary px-2 py-0.5 text-xs text-secondary-foreground"
+                  >
+                    <span className="font-semibold">{S.list.typeShort[p.label] ?? p.label}</span>
+                    <span className="text-muted-foreground">{p.text}</span>
+                  </span>
+                ))}
               </span>
             )}
           </div>
