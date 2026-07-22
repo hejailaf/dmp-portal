@@ -283,6 +283,90 @@ export function buildSeed(): MockDb {
     ],
   })
 
+  // Big-data seeds — stress the grids, editor, export and activity feed:
+  // dozens of lines, near-max-length values, every object type, a fat
+  // comment thread. Values stay inside field-map limits so the submit-
+  // validation seed test keeps passing.
+  const EQUIP_TYPES = ['Electric Motors', 'Pump', 'Valves', 'Fan/Blowers', 'Compressors', 'Heat Exchangers']
+  const MAKERS = ['ABB', 'Siemens', 'WEG Industries', 'Toshiba International']
+  const motorLine = (i: number): SeedSpec['lines'][number] => ({
+    objectType: 'EQUIPMENT',
+    action: 'ADD',
+    fieldData: {
+      description: `Induction motor ${110 + i} kW IE4 train ${1 + (i % 4)}`,
+      equipmentType: EQUIP_TYPES[i % EQUIP_TYPES.length],
+      manufacturer: MAKERS[i % MAKERS.length],
+      model: `M315-${1000 + i}-IE4`,
+      serialNumber: `SN26-${100000 + i * 37}`,
+      planningPlant: '3000',
+      functionalLocation: `SITE-C-PROC-AREA7-TRAIN${1 + (i % 4)}-MOT-${String(i + 1).padStart(3, '0')}`,
+      costCenter: `31${10 + (i % 5)}`,
+      plannerGroup: 'P03',
+      mainWorkCenter: 'ELEC01',
+      startupDate: '2026-08-01',
+      engTagNo: `7-MOT-${String(i + 1).padStart(3, '0')}-A`,
+      pidNo: `PID-A7-${200 + i}`,
+    },
+  })
+
+  // big DRAFT (Rana) — 46 lines across all four tabs; open it in the editor
+  add({
+    status: 'Draft',
+    requester: rana,
+    description: 'Area 7 revamp batch 1 — motors, valves and PM plans',
+    lines: [
+      ...Array.from({ length: 28 }, (_, i) => motorLine(i)),
+      ...Array.from({ length: 6 }, (_, i): SeedSpec['lines'][number] => ({
+        objectType: 'FLOC',
+        action: 'ADD',
+        fieldData: {
+          description: `Area 7 substation bay ${i + 1}`,
+          superiorFunctionalLocation: 'SITE-C-PROC-AREA7',
+          costCenter: '3110',
+          startupDate: '2026-08-01',
+        },
+      })),
+      ...Array.from({ length: 6 }, (_, i): SeedSpec['lines'][number] => ({
+        objectType: 'BOM_LINKAGE',
+        action: 'ADD',
+        fieldData: { parentNumber: `100078${10 + i}`, material: `900456${10 + i}` },
+      })),
+      ...Array.from({ length: 6 }, (_, i): SeedSpec['lines'][number] => ({
+        objectType: 'PM',
+        action: 'ADD',
+        fieldData: {
+          equipmentNumber: `100078${10 + i}`,
+          taskListNumber: `${3000 + i}`,
+          plannerGroup: 'P03',
+          mainWorkCenter: 'ELEC01',
+          cycleFrequency: '6',
+          startDate: '2026-09-01',
+        },
+      })),
+    ],
+  })
+
+  // big OPEN request (Rana → Mona) — 40-line detail grid + 12-comment thread
+  const bigOpen = add({
+    status: 'In process',
+    requester: rana,
+    assignee: mona,
+    submittedDaysAgo: 3,
+    description: 'Warehouse 12 spare motor fleet registration',
+    lines: Array.from({ length: 40 }, (_, i) => motorLine(i)),
+  })
+  const chat = [malik, mona, rana, aya]
+  for (let i = 0; i < 12; i++) {
+    const author = chat[i % chat.length]
+    const body =
+      i === 11
+        ? `Full keying status for the fleet: ${Array.from({ length: 40 }, (_, n) => `motor ${String(n + 1).padStart(3, '0')} ok`).join('; ')}.`
+        : `Batch ${i + 1} of the warehouse motors checked against the nameplate list — serials match, keying continues tomorrow.`
+    const at = daysAgo(2.5 - i * 0.2)
+    db.comments.push({ id: `c-big-${i + 1}`, requestId: bigOpen.id, authorId: author.id, authorName: author.displayName, body, createdAt: at })
+    db.audit.push({ id: `a-${db.audit.length + 1}`, requestId: bigOpen.id, event: 'CommentAdded', actorId: author.id, actorName: author.displayName, at })
+  }
+
   // a couple of comments for texture
   db.comments.push(
     {
