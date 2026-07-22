@@ -259,6 +259,8 @@ function EditorGrid({
   selected,
   onToggleSelect,
   onToggleAll,
+  onAddLine,
+  onImport,
 }: {
   config: ObjectTypeConfig
   lines: EditorLine[]
@@ -267,6 +269,9 @@ function EditorGrid({
   selected: ReadonlySet<string>
   onToggleSelect: (key: string) => void
   onToggleAll: (keys: string[], select: boolean) => void
+  /** empty-state CTAs — the same actions as the toolbar, offered where the eye lands */
+  onAddLine: () => void
+  onImport: () => void
 }) {
   // auto-fit: header width by default, growing live with the longest typed
   // value (lines change on every keystroke), capped in autoColumnSize
@@ -355,7 +360,20 @@ function EditorGrid({
 
   // the error list is rendered by the page, above the line buttons
   return lines.length === 0 ? (
-    <p className="py-4 text-sm text-muted-foreground">{S.editor.noLines}</p>
+    // empty slot, drafting-document style: dashed frame + the two real
+    // actions right here instead of prose pointing at the toolbar
+    <div className="rounded-md border border-dashed border-[var(--border-strong)] py-10 text-center">
+      <p className="text-sm font-semibold">{S.editor.noLinesTitle(config.label)}</p>
+      <p className="mt-1 text-sm text-muted-foreground">{S.editor.noLinesBody}</p>
+      <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+        <Button size="sm" onClick={onAddLine}>
+          <Plus className="h-4 w-4" /> {S.editor.addLine}
+        </Button>
+        <Button variant="outline" size="sm" onClick={onImport}>
+          <Upload className="h-4 w-4" /> {S.editor.importExcel}
+        </Button>
+      </div>
+    </div>
   ) : (
     <DataGrid table={table} rowClassName="hover:bg-transparent" cellClassName="p-0" />
   )
@@ -884,6 +902,8 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
                   selected={selected}
                   onToggleSelect={toggleSelect}
                   onToggleAll={toggleAll}
+                  onAddLine={() => addLine(cfg.objectType)}
+                  onImport={() => fileInputRef.current?.click()}
                 />
               </TabsContent>
             ))}
