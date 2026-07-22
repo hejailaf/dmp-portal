@@ -279,6 +279,12 @@ export const S = {
       overdue: 'Overdue',
       unassigned: 'Unassigned pool', // subset of the waiting KPI — named like the home tile
     },
+    windowLabel: 'Time window',
+    window: {
+      all: 'Submitted: all time',
+      month: 'Submitted: this month',
+      quarter: 'Submitted: this quarter',
+    },
     maintainersTitle: 'Maintainer performance',
     columns: {
       maintainer: 'Maintainer',

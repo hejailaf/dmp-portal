@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react'
 import { getProvider } from '@/data'
-import { computeDashboard } from '@/domain/dashboard'
+import { computeDashboard, filterByWindow, type DashboardWindow } from '@/domain/dashboard'
 import { useAsync, usePageTitle } from '../hooks'
 import { S } from '../strings'
 import { useCurrentUser } from '../user-context'
 import { StatCard } from '../components/StatCard'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
+import { Select } from '../components/ui/input'
 import { Skeleton } from '../components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table'
 
@@ -18,6 +19,7 @@ export function DashboardPage() {
   const requests = useAsync(() => provider.listRequests('all'), [])
   // numeric columns start descending (busiest/best first)
   const [sort, setSort] = useState<{ key: SortKey; desc: boolean }>({ key: 'open', desc: true })
+  const [window, setWindow] = useState<DashboardWindow>('all')
   usePageTitle(S.dashboard.title)
 
   if (!user.roles.includes('admin')) {
@@ -37,7 +39,9 @@ export function DashboardPage() {
     )
   if (requests.error || !requests.data) return <p className="text-destructive">{requests.error ?? S.errors.generic}</p>
 
-  const { kpis, maintainers } = computeDashboard(requests.data)
+  // windowed on submittedAt BEFORE aggregation — the whole dashboard
+  // (KPIs + maintainer table) re-scopes consistently
+  const { kpis, maintainers } = computeDashboard(filterByWindow(requests.data, window))
   const k = S.dashboard.kpis
 
   const rows = [...maintainers].sort((a, b) => {
@@ -73,7 +77,19 @@ export function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-5">
-      <h1 className="font-display text-display">{S.dashboard.title}</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="font-display text-display">{S.dashboard.title}</h1>
+        <Select
+          value={window}
+          onChange={(e) => setWindow(e.target.value as DashboardWindow)}
+          className="w-56"
+          aria-label={S.dashboard.windowLabel}
+        >
+          <option value="all">{S.dashboard.window.all}</option>
+          <option value="month">{S.dashboard.window.month}</option>
+          <option value="quarter">{S.dashboard.window.quarter}</option>
+        </Select>
+      </div>
 
       <div className="reveal grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6" style={{ '--stagger-i': 1 } as React.CSSProperties}>
         <StatCard label={k.total} value={kpis.total} to="/requests?scope=all" />

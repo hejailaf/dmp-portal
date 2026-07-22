@@ -27,6 +27,26 @@ interface MaintainerStats {
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
+export type DashboardWindow = 'all' | 'month' | 'quarter'
+
+/**
+ * Time-window pre-filter for the dashboard: keeps requests SUBMITTED in the
+ * current calendar month/quarter ('all' = identity). Unsubmitted drafts drop
+ * out of windowed views — they have no submit date to fall inside one.
+ */
+export function filterByWindow(
+  requests: Request[],
+  window: DashboardWindow,
+  now: Date = new Date(),
+): Request[] {
+  if (window === 'all') return requests
+  const start =
+    window === 'month'
+      ? new Date(now.getFullYear(), now.getMonth(), 1)
+      : new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1)
+  return requests.filter((r) => r.submittedAt && new Date(r.submittedAt) >= start)
+}
+
 export function computeDashboard(
   requests: Request[],
   now: Date = new Date(),

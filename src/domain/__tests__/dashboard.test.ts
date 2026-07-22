@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { computeDashboard } from '../dashboard'
+import { computeDashboard, filterByWindow } from '../dashboard'
 import type { Request } from '../types'
 
 const NOW = new Date('2026-07-19T12:00:00Z')
@@ -19,6 +19,22 @@ function req(partial: Partial<Request>): Request {
     ...partial,
   }
 }
+
+describe('filterByWindow', () => {
+  it("month keeps this month's submissions; drafts without submittedAt drop out", () => {
+    const inMonth = req({ submittedAt: '2026-07-02T08:00:00Z' })
+    const lastMonth = req({ submittedAt: '2026-06-15T08:00:00Z' })
+    const draft = req({}) // no submittedAt
+    expect(filterByWindow([inMonth, lastMonth, draft], 'month', NOW)).toEqual([inMonth])
+    expect(filterByWindow([inMonth, lastMonth, draft], 'all', NOW)).toHaveLength(3)
+  })
+
+  it('quarter starts at the calendar quarter (Jul 1 for a Jul 19 now)', () => {
+    const inQuarter = req({ submittedAt: '2026-07-05T12:00:00Z' })
+    const lastQuarter = req({ submittedAt: '2026-06-15T12:00:00Z' })
+    expect(filterByWindow([inQuarter, lastQuarter], 'quarter', NOW)).toEqual([inQuarter])
+  })
+})
 
 describe('computeDashboard', () => {
   it('returns zeros and no maintainers for empty input', () => {
