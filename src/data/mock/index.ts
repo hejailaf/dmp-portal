@@ -288,6 +288,20 @@ export class MockProvider implements DataProvider {
     return req
   }
 
+  async setLineKeyed(requestId: string, lineId: string, keyed: boolean): Promise<void> {
+    await sleep()
+    const req = this.mustGet(requestId)
+    if (req.status !== 'In process')
+      throw new Error('Lines can be marked as keyed only while the request is In process')
+    const ctx = this.ctxFor(req)
+    if (!ctx.isAssignee && !ctx.roles.includes('admin'))
+      throw new Error('Only the assignee or an admin can mark lines as keyed')
+    const line = this.db.lines.find((l) => l.id === lineId && l.requestId === requestId)
+    if (!line) throw new Error(`Line ${lineId} not found`)
+    line.keyedAt = keyed ? new Date().toISOString() : undefined
+    this.save()
+  }
+
   async addComment(id: string, body: string): Promise<Comment> {
     await sleep()
     const bodyError = validateCommentBody(body)

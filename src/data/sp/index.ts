@@ -47,7 +47,7 @@ const AUDIT = 'PMDC_AuditLog'
 
 const REQUEST_SELECT =
   '$select=Id,Title,RequestStatus,RequesterLogin,RequesterName,AssigneeLogin,AssigneeName,Created,SubmittedAt,DueDate,CompletedAt,ReturnedAt,SlaDays,Description,RejectReason,LineSummary'
-const LINE_SELECT = '$select=Id,RequestId,ObjectType,LineAction,LineOrder,FieldData'
+const LINE_SELECT = '$select=Id,RequestId,ObjectType,LineAction,LineOrder,FieldData,KeyedAt'
 
 const item = (list: string, id: string | number) => `${listPath(list)}/items(${Number(id)})`
 
@@ -142,6 +142,18 @@ export class SharePointProvider implements DataProvider {
       OldValue: oldValue ?? '',
       NewValue: newValue ?? '',
     })
+  }
+
+  async setLineKeyed(requestId: string, lineId: string, keyed: boolean): Promise<void> {
+    const [me, req] = await Promise.all([this.me(), this.fetchRequest(requestId)])
+    if (req.status !== 'In process')
+      throw new Error('Lines can be marked as keyed only while the request is In process')
+    const ctx = this.ctxFor(me, req)
+    if (!ctx.isAssignee && !me.roles.includes('admin'))
+      throw new Error('Only the assignee or an admin can mark lines as keyed')
+    // the app's only single-line write — everything else full-replaces via
+    // writeLines (which resets KeyedAt; fine, keying is In-process only)
+    await spMerge(item(LINES, lineId), { KeyedAt: keyed ? new Date().toISOString() : null })
   }
 
   /** Replace all lines of a request (derivations always applied — same rule as the mock). */

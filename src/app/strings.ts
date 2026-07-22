@@ -186,6 +186,7 @@ export const S = {
     noLines: 'No line items yet.',
     linesCollapse: 'Collapse line items',
     linesExpand: 'Expand line items',
+    lineKeyed: 'Keyed', // per-line keying checkbox (assignee, In process)
     commentsTitle: 'Comments',
     commentPlaceholder: 'Write a comment…',
     commentAdd: 'Add comment',

@@ -32,6 +32,7 @@ export interface LineItem {
   LineAction?: string
   LineOrder?: number
   FieldData?: string | null
+  KeyedAt?: string | null
 }
 
 export interface AuthoredItem {
@@ -82,6 +83,7 @@ export function mapLine(item: LineItem): RequestLine {
     objectType,
     action,
     order: item.LineOrder ?? 0,
+    keyedAt: item.KeyedAt ?? undefined,
     // read boundary: values for fields this action doesn't use are dropped
     // here, so rows stored before this fix never reach the UI or the export
     fieldData: normalizeFieldData(objectType, action, fieldData),
