@@ -711,7 +711,19 @@ export function RequestDetailPage({ id }: { id: string }) {
         ) : (
           <CardContent className="p-0">
             <Tabs value={activeLinesTab}>
-              <div className="flex items-center justify-between gap-2 border-b px-4 pt-3">
+              <div className="flex items-center gap-2 border-b px-4 pt-3">
+                <button
+                  type="button"
+                  aria-expanded={linesOpen}
+                  aria-label={linesOpen ? S.detail.linesCollapse : S.detail.linesExpand}
+                  title={linesOpen ? S.detail.linesCollapse : S.detail.linesExpand}
+                  className="mb-1 self-center rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground"
+                  onClick={() => setLinesOpen((o) => !o)}
+                >
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform ${linesOpen ? '' : '-rotate-90'}`}
+                  />
+                </button>
                 <TabsList>
                   {groups.map(({ cfg, lines: groupLines }) => (
                     <TabsTrigger
@@ -733,18 +745,6 @@ export function RequestDetailPage({ id }: { id: string }) {
                     </TabsTrigger>
                   ))}
                 </TabsList>
-                <button
-                  type="button"
-                  aria-expanded={linesOpen}
-                  aria-label={linesOpen ? S.detail.linesCollapse : S.detail.linesExpand}
-                  title={linesOpen ? S.detail.linesCollapse : S.detail.linesExpand}
-                  className="mb-1 self-center rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground"
-                  onClick={() => setLinesOpen((o) => !o)}
-                >
-                  <ChevronDown
-                    className={`h-4 w-4 transition-transform ${linesOpen ? '' : '-rotate-90'}`}
-                  />
-                </button>
               </div>
               {linesOpen &&
                 groups.map(({ cfg, lines: groupLines }) => (
