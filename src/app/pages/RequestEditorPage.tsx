@@ -608,7 +608,6 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
     const kept = lines.filter(
       (l) => !isEmptyLine({ fieldData: normalizeFieldData(l.objectType, l.action, l.fieldData) }),
     )
-    if (kept.length !== lines.length) setLines(kept)
     const validation = validateForSubmit(toDomainLines(kept), description)
     setErrors(validation.lineResults)
     setRequestErrors(validation.requestErrors)
@@ -618,6 +617,9 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
       if (firstBad) setTab(firstBad.objectType)
       return
     }
+    // commit the pruning only once validation passes — a rejected submit
+    // must never make rows vanish from the grid
+    if (kept.length !== lines.length) setLines(kept)
     setBusy('submit')
     try {
       const id = await saveDraft(kept)
@@ -662,7 +664,9 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
           <Button variant="outline" disabled={!!busy} onClick={() => void onSave()}>
             {busy === 'save' ? S.editor.saving : S.editor.saveDraft}
           </Button>
-          <Button disabled={!!busy || !lines.some((l) => !isEmptyLine(l))} onClick={() => void onSubmit()}>
+          {/* always clickable — an empty request gets the "add at least one
+              line" banner from validateForSubmit instead of a dead button */}
+          <Button disabled={!!busy} onClick={() => void onSubmit()}>
             {busy === 'submit' ? S.editor.submitting : isReturned ? S.editor.resubmit : S.editor.submit}
           </Button>
         </div>

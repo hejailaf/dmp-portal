@@ -164,16 +164,22 @@ export function RequestListPage() {
         size: autoSizes.requester,
         cell: (info) => <ClippedCell value={info.getValue()} />,
       }),
-      columnHelper.accessor('assigneeName', {
-        header: S.list.columns.assignee,
-        size: autoSizes.assignee,
-        cell: (info) =>
-          info.getValue() ? (
-            <ClippedCell value={info.getValue()!} />
-          ) : (
-            <span className="text-muted-foreground">{S.detail.unassigned}</span>
-          ),
-      }),
+      // the unassigned pool omits the Assignee column — every row would read
+      // "Unassigned", and the freed width keeps Claim on screen
+      ...(scope === 'unassigned'
+        ? []
+        : [
+            columnHelper.accessor('assigneeName', {
+              header: S.list.columns.assignee,
+              size: autoSizes.assignee,
+              cell: (info) =>
+                info.getValue() ? (
+                  <ClippedCell value={info.getValue()!} />
+                ) : (
+                  <span className="text-muted-foreground">{S.detail.unassigned}</span>
+                ),
+            }),
+          ]),
       columnHelper.accessor('dueDate', {
         header: S.list.columns.due,
         size: 210,
@@ -205,7 +211,7 @@ export function RequestListPage() {
         : []),
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [showClaim, claiming, autoSizes],
+    [showClaim, scope, claiming, autoSizes],
   )
 
   const sizing = usePersistedColumnSizing('request-list')

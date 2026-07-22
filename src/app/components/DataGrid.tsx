@@ -125,6 +125,13 @@ export function DataGrid<T>({
               // the base `sticky top-0`); left-pinning rides on inline style
               <TableHead
                 key={h.id}
+                aria-sort={
+                  h.column.getIsSorted() === 'asc'
+                    ? 'ascending'
+                    : h.column.getIsSorted() === 'desc'
+                      ? 'descending'
+                      : undefined
+                }
                 style={{ width: h.getSize(), ...stickyProps(h.column.id, true).style }}
                 className={stickyProps(h.column.id, true).cls || undefined}
               >
