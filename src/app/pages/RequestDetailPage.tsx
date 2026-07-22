@@ -32,7 +32,7 @@ import { STATUSES, type Attachment, type AuditEvent, type ObjectType, type Reque
 import { downloadBlob, formatDate, formatDateValue } from '@/lib/utils'
 import { relativeDateTime } from '../format'
 import { useAsync, usePageTitle } from '../hooks'
-import { href } from '../router'
+import { href, navigate } from '../router'
 import { S } from '../strings'
 import { useCurrentUser } from '../user-context'
 import { readListState, scopesFor } from './RequestListPage'
@@ -533,6 +533,30 @@ export function RequestDetailPage({ id }: { id: string }) {
     setAssignOpen(true)
   }
 
+  // copy description + lines into a fresh draft owned by the current user;
+  // provider-side normalization keeps visible values only. Attachments are
+  // deliberately not copied (no server-side copy API).
+  const doDuplicate = async () => {
+    setBusy(true)
+    setBanner(undefined)
+    try {
+      const created = await provider.createRequest(
+        visibleLines.map((l, i) => ({
+          objectType: l.objectType,
+          action: l.action,
+          order: i + 1,
+          fieldData: l.fieldData,
+        })),
+        req.description,
+      )
+      navigate(`/requests/${created.id}/edit`)
+    } catch (e) {
+      setBanner(e instanceof Error ? e.message : String(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
   // one primary CTA per state; Export + the destructive Reject sit one
   // deliberate click away in the More menu (misclick-proofing Reject)
   const rejectTransition = transitions.find((t) => t.to === 'Rejected')
@@ -628,6 +652,15 @@ export function RequestDetailPage({ id }: { id: string }) {
                     disabled: exporting || visibleLines.length === 0,
                     onClick: () => void doExport(),
                   },
+                  ...(user.roles.includes('requester') || isAdmin
+                    ? [
+                        {
+                          label: S.detail.duplicate,
+                          disabled: busy || visibleLines.length === 0,
+                          onClick: () => void doDuplicate(),
+                        },
+                      ]
+                    : []),
                   ...(rejectTransition
                     ? [
                         {

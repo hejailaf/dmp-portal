@@ -203,6 +203,7 @@ export const S = {
     attachmentCount: (n: number, max: number) => `${n} of ${max} attachments used`,
     exportExcel: 'Export to Excel',
     exporting: 'Exporting…',
+    duplicate: 'Duplicate as draft',
     more: 'More',
     completedAt: 'Completed',
     editDraft: 'Edit draft',
