@@ -41,9 +41,9 @@ export function ProvisionPage() {
   }
 
   return (
-    <div className="max-w-3xl space-y-4">
+    <div className="max-w-3xl space-y-5">
       <div>
-        <h1 className="text-2xl font-semibold">{S.provision.title}</h1>
+        <h1 className="font-display text-display">{S.provision.title}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{S.provision.intro}</p>
       </div>
 

@@ -25,14 +25,14 @@ export function DashboardPage() {
   }
   if (requests.loading)
     return (
-      <div className="mx-auto max-w-7xl space-y-6">
-        <h1 className="text-2xl font-semibold">{S.dashboard.title}</h1>
+      <div className="mx-auto max-w-7xl space-y-5">
+        <h1 className="font-display text-display">{S.dashboard.title}</h1>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
           {Array.from({ length: 6 }, (_, i) => (
             <Skeleton key={i} className="h-24" />
           ))}
         </div>
-        <Skeleton className="h-48 w-full rounded-[10px]" />
+        <Skeleton className="h-48 w-full rounded-card" />
       </div>
     )
   if (requests.error || !requests.data) return <p className="text-destructive">{requests.error ?? S.errors.generic}</p>
@@ -72,10 +72,10 @@ export function DashboardPage() {
   )
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
-      <h1 className="text-2xl font-semibold">{S.dashboard.title}</h1>
+    <div className="mx-auto max-w-7xl space-y-5">
+      <h1 className="font-display text-display">{S.dashboard.title}</h1>
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+      <div className="reveal grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6" style={{ '--stagger-i': 1 } as React.CSSProperties}>
         <StatCard label={k.total} value={kpis.total} to="/requests?scope=all" />
         <StatCard label={k.waiting} value={kpis.waiting} to="/requests?scope=all&status=Waiting to be started" />
         <StatCard label={k.inProcess} value={kpis.inProcess} to="/requests?scope=all&status=In process" />

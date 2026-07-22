@@ -20,7 +20,7 @@ function NavLink({ to, label, active }: { to: string; label: string; active: boo
   return (
     <a
       href={href(to)}
-      className={`flex h-full items-center border-b-[2.5px] px-3 text-sm font-semibold transition-colors ${active ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+      className={`flex h-full items-center border-b-2 px-3 text-sm font-semibold transition-colors ${active ? 'border-[var(--teal)] text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
     >
       {label}
     </a>
@@ -37,7 +37,7 @@ function Shell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-30 border-b bg-card">
+      <header className="sticky top-0 z-30 bg-card">
         {/* site content is centered and capped at 1920px (user decision) */}
         <div className="mx-auto flex h-16 w-full max-w-[1920px] items-stretch gap-4 px-4">
           <a href={href('/')} className="flex items-center">
@@ -75,7 +75,7 @@ function Shell({ children }: { children: React.ReactNode }) {
             {(isRequester || isAdmin) && route.path !== '/' && route.path !== '/new' && (
               <a
                 href={href('/new')}
-                className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 active:translate-y-[0.5px]"
               >
                 <Plus className="h-4 w-4" /> {S.home.newRequestCta}
               </a>
@@ -84,12 +84,14 @@ function Shell({ children }: { children: React.ReactNode }) {
             <span className="text-sm text-muted-foreground">{user.displayName}</span>
           </div>
         </div>
+        {/* letterhead rule — the brand's teal line under the masthead */}
+        <div aria-hidden className="h-[2px] w-full bg-[var(--teal)]" />
       </header>
       {/* home stays a bit tighter; data pages center under the 1920px site cap */}
       <main className={`mx-auto px-4 py-6 ${route.path === '/' ? 'max-w-7xl' : 'max-w-[1920px]'}`}>
         {children}
       </main>
-      <footer className="border-t px-4 py-4 text-center text-xs text-muted-foreground">
+      <footer className="border-t px-4 py-4 text-center text-[11px] tracking-[0.02em] text-muted-foreground">
         {S.footer.developedBy} · {S.footer.supportLabel}:{' '}
         <a href={`mailto:${S.footer.supportEmail}`} className="text-primary hover:underline">
           {S.footer.supportEmail}
@@ -117,7 +119,7 @@ function Routes() {
 
   return (
     <div className="py-16 text-center">
-      <h1 className="text-2xl font-semibold">{S.notFound.title}</h1>
+      <h1 className="font-display text-display">{S.notFound.title}</h1>
       <a href={href('/')} className="mt-4 inline-block">
         <Button variant="outline">{S.notFound.goHome}</Button>
       </a>

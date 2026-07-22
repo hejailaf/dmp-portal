@@ -229,8 +229,8 @@ export function RequestListPage() {
   })
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-semibold">{S.list.title[scope]}</h1>
+    <div className="space-y-5">
+      <h1 className="font-display text-display">{S.list.title[scope]}</h1>
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative w-full max-w-xs">

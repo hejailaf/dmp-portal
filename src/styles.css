@@ -35,11 +35,21 @@
     --teal: #26a8ab; /* Teal — Completed / stepper checks */
     --teal-tint: #def2f2;
     /* the one derived color: Aramco Yellow #FFC846 is illegible as text, so
-       waiting/due-soon TEXT uses this dark ochre; fills stay Yellow tints */
-    --warning: #997310;
+       waiting/due-soon TEXT uses this dark ochre (AA ≥4.5:1 on white, bg and
+       the Yellow wash); fills stay Yellow tints */
+    --warning: #84630d;
     --warning-tint: #fff1d0; /* Yellow wash */
+    --warning-border: #e0b65c; /* Yellow, dimmed — amber borders/rings */
     --danger-tint: #fde7e3; /* Red wash */
     --sky-tint: #d9f1fb; /* Aramco Blue wash — In process */
+    /* structural tokens ("engineering document" revamp 2026-07-22) */
+    --radius-card: 12px;
+    --radius-dialog: 16px;
+    --shadow-color: 209 77% 23%; /* rgb(13,59,102) — the brand shadow ink */
+    --shadow-card: 0 1px 2px hsl(var(--shadow-color) / 0.06), 0 3px 10px hsl(var(--shadow-color) / 0.07);
+    --shadow-raised: 0 2px 4px hsl(var(--shadow-color) / 0.08), 0 8px 20px hsl(var(--shadow-color) / 0.10);
+    --shadow-dialog: 0 12px 40px hsl(var(--shadow-color) / 0.22);
+    --scrim: rgb(50 50 50 / 0.45); /* dialog overlay (alpha baked in) */
   }
 
   /* dark palette — warm-neutral graphite (ux-experiments 2026-07-21) kept;
@@ -68,8 +78,15 @@
     --teal-tint: #0e3a3b;
     --warning: #e8b95f;
     --warning-tint: #3a2e12;
+    --warning-border: #8a6a2c;
     --danger-tint: #3d211a;
     --sky-tint: #16303c;
+    /* shadows need black ink + stronger alphas on dark surfaces */
+    --shadow-color: 0 0% 0%;
+    --shadow-card: 0 1px 2px hsl(var(--shadow-color) / 0.30), 0 3px 10px hsl(var(--shadow-color) / 0.35);
+    --shadow-raised: 0 2px 4px hsl(var(--shadow-color) / 0.35), 0 8px 20px hsl(var(--shadow-color) / 0.40);
+    --shadow-dialog: 0 12px 40px hsl(var(--shadow-color) / 0.60);
+    --scrim: rgb(0 0 0 / 0.60);
   }
 
   * {
@@ -78,7 +95,10 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    /* Segoe UI Variable = Win11 optical variants of the sanctioned font;
+       Win10/other falls straight through to classic Segoe UI. Keep in sync
+       with the canvas measurement stack in DataGrid.tsx. */
+    font-family: 'Segoe UI Variable Text', 'Segoe UI', system-ui, -apple-system, sans-serif;
     font-variant-numeric: tabular-nums; /* IDs and counts align (brand spec) */
   }
 
@@ -90,5 +110,57 @@
   option {
     background-color: hsl(var(--card));
     color: hsl(var(--foreground));
+  }
+}
+
+@layer utilities {
+  /* page-load reveal: rise 6px + fade, staggered per element via --stagger-i.
+     Fires on every mount by design (hash-router pages remount per route). */
+  @keyframes rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .reveal {
+    animation: rise-in 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--stagger-i, 0) * 60ms);
+  }
+
+  /* drafting-grid: graph-paper texture in the brand teal (--ring is teal in
+     both themes) over a soft radial wash — the home "letterhead" background */
+  .drafting-grid {
+    background-image:
+      radial-gradient(ellipse 60% 80% at 85% 0%, hsl(var(--ring) / 0.07), transparent 70%),
+      linear-gradient(to right, hsl(var(--ring) / 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--ring) / 0.05) 1px, transparent 1px);
+    background-size:
+      100% 100%,
+      24px 24px,
+      24px 24px;
+  }
+  .dark .drafting-grid {
+    background-image:
+      radial-gradient(ellipse 60% 80% at 85% 0%, hsl(var(--ring) / 0.08), transparent 70%),
+      linear-gradient(to right, hsl(var(--ring) / 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--ring) / 0.06) 1px, transparent 1px);
+  }
+
+  /* reduced motion kills reveals, transitions, dialog zoom and skeleton pulse.
+     animation-delay: 0ms is load-bearing — without it staggered .reveal items
+     stay invisible for their delay. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-delay: 0ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }

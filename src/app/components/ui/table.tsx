@@ -33,7 +33,9 @@ export function TableHead({ className, ...props }: ThHTMLAttributes<HTMLTableCel
   return (
     <th
       className={cn(
-        'sticky top-0 z-10 h-7 border-b border-r bg-muted px-1 text-left align-middle text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground',
+        // teal-wash header band (opaque — sticky cells scroll beneath it);
+        // change together with the filler th in DataGrid.tsx
+        'sticky top-0 z-10 h-7 border-b border-r bg-secondary px-1 text-left align-middle text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground',
         className,
       )}
       {...props}

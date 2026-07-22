@@ -19,8 +19,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 // A column's width defaults to its header text and grows with the longest
 // cell value, capped. Tune the cap here. Manual drags (columnSizing state)
 // always override these computed defaults.
-const HEADER_FONT = "600 12px 'Segoe UI', system-ui, sans-serif" // th: text-xs font-semibold uppercase
-const CELL_FONT = "14px 'Segoe UI', system-ui, sans-serif" // td/input: text-sm
+// keep in sync with the body font-family in styles.css — canvas measurement
+// and rendering must share one stack or auto-fit widths misfit
+const HEADER_FONT = "600 12px 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif" // th: text-xs font-semibold uppercase
+const CELL_FONT = "14px 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif" // td/input: text-sm
 const HEADER_PAD = 22 // th padding + resize handle
 const CELL_PAD = 26 // input padding + cell padding + borders
 const SELECT_ARROW = 20
@@ -172,7 +174,7 @@ export function DataGrid<T>({
                 )}
               </TableHead>
             ))}
-            <th aria-hidden className="sticky top-0 z-10 border-b bg-muted p-0" />
+            <th aria-hidden className="sticky top-0 z-10 border-b bg-secondary p-0" />
           </TableRow>
         ))}
       </TableHeader>
@@ -234,7 +236,7 @@ export function ClippedCell({ value, className }: { value: string; className?: s
         {value || '—'}
       </div>
       {open && (
-        <div className="absolute left-0 top-0 z-30 w-max max-w-[400px] whitespace-normal break-words rounded-md border bg-card p-2 text-sm shadow-lg">
+        <div className="absolute left-0 top-0 z-30 w-max max-w-[400px] whitespace-normal break-words rounded-md border bg-card p-2 text-sm shadow-raised">
           {value}
         </div>
       )}

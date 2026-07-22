@@ -46,10 +46,17 @@ function ActionCard({
   primary?: boolean
 }) {
   const card = (
-    <Card className={primary ? 'border-2 border-primary transition-colors hover:border-ring' : 'transition-colors hover:border-ring'}>
+    <Card
+      className={`transition hover:-translate-y-px hover:border-ring hover:shadow-raised ${primary ? 'border-2 border-primary' : ''}`}
+    >
       <CardContent className="p-4">
-        <div className={primary ? 'text-primary' : 'text-muted-foreground'}>{icon}</div>
-        <div className="mt-2 text-sm font-medium">{title}</div>
+        {/* Aramco-library icon in a teal chip — the stroke follows text color */}
+        <div
+          className={`flex h-9 w-9 items-center justify-center rounded-md ${primary ? 'bg-[var(--teal-tint)] text-primary' : 'bg-secondary text-muted-foreground'}`}
+        >
+          {icon}
+        </div>
+        <div className="mt-2.5 text-sm font-semibold">{title}</div>
         <div className="mt-0.5 text-xs text-muted-foreground">{body}</div>
       </CardContent>
     </Card>
@@ -77,14 +84,15 @@ function Callout({
   text: string
   to: string
 }) {
+  // left accent bar echoes the list's overdue row edge
   const toneCls =
     tone === 'red'
-      ? 'border-destructive/40 bg-[var(--danger-tint)] text-destructive'
-      : 'border-[rgba(225,154,47,.4)] bg-[var(--warning-tint)] text-foreground'
+      ? 'border-destructive/40 border-l-destructive bg-[var(--danger-tint)] text-destructive'
+      : 'border-[var(--warning-border)] border-l-[var(--warning)] bg-[var(--warning-tint)] text-foreground'
   return (
     <a
       href={href(to)}
-      className={`flex items-center gap-2.5 rounded-md border p-2.5 text-sm hover:underline ${toneCls}`}
+      className={`flex items-center gap-2.5 rounded-md border border-l-[3px] p-2.5 text-sm hover:underline ${toneCls}`}
     >
       {icon}
       <span className="min-w-0">{text}</span>
@@ -119,8 +127,8 @@ export function HomePage() {
 
   if (overview.loading)
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-24 w-full rounded-[10px]" />
+      <div className="space-y-5">
+        <Skeleton className="h-24 w-full rounded-card" />
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           {Array.from({ length: 4 }, (_, i) => (
             <Skeleton key={i} className="h-24" />
@@ -215,43 +223,45 @@ export function HomePage() {
   )
 
   return (
-    <div className="space-y-6">
-      {/* text-only brand lockup (the header shows the icon on this page);
-          variants swap on the `.dark` html class */}
-      <div className="flex justify-center pb-2 pt-4">
-        <img src={lockupLight} alt={S.appName} className="h-24 w-auto dark:hidden" />
-        <img src={lockupDark} alt={S.appName} className="hidden h-24 w-auto dark:block" />
-      </div>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold">{S.home.welcome(user.displayName)}</h1>
-          {/* requesters don't need telling they're requesters; the role-less
-              red badge stays — it's the app's only "access broken" signal */}
-          {topRole !== 'requester' && (
-            <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-              {S.home.roleLabel}:
-              {topRole ? (
-                <Badge variant="blue">{S.roles[topRole]}</Badge>
-              ) : (
-                <Badge variant="red">{S.roles.none}</Badge>
-              )}
-            </div>
-          )}
+    <div className="space-y-5">
+      {/* letterhead hero: drafting-grid texture, welcome in display type,
+          text lockup right (variants swap on the `.dark` html class) */}
+      <div className="drafting-grid reveal relative overflow-hidden rounded-card border bg-card px-6 py-5 shadow-card">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="font-display text-display">{S.home.welcome(user.displayName)}</h1>
+            {/* requesters don't need telling they're requesters; the role-less
+                red badge stays — it's the app's only "access broken" signal */}
+            {topRole !== 'requester' && (
+              <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                {S.home.roleLabel}:
+                {topRole ? (
+                  <Badge variant="blue">{S.roles[topRole]}</Badge>
+                ) : (
+                  <Badge variant="red">{S.roles.none}</Badge>
+                )}
+              </div>
+            )}
+          </div>
+          <div className="flex flex-col items-end gap-3">
+            <img src={lockupLight} alt={S.appName} className="h-16 w-auto dark:hidden" />
+            <img src={lockupDark} alt={S.appName} className="hidden h-16 w-auto dark:block" />
+            {topRole === 'admin' && (
+              <a
+                href={href('/new')}
+                className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 active:translate-y-[0.5px]"
+              >
+                <Plus className="h-4 w-4" /> {S.home.newRequestCta}
+              </a>
+            )}
+          </div>
         </div>
-        {topRole === 'admin' && (
-          <a
-            href={href('/new')}
-            className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-          >
-            <Plus className="h-4 w-4" /> {S.home.newRequestCta}
-          </a>
-        )}
       </div>
 
       {/* requester: launchpad + attention + recent + how-it-works */}
       {topRole === 'requester' && (
         <div className="space-y-3">
-          <div className="grid gap-3 md:grid-cols-3">
+          <div className="reveal grid gap-3 md:grid-cols-3" style={{ '--stagger-i': 1 } as React.CSSProperties}>
             <ActionCard
               to="/new"
               primary
@@ -305,10 +315,10 @@ export function HomePage() {
               to={`/requests/${r.id}`}
             />
           ))}
-          <Card>
+          <Card className="reveal" style={{ '--stagger-i': 2 } as React.CSSProperties}>
             <CardContent className="p-0">
               <div className="flex items-center justify-between border-b px-4 py-2.5">
-                <h3 className="text-sm font-semibold">{S.home.recentTitle}</h3>
+                <h3 className="text-section">{S.home.recentTitle}</h3>
                 <a href={href('/requests?scope=mine')} className="text-sm text-primary hover:underline">
                   {S.home.viewAll}
                 </a>
@@ -333,14 +343,18 @@ export function HomePage() {
               )}
             </CardContent>
           </Card>
-          <Card>
+          <Card className="reveal" style={{ '--stagger-i': 3 } as React.CSSProperties}>
             <CardContent className="grid gap-3 p-4 md:grid-cols-3">
               {S.home.howSteps.map((step, i) => (
-                <div key={i} className="flex gap-2.5">
+                <div key={i} className="flex items-start gap-2.5">
                   <span className="flex h-5 w-5 flex-none items-center justify-center rounded-full bg-accent text-xs font-medium text-accent-foreground">
                     {i + 1}
                   </span>
-                  <p className="text-xs text-muted-foreground">{step}</p>
+                  <p className="min-w-0 text-xs text-muted-foreground">{step}</p>
+                  {/* hairline connector to the next step — echoes the stepper */}
+                  {i < S.home.howSteps.length - 1 && (
+                    <span aria-hidden className="mt-2.5 hidden h-px flex-1 bg-border md:block" />
+                  )}
                 </div>
               ))}
             </CardContent>
@@ -353,9 +367,9 @@ export function HomePage() {
         <div className="space-y-3">
           {dispatchCallout}
           {queueOpen.length > 0 && (
-            <Card>
+            <Card className="reveal" style={{ '--stagger-i': 1 } as React.CSSProperties}>
               <CardContent className="p-4">
-                <h3 className="mb-2.5 text-sm font-semibold text-muted-foreground">{S.home.queueByStatus}</h3>
+                <h3 className="mb-2.5 text-section text-muted-foreground">{S.home.queueByStatus}</h3>
                 <div className="flex h-3.5 overflow-hidden rounded-full">
                   <div
                     className="bg-[var(--warning)]"
@@ -377,10 +391,10 @@ export function HomePage() {
               </CardContent>
             </Card>
           )}
-          <div className="grid gap-3 lg:grid-cols-2">
+          <div className="reveal grid gap-3 lg:grid-cols-2" style={{ '--stagger-i': 2 } as React.CSSProperties}>
             <Card className="min-w-0">
               <CardContent className="p-4">
-                <h3 className="mb-1.5 text-sm font-semibold text-muted-foreground">{S.home.dueThisWeek}</h3>
+                <h3 className="mb-1.5 text-section text-muted-foreground">{S.home.dueThisWeek}</h3>
                 {dueSoon.length === 0 ? (
                   <p className="py-1.5 text-sm text-muted-foreground">{S.home.nothingDue}</p>
                 ) : (
@@ -418,7 +432,7 @@ export function HomePage() {
       {topRole === 'admin' && (
         <div className="space-y-3">
           {dispatchCallout}
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <div className="reveal grid grid-cols-2 gap-3 md:grid-cols-4" style={{ '--stagger-i': 1 } as React.CSSProperties}>
             <StatCard label={S.home.cards.all} value={all.length} to="/requests?scope=all" />
             <StatCard label={S.home.cards.overdue} value={allOverdue.length} to="/requests?scope=all&overdue=1" tone="red" />
             <StatCard label={S.home.cards.unassignedPool} value={unassigned.length} to="/requests?scope=unassigned" />
@@ -428,10 +442,10 @@ export function HomePage() {
               to="/requests?scope=all&status=Completed"
             />
           </div>
-          <div className="grid gap-3 lg:grid-cols-2">
+          <div className="reveal grid gap-3 lg:grid-cols-2" style={{ '--stagger-i': 2 } as React.CSSProperties}>
             <Card className="min-w-0">
               <CardContent className="p-4">
-                <h3 className="mb-2 text-sm font-semibold text-muted-foreground">{S.home.teamLoad}</h3>
+                <h3 className="mb-2 text-section text-muted-foreground">{S.home.teamLoad}</h3>
                 {teamLoad.map(([name, count]) => (
                   <div key={name} className="flex items-center gap-2.5 py-1 text-sm">
                     <span className="w-32 flex-none truncate">{name}</span>
@@ -454,7 +468,7 @@ export function HomePage() {
             </Card>
             <Card className="min-w-0">
               <CardContent className="p-4">
-                <h3 className="mb-2 text-sm font-semibold text-muted-foreground">{S.home.latestActivity}</h3>
+                <h3 className="mb-2 text-section text-muted-foreground">{S.home.latestActivity}</h3>
                 {activity.map((a, i) => (
                   <p key={i} className="py-1 text-sm">
                     <span className="font-medium">{a.who}</span> {a.verb}{' '}

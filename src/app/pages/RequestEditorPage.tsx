@@ -121,7 +121,7 @@ function FieldCell(info: EditorCell) {
     title: error,
     className: cn(
       flatField,
-      needed && !error && 'bg-[var(--warning-tint)] ring-1 ring-inset ring-[rgba(225,154,47,.4)] dark:ring-[rgba(233,170,75,.45)]',
+      needed && !error && 'bg-[var(--warning-tint)] ring-1 ring-inset ring-[var(--warning-border)]',
       error && 'bg-[var(--danger-tint)] ring-1 ring-inset ring-destructive',
     ),
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -198,7 +198,7 @@ function FieldCell(info: EditorCell) {
         className={cn(
           common.className,
           // the floating editor needs its frame back — it sits above other cells
-          floating && 'absolute left-0 top-0 z-30 rounded-md border border-ring bg-card shadow-lg',
+          floating && 'absolute left-0 top-0 z-30 rounded-md border border-ring bg-card shadow-raised',
         )}
         style={floating ? { width: Math.min(contentWidth, 480), minWidth: '100%' } : undefined}
         onFocus={() => setFocused(true)}
@@ -652,11 +652,11 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
     })
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {/* sticky under the 64px app header: Save/Submit stay reachable while
           scrolling long grids */}
       <div className="sticky top-16 z-20 -mx-4 flex flex-wrap items-center justify-between gap-3 border-b bg-background px-4 py-2">
-        <h1 className="text-2xl font-semibold">{title}</h1>
+        <h1 className="font-display text-display">{title}</h1>
         <div className="flex gap-2">
           <Button variant="ghost" onClick={() => window.history.back()}>
             {S.editor.cancel}
@@ -761,7 +761,7 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
               </TabsList>
               <p className="pb-2 text-sm text-muted-foreground">
                 {/* the word carries the exact same highlight as the mandatory cells */}
-                <span className="rounded bg-[var(--warning-tint)] px-1.5 py-0.5 text-foreground ring-1 ring-inset ring-[rgba(225,154,47,.4)] dark:ring-[rgba(233,170,75,.45)]">
+                <span className="rounded bg-[var(--warning-tint)] px-1.5 py-0.5 text-foreground ring-1 ring-inset ring-[var(--warning-border)]">
                   {S.editor.requiredHintHighlighted}
                 </span>
                 {S.editor.requiredHintRest}

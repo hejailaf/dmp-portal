@@ -136,7 +136,7 @@ function MoreMenu({
         <MoreHorizontal className="h-4 w-4" /> {S.detail.more}
       </Button>
       {open && (
-        <div role="menu" className="absolute right-0 top-full z-40 mt-1 min-w-[180px] rounded-md border bg-card p-1 shadow-lg">
+        <div role="menu" className="absolute right-0 top-full z-40 mt-1 min-w-[180px] rounded-md border bg-card p-1 shadow-raised">
           {items.map((item) => (
             <button
               key={item.label}
@@ -161,7 +161,7 @@ function MoreMenu({
 function StripItem({ label, strong, children }: { label: string; strong?: boolean; children: React.ReactNode }) {
   return (
     <div className="min-w-[100px] flex-1 px-4 py-1 first:pl-0 last:pr-0">
-      <div className="text-[10px] uppercase tracking-[0.06em] text-muted-foreground">{label}</div>
+      <div className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground">{label}</div>
       <div className={`mt-0.5 text-[13px] ${strong ? 'font-medium text-secondary-foreground' : ''}`}>
         {children}
       </div>
@@ -385,10 +385,10 @@ export function RequestDetailPage({ id }: { id: string }) {
 
   if (detail.loading)
     return (
-      <div className="space-y-4">
-        <Skeleton className="h-44 w-full rounded-[10px]" />
-        <Skeleton className="h-56 w-full rounded-[10px]" />
-        <Skeleton className="h-64 w-full rounded-[10px]" />
+      <div className="space-y-5">
+        <Skeleton className="h-44 w-full rounded-card" />
+        <Skeleton className="h-56 w-full rounded-card" />
+        <Skeleton className="h-64 w-full rounded-card" />
       </div>
     )
   // error/not-found still offer the way back to the list
@@ -494,7 +494,7 @@ export function RequestDetailPage({ id }: { id: string }) {
     })
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {backLink}
       {banner && (
         <p className="rounded-md border border-destructive/40 bg-[var(--danger-tint)] p-3 text-sm text-destructive">{banner}</p>
@@ -506,7 +506,7 @@ export function RequestDetailPage({ id }: { id: string }) {
         </p>
       )}
       {req.status === 'Returned' && req.rejectReason && (
-        <p className="rounded-md border border-[rgba(225,154,47,.4)] bg-[var(--warning-tint)] p-3 text-sm">
+        <p className="rounded-md border border-[var(--warning-border)] bg-[var(--warning-tint)] p-3 text-sm">
           <span className="font-semibold">{S.detail.returnReason}: </span>
           {req.rejectReason}
         </p>
@@ -514,14 +514,16 @@ export function RequestDetailPage({ id }: { id: string }) {
 
       {/* document header (ux-experiments 2026-07-21): actions live IN the
           card on the ref row; the status pill grew into a lifecycle stepper;
-          due date carries its countdown inline */}
-      <Card>
+          due date carries its countdown inline. Teal top rule = letterhead. */}
+      <Card className="reveal border-t-2 border-t-[var(--teal)]">
         <CardContent className="p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             {req.description ? (
-              <span className="text-sm font-medium tracking-wide text-muted-foreground">{req.ref}</span>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                {req.ref}
+              </span>
             ) : (
-              <h1 className="text-2xl font-semibold text-secondary-foreground">{req.ref}</h1>
+              <h1 className="font-display text-title text-secondary-foreground">{req.ref}</h1>
             )}
             <div className="flex flex-wrap items-center gap-2">
               {canEditDraft && (
@@ -581,7 +583,7 @@ export function RequestDetailPage({ id }: { id: string }) {
           </div>
           {req.description && (
             <h1
-              className="mt-1.5 truncate text-[21px] font-semibold leading-snug text-secondary-foreground"
+              className="font-display text-title mt-1.5 truncate text-secondary-foreground"
               title={req.description}
             >
               {req.description}
@@ -636,7 +638,7 @@ export function RequestDetailPage({ id }: { id: string }) {
       </Card>
 
       {/* line items */}
-      <Card>
+      <Card className="reveal" style={{ '--stagger-i': 1 } as React.CSSProperties}>
         <CardHeader>
           <CardTitle>{S.detail.linesTitle}</CardTitle>
         </CardHeader>
@@ -644,15 +646,17 @@ export function RequestDetailPage({ id }: { id: string }) {
           {groups.length === 0 && <p className="text-sm text-muted-foreground">{S.detail.noLines}</p>}
           {groups.map(({ cfg, lines: groupLines }) => (
             <div key={cfg.objectType}>
-              <h4 className="mb-2 text-sm font-semibold text-muted-foreground">{cfg.label}</h4>
+              <h4 className="mb-2 text-section text-muted-foreground">{cfg.label}</h4>
               <DetailLineGrid config={cfg} lines={groupLines} />
             </div>
           ))}
         </CardContent>
       </Card>
 
-      {/* activity — one card, three tabs (browser-tab styling shared with the editor) */}
-      <Card>
+      {/* activity — one card, three tabs (browser-tab styling shared with the
+          editor); reveal stays on the CARD only — tab panels re-render per
+          action without unmount and must not animate */}
+      <Card className="reveal" style={{ '--stagger-i': 2 } as React.CSSProperties}>
         <CardContent className="p-0">
           <Tabs defaultValue="comments">
             <div className="border-b px-4 pt-3">
