@@ -224,11 +224,19 @@ function parseSheet(ws: Worksheet, cfg: ObjectTypeConfig): ImportResult {
   const importable = cfg.fields.filter((f) => !f.derived)
   const byKey = new Map(importable.map((f) => [f.key, f]))
   const byLabel = new Map(importable.map((f) => [f.label.toLowerCase(), f]))
+  // columns the app's OWN artifacts carry: the detail export adds '#' and the
+  // derived fields. Recognize and skip them silently — importing a file this
+  // app produced must never read like a user mistake (derived values are
+  // recomputed by applyDerivations regardless).
+  const derived = cfg.fields.filter((f) => f.derived)
+  const derivedByKey = new Set(derived.map((f) => f.key))
+  const derivedByLabel = new Set(derived.map((f) => f.label.toLowerCase()))
   const hasKeyRow = cellText(ws.getRow(2).getCell(1).value) === KEY_ROW_MARKER
   const mapRow = ws.getRow(hasKeyRow ? 2 : 1)
   const fieldForColumn = new Map<number, FieldDef>()
   let actionColumn = 1
   const errors: string[] = []
+  const unknownColumns: string[] = []
 
   mapRow.eachCell({ includeEmpty: false }, (cell, col) => {
     const text = cellText(cell.value)
@@ -237,10 +245,20 @@ function parseSheet(ws: Worksheet, cfg: ObjectTypeConfig): ImportResult {
       actionColumn = col
       return
     }
+    if (text === '#') return
+    if (hasKeyRow ? derivedByKey.has(text) : derivedByLabel.has(text.toLowerCase())) return
     const field = hasKeyRow ? byKey.get(text) : byLabel.get(text.toLowerCase())
     if (field) fieldForColumn.set(col, field)
-    else errors.push(`Column "${text}" is not a known ${cfg.label} field — ignored.`)
+    else unknownColumns.push(text)
   })
+  // genuinely foreign columns: one readable note per sheet, not one per column
+  if (unknownColumns.length > 0) {
+    errors.push(
+      unknownColumns.length === 1
+        ? `Column "${unknownColumns[0]}" is not in the template — its values were skipped.`
+        : `Columns not in the template were skipped: ${unknownColumns.map((c) => `"${c}"`).join(', ')}.`,
+    )
+  }
   if (fieldForColumn.size === 0) {
     return { lines: [], errors: [`No recognizable ${cfg.label} columns found — is this the right template?`] }
   }

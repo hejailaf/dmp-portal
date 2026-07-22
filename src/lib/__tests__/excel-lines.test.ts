@@ -171,6 +171,22 @@ describe('unified Excel template round-trip', () => {
     expect(result.lines[0].fieldData.equipmentNumber).toBe('10009999')
   })
 
+  it("re-importing the app's own export is silent about '#' and derived columns", async () => {
+    // mimics a detail-export sheet: '#' row numbers + derived classification
+    // columns are the APP's columns — importing them back must not read as a
+    // user mistake; only genuinely foreign columns earn one grouped note
+    const wb = new ExcelJS.Workbook()
+    const ws = wb.addWorksheet(equipment.label)
+    ws.addRow(['#', 'Action', 'Equipment Number', 'Equipment Category', 'Object Type', 'Catalog Profile', 'Reason for Deletion', 'My Notes', 'Approver'])
+    ws.addRow(['1', 'Delete', '10001234', 'M', '16X', 'PM016X', 'Scrapped', 'call planning', 'AH'])
+    const result = await parseUnifiedTemplate((await wb.xlsx.writeBuffer()) as ArrayBuffer)
+    expect(result.lines).toHaveLength(1)
+    expect(result.lines[0].fieldData.equipmentNumber).toBe('10001234')
+    expect(result.errors).toHaveLength(1) // ONE grouped note, not one per column
+    expect(result.errors[0]).toMatch(/"My Notes", "Approver"/)
+    expect(result.errors[0]).not.toMatch(/#|Category|Object Type|Catalog/)
+  })
+
   it('reports a useless file instead of importing nothing silently', async () => {
     const wb = new ExcelJS.Workbook()
     const ws = wb.addWorksheet('Sheet1')
