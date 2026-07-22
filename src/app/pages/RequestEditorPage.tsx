@@ -402,13 +402,12 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
   // copy — restoring unconditionally is safe.
   const [restored, setRestored] = useState(() => readAutosave(autosaveKey))
   const [showRestored, setShowRestored] = useState(!!restored)
-  // a new request opens ready to fill: one blank Equipment line (edit mode
-  // starts empty and the load effect fills it from the draft or autosave)
-  const [lines, setLines] = useState<EditorLine[]>(() => {
-    if (requestId) return []
-    if (restored?.lines.length) return restored.lines
-    return [{ key: crypto.randomUUID(), objectType: 'EQUIPMENT', action: 'ADD', fieldData: {} }]
-  })
+  // a new request opens with NO lines — every tab (Equipment included) shows
+  // the actionable empty state (edit mode starts empty too and the load
+  // effect fills it from the draft or autosave)
+  const [lines, setLines] = useState<EditorLine[]>(() =>
+    !requestId && restored?.lines.length ? restored.lines : [],
+  )
   const [description, setDescription] = useState(!requestId && restored ? restored.description : '')
   const [errors, setErrors] = useState<ErrorsByLine>({})
   const [requestErrors, setRequestErrors] = useState<string[]>([])
@@ -699,7 +698,7 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
     if (requestId) {
       setInitialized(false) // hydrate effect re-runs on the server path
     } else {
-      setLines([{ key: crypto.randomUUID(), objectType: 'EQUIPMENT', action: 'ADD', fieldData: {} }])
+      setLines([])
       setDescription('')
       setTab('EQUIPMENT')
     }
