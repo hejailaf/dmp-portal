@@ -46,6 +46,10 @@ const TRANSITIONS: Transition[] = [
   { from: 'Waiting to be started', to: 'Returned', event: 'Returned', label: 'Return to requester', allowed: assignedMaintainer },
   { from: 'In process', to: 'Returned', event: 'Returned', label: 'Return to requester', allowed: assignedMaintainer },
   { from: 'Returned', to: 'Waiting to be started', event: 'Submitted', label: 'Resubmit', allowed: owningRequester },
+  // Withdraw (user decision 2026-07-22): Waiting only — once In process the
+  // requester asks via comment. Reopenable like Rejected; no reason field.
+  { from: 'Waiting to be started', to: 'Withdrawn', event: 'Withdrawn', label: 'Withdraw request', allowed: owningRequester },
+  { from: 'Withdrawn', to: 'Draft', event: 'Reopened', label: 'Reopen as draft', allowed: owningRequester },
 ]
 
 export function findTransition(from: RequestStatus, to: RequestStatus): Transition | undefined {

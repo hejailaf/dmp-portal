@@ -15,6 +15,7 @@ export const STATUSES = [
   'Returned',
   'Completed',
   'Rejected',
+  'Withdrawn', // requester pulled it back before work started (2026-07-22)
 ] as const
 export type RequestStatus = (typeof STATUSES)[number]
 
@@ -86,6 +87,7 @@ export const AUDIT_EVENTS = [
   'Rejected',
   'Returned',
   'Reopened',
+  'Withdrawn',
   'CommentAdded',
   'AttachmentAdded',
 ] as const

@@ -102,8 +102,11 @@ security group into PMDC Requesters.
 
 **5. Lists** — open `index.aspx` → **Site setup** → **Verify & provision
 lists** (all green — this creates all four lists with every current
-column, CompletedAt/Description/LastNotified* included, so no re-run
-needed later) → **Run connection self-test** (ends "DELETE OK").
+column, CompletedAt/Description/LastNotified*/KeyedAt included, and the
+`Withdrawn` status choice, so no re-run needed later) → **Run connection
+self-test** (ends "DELETE OK"). Provision with a build from 2026-07-22
+or later: earlier builds create the RequestStatus choice WITHOUT
+`Withdrawn`, and provisioning never edits an existing column's choices.
 
 **6. Permissions** — LIST_SETUP.md §4 in full: recreate the two custom
 permission levels (per-collection, so they don't exist here yet) and the

@@ -112,6 +112,7 @@ export const S = {
     Returned: 'Returned',
     Completed: 'Completed',
     Rejected: 'Rejected',
+    Withdrawn: 'Withdrawn',
   } as Record<string, string>,
 
   /**
@@ -230,6 +231,7 @@ export const S = {
     Rejected: 'rejected the request',
     Returned: 'returned the request to the requester',
     Reopened: 'reopened the request as a draft',
+    Withdrawn: 'withdrew the request',
     CommentAdded: 'added a comment',
     AttachmentAdded: 'added an attachment',
   } as Record<string, string>,

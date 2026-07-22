@@ -18,6 +18,7 @@ const STATUS_VARIANT: Record<RequestStatus, 'neutral' | 'blue' | 'amber' | 'gree
   Returned: 'amber', // with the requester — action needed, like Waiting
   Completed: 'green',
   Rejected: 'red',
+  Withdrawn: 'neutral', // requester's own retreat — no alarm color
 }
 
 /** Badge label follows reality: waiting shows "Submitted"/"Unassigned"/"Assigned" by assignee + viewer. */
@@ -40,7 +41,7 @@ export function StatusStepper({ status, assigneeId }: { status: RequestStatus; a
     state: 'past' | 'current' | 'future'
   }
   let steps: Step[]
-  if (status === 'Rejected' || status === 'Returned') {
+  if (status === 'Rejected' || status === 'Returned' || status === 'Withdrawn') {
     steps = [
       { label: S.status.Draft, state: 'past' },
       { label: S.statusLabel(status, !!assigneeId, staffView), state: 'current' },
@@ -112,7 +113,8 @@ export function DueSuffix({ request }: { request: Request }) {
 /** SLA countdown / overdue badge — derived at render time, never stored. */
 export function SlaBadge({ request }: { request: Pick<Request, 'status' | 'dueDate'> }) {
   if (!request.dueDate) return null
-  if (request.status === 'Completed' || request.status === 'Rejected') return null
+  if (request.status === 'Completed' || request.status === 'Rejected' || request.status === 'Withdrawn')
+    return null
   if (isOverdue(request)) {
     return <Badge variant="red">{S.sla.overdue(-daysUntilDue(request.dueDate))}</Badge>
   }

@@ -91,6 +91,8 @@ export function buildSeed(): MockDb {
       audit(id, 'StatusChanged', spec.assignee, req.completedAt ?? daysAgo(0.2), 'In process', 'Completed')
     if (spec.status === 'Rejected' && spec.rejectReason)
       audit(id, 'Rejected', SEED_USERS[4], daysAgo(0.5), 'Waiting to be started', spec.rejectReason)
+    if (spec.status === 'Withdrawn')
+      audit(id, 'Withdrawn', spec.requester, daysAgo(0.4), 'Waiting to be started', 'Withdrawn')
     return req
   }
 
@@ -366,6 +368,32 @@ export function buildSeed(): MockDb {
     db.comments.push({ id: `c-big-${i + 1}`, requestId: bigOpen.id, authorId: author.id, authorName: author.displayName, body, createdAt: at })
     db.audit.push({ id: `a-${db.audit.length + 1}`, requestId: bigOpen.id, event: 'CommentAdded', actorId: author.id, actorName: author.displayName, at })
   }
+
+  // Withdrawn (reopenable — user decision 2026-07-22)
+  add({
+    status: 'Withdrawn',
+    requester: omar,
+    submittedDaysAgo: 4,
+    description: 'Spare gearbox registration for crane G-2',
+    lines: [
+      {
+        objectType: 'EQUIPMENT',
+        action: 'ADD',
+        fieldData: {
+          description: 'Gearbox for crane G-2',
+          equipmentType: 'Gearboxes',
+          manufacturer: 'SEW-Eurodrive',
+          model: 'K167',
+          planningPlant: '1000',
+          functionalLocation: 'SITE-A-LIFT-CRN-02',
+          costCenter: '1100',
+          plannerGroup: 'P01',
+          mainWorkCenter: 'MECH01',
+          startupDate: '2026-06-15',
+        },
+      },
+    ],
+  })
 
   // a couple of comments for texture
   db.comments.push(

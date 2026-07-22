@@ -66,6 +66,23 @@ describe('legal transitions and who may perform them', () => {
     expect(canTransition(otherRequester, 'Returned', 'Waiting to be started')).toBe(false)
     expect(canTransition(assignee, 'Returned', 'Waiting to be started')).toBe(false)
   })
+
+  it('Waiting → Withdrawn (withdraw): owning requester and admin only', () => {
+    expect(canTransition(owner, 'Waiting to be started', 'Withdrawn')).toBe(true)
+    expect(canTransition(admin, 'Waiting to be started', 'Withdrawn')).toBe(true)
+    expect(canTransition(otherRequester, 'Waiting to be started', 'Withdrawn')).toBe(false)
+    expect(canTransition(assignee, 'Waiting to be started', 'Withdrawn')).toBe(false)
+    // In process is NOT withdrawable (user decision 2026-07-22)
+    expect(canTransition(owner, 'In process', 'Withdrawn')).toBe(false)
+    expect(canTransition(admin, 'In process', 'Withdrawn')).toBe(false)
+  })
+
+  it('Withdrawn → Draft (reopen): owning requester and admin only', () => {
+    expect(canTransition(owner, 'Withdrawn', 'Draft')).toBe(true)
+    expect(canTransition(admin, 'Withdrawn', 'Draft')).toBe(true)
+    expect(canTransition(otherRequester, 'Withdrawn', 'Draft')).toBe(false)
+    expect(canTransition(assignee, 'Withdrawn', 'Draft')).toBe(false)
+  })
 })
 
 describe('illegal transitions are impossible for everyone, including admin', () => {
@@ -79,6 +96,8 @@ describe('illegal transitions are impossible for everyone, including admin', () 
     'Waiting to be started>Returned',
     'In process>Returned',
     'Returned>Waiting to be started',
+    'Waiting to be started>Withdrawn',
+    'Withdrawn>Draft',
   ])
 
   it('every from×to pair outside the table is rejected', () => {
@@ -112,15 +131,18 @@ describe('assertTransition', () => {
     expect(assertTransition(owner, 'Rejected', 'Draft').event).toBe('Reopened')
     expect(assertTransition(assignee, 'In process', 'Returned').event).toBe('Returned')
     expect(assertTransition(owner, 'Returned', 'Waiting to be started').event).toBe('Submitted')
+    expect(assertTransition(owner, 'Waiting to be started', 'Withdrawn').event).toBe('Withdrawn')
+    expect(assertTransition(owner, 'Withdrawn', 'Draft').event).toBe('Reopened')
   })
 })
 
 describe('availableTransitions (drives the action buttons)', () => {
-  it('admin from Waiting: start + reject + return', () => {
+  it('admin from Waiting: start + reject + return + withdraw', () => {
     expect(availableTransitions(admin, 'Waiting to be started').map((t) => t.to)).toEqual([
       'In process',
       'Rejected',
       'Returned',
+      'Withdrawn',
     ])
   })
 
@@ -131,7 +153,9 @@ describe('availableTransitions (drives the action buttons)', () => {
     ])
   })
 
-  it('owning requester from Waiting: nothing', () => {
-    expect(availableTransitions(owner, 'Waiting to be started')).toEqual([])
+  it('owning requester from Waiting: withdraw only', () => {
+    expect(availableTransitions(owner, 'Waiting to be started').map((t) => t.to)).toEqual([
+      'Withdrawn',
+    ])
   })
 })

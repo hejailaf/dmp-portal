@@ -12,6 +12,7 @@ import {
   Plus,
   RotateCcw,
   Send,
+  Undo2,
   UserCheck,
   X,
   type LucideIcon,
@@ -330,6 +331,7 @@ const AUDIT_ICONS: Record<AuditEvent, LucideIcon> = {
   Rejected: X,
   Returned: CornerUpLeft,
   Reopened: RotateCcw,
+  Withdrawn: Undo2,
   CommentAdded: MessageSquare,
   AttachmentAdded: Paperclip,
 }
@@ -488,7 +490,11 @@ export function RequestDetailPage({ id }: { id: string }) {
   // one primary CTA per state; Export + the destructive Reject sit one
   // deliberate click away in the More menu (misclick-proofing Reject)
   const rejectTransition = transitions.find((t) => t.to === 'Rejected')
-  const dueActive = !!req.dueDate && req.status !== 'Completed' && req.status !== 'Rejected'
+  const dueActive =
+    !!req.dueDate &&
+    req.status !== 'Completed' &&
+    req.status !== 'Rejected' &&
+    req.status !== 'Withdrawn'
   const stripLink = 'text-primary hover:underline'
 
   const postComment = () =>
@@ -558,7 +564,11 @@ export function RequestDetailPage({ id }: { id: string }) {
                 .map((t) => (
                   <Button
                     key={t.to}
-                    variant={t.to === 'Returned' || (canAssign && !req.assigneeId) ? 'outline' : 'default'}
+                    variant={
+                      t.to === 'Returned' || t.to === 'Withdrawn' || (canAssign && !req.assigneeId)
+                        ? 'outline'
+                        : 'default'
+                    }
                     disabled={busy}
                     onClick={() => doTransition(t.to)}
                   >
