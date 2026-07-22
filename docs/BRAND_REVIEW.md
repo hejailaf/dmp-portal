@@ -24,7 +24,7 @@ user's; the V1 palette shipped on the `experiments` branch.
 | Colors | Official palette only; secondary set for internal | Invented PM DataCare palette | **Remapped** (V1 "Teal internal", user-selected from 3 mockups): Dark Blue `#0033A0` interactive, Teal `#26A8AB` accent/Completed, gray-ramp chrome, Aramco Blue tint = In process, Yellow tint = Waiting, Red = Rejected/Overdue. See styles.css |
 | Data & info | Approved chart colors, no gradients | Var-driven | Complies via the remap |
 | Aramco mark | Institutional logo for internal audiences | None shown | **User decision: no Aramco mark** — app stays PM DataCare-branded |
-| Iconography | No third-party icon sets; official library (15×15 grid, rounded) | lucide-react | **Accepted deviation** for UI chrome (official library lacks UI verbs: close, trash, filter, copy…). Official SVGs downloaded at `C:\ClaudeProjects\Iconography` — optional hybrid use in illustrative slots is a possible follow-up |
+| Iconography | No third-party icon sets; official library (15×15 grid, rounded) | lucide-react | **Hybrid**: official Aramco icons on the requester launchpad cards (`scripts/import-aramco-icons.mjs` converts from the local library at `C:\ClaudeProjects\Iconography`); lucide stays for functional UI chrome — the official library lacks UI verbs (close, trash, filter, copy…) |
 | Gradient / energy lines / photography / illustration / sonic / grid | Marketing-material rules | Not used in the app | No action |
 
 ## Known deliberate deviations
