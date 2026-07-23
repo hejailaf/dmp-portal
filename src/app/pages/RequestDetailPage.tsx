@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { createColumnHelper, getCoreRowModel, useReactTable } from '@tanstack/react-table'
 import {
   ArrowLeft,
@@ -44,11 +45,28 @@ import { Dialog, DialogContent, DialogTitle } from '../components/ui/dialog'
 import { Select, Textarea } from '../components/ui/input'
 import { Skeleton } from '../components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
-import { autoColumnSize, ClippedCell, DataGrid, usePersistedColumnSizing } from '../components/DataGrid'
+import {
+  autoColumnSize,
+  ClippedCell,
+  DataGrid,
+  FitColumnsButton,
+  usePersistedColumnSizing,
+} from '../components/DataGrid'
 
 const lineColumnHelper = createColumnHelper<RequestLine>()
 
-function DetailLineGrid({ config, lines }: { config: ObjectTypeConfig; lines: RequestLine[] }) {
+function DetailLineGrid({
+  config,
+  lines,
+  fitSlot,
+}: {
+  config: ObjectTypeConfig
+  lines: RequestLine[]
+  /** the tab-strip slot this grid portals its Fit-columns button into — the
+      button stays in this grid's tree (reactive to its column sizing) but
+      renders up in the tab row */
+  fitSlot: HTMLElement | null
+}) {
   // auto-fit from the (static) line values — header width at minimum, capped
   const autoSizes: Record<string, number> = {
     action: autoColumnSize(S.editor.action, lines.map((l) => config.actionLabels[l.action])),
@@ -114,7 +132,14 @@ function DetailLineGrid({ config, lines }: { config: ObjectTypeConfig; lines: Re
     onColumnSizingChange: sizing.onColumnSizingChange,
   })
   // #, Action and (where present) Description stay pinned while SAP fields scroll
-  return <DataGrid table={table} stickyIds={['no', 'action', 'description']} />
+  return (
+    <>
+      {/* Fit columns lives up in the tab strip (portaled), not in the grid's
+          own strip — hence noFitStrip */}
+      {fitSlot && createPortal(<FitColumnsButton table={table} />, fitSlot)}
+      <DataGrid table={table} stickyIds={['no', 'action', 'description']} noFitStrip />
+    </>
+  )
 }
 
 /** Overflow menu for secondary/destructive header actions — hand-rolled, no dependency. */
@@ -363,6 +388,8 @@ export function RequestDetailPage({ id }: { id: string }) {
   // BEFORE Radix's mousedown switches the value — so the trailing click knows
   // whether it was a re-select (→ toggle collapse) or a switch (→ do nothing)
   const activeTabBeforeClick = useRef(false)
+  // the active line grid portals its Fit-columns button into this tab-strip slot
+  const [fitSlot, setFitSlot] = useState<HTMLDivElement | null>(null)
 
   const run = async (fn: () => Promise<unknown>) => {
     setBusy(true)
@@ -774,11 +801,14 @@ export function RequestDetailPage({ id }: { id: string }) {
                     </TabsTrigger>
                   ))}
                 </TabsList>
+                {/* the active grid portals its Fit-columns button here, right
+                    of the tabs (empty while collapsed — no grid, no button) */}
+                <div ref={setFitSlot} className="mb-1 ml-auto self-center" />
               </div>
               {linesOpen &&
                 groups.map(({ cfg, lines: groupLines }) => (
                   <TabsContent key={cfg.objectType} value={cfg.objectType} className="px-4 pb-4">
-                    <DetailLineGrid config={cfg} lines={groupLines} />
+                    <DetailLineGrid config={cfg} lines={groupLines} fitSlot={fitSlot} />
                   </TabsContent>
                 ))}
             </Tabs>
