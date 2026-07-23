@@ -6,6 +6,7 @@ import {
   ArrowRight,
   ChevronDown,
   CornerUpLeft,
+  History,
   MessageSquare,
   MoreHorizontal,
   Paperclip,
@@ -362,6 +363,31 @@ const AUDIT_ICONS: Record<AuditEvent, LucideIcon> = {
   AttachmentAdded: Paperclip,
 }
 
+/** A titled sub-panel in the activity card (icon + name + count header). */
+function ActivityTile({
+  icon: Icon,
+  title,
+  count,
+  children,
+}: {
+  icon: LucideIcon
+  title: string
+  count: number
+  children: React.ReactNode
+}) {
+  return (
+    <div className="rounded-lg border">
+      <div className="flex items-center gap-2 border-b bg-muted/40 px-3 py-2">
+        <Icon className="h-4 w-4 flex-none text-[var(--teal)]" />
+        <h3 className="text-sm font-medium">{title}</h3>
+        <span className="ml-auto rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+          {count}
+        </span>
+      </div>
+      <div className="p-3">{children}</div>
+    </div>
+  )
+}
 
 export function RequestDetailPage({ id }: { id: string }) {
   const user = useCurrentUser()
@@ -816,36 +842,17 @@ export function RequestDetailPage({ id }: { id: string }) {
         )}
       </Card>
 
-      {/* activity — one card, three tabs (browser-tab styling shared with the
-          editor); reveal stays on the CARD only — tab panels re-render per
-          action without unmount and must not animate */}
+      {/* activity — one card; all three sections shown at once as tiles:
+          Comments leads the wide left column, Attachments + Audit stack on
+          the right (user decision 2026-07-23). reveal stays on the CARD. */}
       <Card className="reveal" style={{ '--stagger-i': 2 } as React.CSSProperties}>
-        <CardContent className="p-0">
-          <Tabs defaultValue="comments">
-            <div className="border-b px-4 pt-3">
-              <TabsList>
-                <TabsTrigger value="comments">
-                  {S.detail.commentsTitle}
-                  <span className="ml-1 text-xs text-muted-foreground">
-                    {S.editor.tabCount(comments.data?.length ?? 0)}
-                  </span>
-                </TabsTrigger>
-                <TabsTrigger value="attachments">
-                  {S.detail.attachmentsTitle}
-                  <span className="ml-1 text-xs text-muted-foreground">
-                    {S.editor.tabCount(attachments.data?.length ?? 0)}
-                  </span>
-                </TabsTrigger>
-                <TabsTrigger value="audit">
-                  {S.detail.auditTitle}
-                  <span className="ml-1 text-xs text-muted-foreground">
-                    {S.editor.tabCount(audit.data?.length ?? 0)}
-                  </span>
-                </TabsTrigger>
-              </TabsList>
-            </div>
-
-            <TabsContent value="comments" className="space-y-3 px-4 pb-4">
+        <CardContent className="grid items-start gap-3 p-3 md:grid-cols-[1.4fr_1fr]">
+          <ActivityTile
+            icon={MessageSquare}
+            title={S.detail.commentsTitle}
+            count={comments.data?.length ?? 0}
+          >
+            <div className="space-y-3">
               {/* the list scrolls; the composer below stays visible */}
               <div className="max-h-80 space-y-3 overflow-y-auto">
                 {comments.data?.length === 0 && (
@@ -881,13 +888,17 @@ export function RequestDetailPage({ id }: { id: string }) {
                   <span className="text-xs text-muted-foreground">{S.detail.commentHint}</span>
                 </div>
               </div>
-            </TabsContent>
-
-            <TabsContent value="attachments" className="px-4 pb-4">
+            </div>
+          </ActivityTile>
+          <div className="space-y-3">
+            <ActivityTile
+              icon={Paperclip}
+              title={S.detail.attachmentsTitle}
+              count={attachments.data?.length ?? 0}
+            >
               <AttachmentsPanel requestId={req.id} attachments={attachments} onAdded={() => audit.reload()} />
-            </TabsContent>
-
-            <TabsContent value="audit" className="px-4 pb-4">
+            </ActivityTile>
+            <ActivityTile icon={History} title={S.detail.auditTitle} count={audit.data?.length ?? 0}>
               {/* newest first; each event carries its icon and a relative time */}
               <div className="max-h-80 overflow-y-auto">
                 {[...(audit.data ?? [])].reverse().map((a, i, all) => {
@@ -927,8 +938,8 @@ export function RequestDetailPage({ id }: { id: string }) {
                   )
                 })}
               </div>
-            </TabsContent>
-          </Tabs>
+            </ActivityTile>
+          </div>
         </CardContent>
       </Card>
 
