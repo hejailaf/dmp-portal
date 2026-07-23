@@ -10,6 +10,8 @@ import { formatRef } from '@/domain/ref'
 export const SEED_USERS: User[] = [
   { id: 'u-rana', displayName: 'Rana Requester', email: 'rana@example.com', roles: ['requester'] },
   { id: 'u-omar', displayName: 'Omar Operator', email: 'omar@example.com', roles: ['requester'] },
+  // owns NO seeded requests — demos the first-visit empty states
+  { id: 'u-noor', displayName: 'Noor Newcomer', email: 'noor@example.com', roles: ['requester'] },
   { id: 'u-malik', displayName: 'Malik Maintainer', email: 'malik@example.com', roles: ['maintainer'] },
   { id: 'u-mona', displayName: 'Mona Maintainer', email: 'mona@example.com', roles: ['maintainer'] },
   { id: 'u-aya', displayName: 'Aya Admin', email: 'aya@example.com', roles: ['admin'] },
