@@ -359,6 +359,10 @@ export function RequestDetailPage({ id }: { id: string }) {
   // Line items tab strip: default = first present type; collapsed = strip only
   const [linesTab, setLinesTab] = useState<ObjectType>()
   const [linesOpen, setLinesOpen] = useState(true)
+  // was the clicked tab already the active one? Captured on mousedown-CAPTURE,
+  // BEFORE Radix's mousedown switches the value — so the trailing click knows
+  // whether it was a re-select (→ toggle collapse) or a switch (→ do nothing)
+  const activeTabBeforeClick = useRef(false)
 
   const run = async (fn: () => Promise<unknown>) => {
     setBusy(true)
@@ -719,10 +723,13 @@ export function RequestDetailPage({ id }: { id: string }) {
           <CardContent className="p-0">
             <Tabs
               value={activeLinesTab}
-              // keyboard support: Radix arrow-key activation goes through
-              // onValueChange — without it, arrows move focus but never
-              // switch the panel (trigger onClick only covers pointer/Enter)
+              // onValueChange fires ONLY on an actual tab change (Radix routes
+              // it through useControllableState) — so it's the switch handler,
+              // for both pointer (mousedown) and keyboard (arrow) activation.
+              // It never fires when the already-active tab is re-clicked; that
+              // collapse toggle lives on the trigger's onClick below.
               onValueChange={(v) => {
+                activeTabBeforeClick.current = false // a switch consumes any pending click (keyboard-safe)
                 setLinesTab(v as ObjectType)
                 setLinesOpen(true)
               }}
@@ -749,13 +756,15 @@ export function RequestDetailPage({ id }: { id: string }) {
                     <TabsTrigger
                       key={cfg.objectType}
                       value={cfg.objectType}
+                      // capture (before Radix's bubble-phase mousedown switch)
+                      // whether this tab was already active
+                      onMouseDownCapture={() => {
+                        activeTabBeforeClick.current = activeLinesTab === cfg.objectType
+                      }}
+                      // re-clicking the active tab (no switch → onValueChange
+                      // didn't fire) toggles the list open/closed
                       onClick={() => {
-                        if (activeLinesTab === cfg.objectType) {
-                          setLinesOpen((o) => !o)
-                        } else {
-                          setLinesTab(cfg.objectType)
-                          setLinesOpen(true)
-                        }
+                        if (activeTabBeforeClick.current) setLinesOpen((o) => !o)
                       }}
                     >
                       {cfg.label}
