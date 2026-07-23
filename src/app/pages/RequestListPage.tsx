@@ -211,7 +211,8 @@ export function RequestListPage() {
       }),
       columnHelper.accessor('status', {
         header: S.list.columns.status,
-        size: 170,
+        // fixed 120 (user decision 2026-07-23)
+        size: 120,
         cell: (info) => <StatusBadge status={info.getValue()} assigneeId={info.row.original.assigneeId} />,
       }),
       columnHelper.accessor(reqTypeOf, {
