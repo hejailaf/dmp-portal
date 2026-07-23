@@ -43,8 +43,10 @@ function Shell({ children }: { children: React.ReactNode }) {
   const isRequester = user.roles.includes('requester')
   const isMaintainer = user.roles.includes('maintainer')
   const isAdmin = user.roles.includes('admin')
-  // one source of truth for the page width: the header letterhead always
-  // aligns with the content below it (home 1280, data pages 1536)
+  // content width per route (home tighter, data pages wider for the grids);
+  // the header ITEMS are independently fixed at 1280 on every page (user
+  // decision 2026-07-23) — the full-width band + teal rule carry the header
+  // visual, so the items don't need to align with the content edges
   const pageCap = route.path === '/' ? 'max-w-7xl' : 'max-w-screen-2xl'
   // highest role labels the identity cluster (same precedence as the home page)
   const roleLabel = isAdmin
@@ -58,11 +60,9 @@ function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-30 bg-card">
-        {/* site content is centered; data pages cap at 1536px, home at 1280
-            (user decision 2026-07-23 — supersedes the old 1920px cap: fixed
-            grid columns never stretch, so the extra span was empty filler).
-            The header shares pageCap with <main> so they always align. */}
-        <div className={`mx-auto flex h-16 w-full items-stretch gap-4 px-4 ${pageCap}`}>
+        {/* header items: constant 1280 cap on every page — never shifts on
+            navigation (user decision 2026-07-23) */}
+        <div className="mx-auto flex h-16 w-full max-w-7xl items-stretch gap-4 px-4">
           <a href={href('/')} className="flex items-center">
             {/* light/dark lockups swap on the `.dark` html class */}
             <img src={logoLight} alt={S.appName} className="h-[34px] w-auto dark:hidden" />
