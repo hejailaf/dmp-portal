@@ -74,6 +74,11 @@ export const S = {
     none: 'No PM DataCare role',
   } as Record<string, string>,
 
+  // shared by every DataGrid
+  grid: {
+    fitColumns: 'Fit columns',
+  },
+
   list: {
     title: {
       mine: 'My requests',

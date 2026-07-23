@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react'
+import { ArrowDown, ArrowUp, ChevronsUpDown, UnfoldHorizontal } from 'lucide-react'
 import {
   flexRender,
   type ColumnSizingState,
@@ -8,6 +8,7 @@ import {
   type Table as TanstackTable,
 } from '@tanstack/react-table'
 import { cn } from '@/lib/utils'
+import { S } from '../strings'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table'
 
 // The one place all three grids (request list, editor tabs, detail line
@@ -68,7 +69,9 @@ export function usePersistedColumnSizing(storageKey: string): {
   const onColumnSizingChange: OnChangeFn<ColumnSizingState> = (updater) => {
     setColumnSizing((old) => {
       const next = typeof updater === 'function' ? updater(old) : updater
-      localStorage.setItem(key, JSON.stringify(next))
+      // empty = back to pure auto-fit; drop the key instead of storing '{}'
+      if (Object.keys(next).length === 0) localStorage.removeItem(key)
+      else localStorage.setItem(key, JSON.stringify(next))
       return next
     })
   }
@@ -118,7 +121,7 @@ export function DataGrid<T>({
       ),
     }
   }
-  return (
+  const grid = (
     // minWidth + w-full + a width-less filler column: real columns keep their
     // exact pixel widths (Excel feel — dragging never re-shares space among
     // them); the filler absorbs whatever is left on wide screens, continuing
@@ -213,6 +216,27 @@ export function DataGrid<T>({
         ))}
       </TableBody>
     </Table>
+  )
+
+  // one click back to pure auto-fit — only offered while a manual drag is
+  // in effect (double-clicking a handle still resets a single column)
+  const hasManualWidths = Object.keys(table.getState().columnSizing).length > 0
+  return (
+    // relative anchor: the pill floats over the grid's corner instead of
+    // scrolling with the table
+    <div className="relative">
+      {hasManualWidths && (
+        <button
+          type="button"
+          title={S.grid.fitColumns}
+          onClick={() => table.resetColumnSizing()}
+          className="absolute right-1 top-1 z-40 inline-flex h-5 items-center gap-1 rounded-full border bg-card px-2 text-[11px] font-medium text-muted-foreground shadow-raised hover:text-foreground"
+        >
+          <UnfoldHorizontal className="h-3 w-3" /> {S.grid.fitColumns}
+        </button>
+      )}
+      {grid}
+    </div>
   )
 }
 
