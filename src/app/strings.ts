@@ -33,8 +33,10 @@ export const S = {
     },
     // requester launchpad (home redesign 2026-07-21)
     newRequestCardBody: 'Equipment, FLoc, BOM, or PM changes.',
-    myRequestsCardBody: (drafts: number, open: number, completed: number) =>
-      `${drafts} ${drafts === 1 ? 'draft' : 'drafts'} · ${open} open · ${completed} completed`,
+    // segmented tile fragments — drafts/completed deep-link to the filtered list
+    statDrafts: (n: number) => `${n} ${n === 1 ? 'draft' : 'drafts'}`,
+    statOpen: (n: number) => `${n} open`,
+    statCompleted: (n: number) => `${n} completed`,
     templatesCardTitle: 'Excel template',
     templatesCardBody: 'One workbook, a sheet per data type — fill and import in the editor.',
     rejectedCallout: (ref: string) => `${ref} was rejected — fix and resubmit.`,

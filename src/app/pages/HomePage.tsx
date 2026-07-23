@@ -269,21 +269,39 @@ export function HomePage() {
               title={S.home.newRequestCta}
               body={S.home.newRequestCardBody}
             />
-            <ActionCard
-              to="/requests?scope=mine"
-              icon={<AramcoIcon svg={listSvg} className="h-5 w-5" />}
-              title={
-                <>
-                  {S.home.cards.myRequests}{' '}
+            {/* segmented tile — NOT one big anchor: the title opens the full
+                list, the draft/completed counts deep-link to filtered views
+                ("open" spans two statuses, so it stays plain text) */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex h-9 w-9 items-center justify-center rounded-md bg-secondary text-muted-foreground">
+                  <AramcoIcon svg={listSvg} className="h-5 w-5" />
+                </div>
+                <div className="mt-2.5 text-sm font-semibold">
+                  <a href={href('/requests?scope=mine')} className="hover:text-primary hover:underline">
+                    {S.home.cards.myRequests}
+                  </a>{' '}
                   <span className="font-normal text-muted-foreground">({mine.length})</span>
-                </>
-              }
-              body={S.home.myRequestsCardBody(
-                mine.filter((r) => r.status === 'Draft').length,
-                open(mine).length,
-                mine.filter((r) => r.status === 'Completed').length,
-              )}
-            />
+                </div>
+                <div className="mt-0.5 text-xs text-muted-foreground">
+                  <a
+                    href={href('/requests?scope=mine&status=Draft')}
+                    className="text-primary hover:underline"
+                  >
+                    {S.home.statDrafts(mine.filter((r) => r.status === 'Draft').length)}
+                  </a>
+                  {' · '}
+                  {S.home.statOpen(open(mine).length)}
+                  {' · '}
+                  <a
+                    href={href('/requests?scope=mine&status=Completed')}
+                    className="text-primary hover:underline"
+                  >
+                    {S.home.statCompleted(mine.filter((r) => r.status === 'Completed').length)}
+                  </a>
+                </div>
+              </CardContent>
+            </Card>
             <ActionCard
               onClick={() =>
                 void (async () => {
