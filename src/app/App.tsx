@@ -48,13 +48,13 @@ function Shell({ children }: { children: React.ReactNode }) {
   const isRequester = user.roles.includes('requester')
   const isMaintainer = user.roles.includes('maintainer')
   const isAdmin = user.roles.includes('admin')
-  // content width per route: home + request list at 1280 (the list's columns
-  // fit since Req. Type went short — user decision 2026-07-23), detail/editor
-  // keep 1536 for the wide field grids; the header ITEMS are independently
-  // fixed at 1280 on every page (user decision 2026-07-23) — the full-width
-  // band + teal rule carry the header visual, so the items don't need to
-  // align with the content edges
-  const pageCap = route.path === '/' || route.path === '/requests' ? 'max-w-7xl' : 'max-w-screen-2xl'
+  // content width per route: everything at 1280 except the editor, which
+  // keeps 1536 for the wide entry grids (user decisions 2026-07-23); the
+  // header ITEMS are independently fixed at 1280 on every page — the
+  // full-width band + teal rule carry the header visual, so the items
+  // don't need to align with the content edges
+  const isEditor = route.path === '/new' || route.path.endsWith('/edit')
+  const pageCap = isEditor ? 'max-w-screen-2xl' : 'max-w-7xl'
   // highest role labels the identity cluster (same precedence as the home page)
   const roleLabel = isAdmin
     ? S.roles.admin
