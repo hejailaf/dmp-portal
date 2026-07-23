@@ -255,9 +255,9 @@ export function RequestListPage() {
           ]),
       columnHelper.accessor('dueDate', {
         header: S.list.columns.due,
-        // fixed 344 (user decision 2026-07-23) — comfortably above the widest
-        // date+chip (~264), so the chip never overflows the table edge
-        size: 344,
+        // fixed 200 (user decision 2026-07-23); narrower than the widest
+        // date+chip (~264) — the cell's overflow-hidden clips the tail
+        size: 200,
         cell: (info) => (
           // overflow-hidden: a manually narrowed column clips like ClippedCell
           // does, instead of overflowing past the table edge
