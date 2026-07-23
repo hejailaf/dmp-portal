@@ -213,7 +213,13 @@ export function RequestListPage() {
         header: S.list.columns.status,
         // fixed 120 (user decision 2026-07-23)
         size: 120,
-        cell: (info) => <StatusBadge status={info.getValue()} assigneeId={info.row.original.assigneeId} />,
+        cell: (info) => (
+          // overflow-hidden: a narrowed column clips the pill instead of
+          // letting it overlap the next column
+          <div className="overflow-hidden">
+            <StatusBadge status={info.getValue()} assigneeId={info.row.original.assigneeId} />
+          </div>
+        ),
       }),
       columnHelper.accessor(reqTypeOf, {
         id: 'reqType',
