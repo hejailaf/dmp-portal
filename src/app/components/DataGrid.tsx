@@ -79,6 +79,7 @@ export function DataGrid<T>({
   rowClassName,
   cellClassName,
   stickyIds,
+  fillColumnId,
 }: {
   table: TanstackTable<T>
   /** static classes, or per-row (the request list marks overdue rows) */
@@ -87,6 +88,9 @@ export function DataGrid<T>({
   cellClassName?: string
   /** LEADING column ids pinned during horizontal scroll (detail grids pin #/Action/Description) */
   stickyIds?: string[]
+  /** column that absorbs leftover width INSTEAD of the trailing filler column
+      (the request list widens Description so rows reach the card edge) */
+  fillColumnId?: string
 }) {
   // left offsets: each pinned column sits after the pinned ones before it.
   // Recomputed every render, so drag-resizing a pinned column stays correct.
@@ -100,6 +104,13 @@ export function DataGrid<T>({
     }
   }
   const lastSticky = [...sticky.keys()].pop()
+  const alignRight = (col: { columnDef: { meta?: unknown } }) =>
+    (col.columnDef.meta as { align?: string } | undefined)?.align === 'right'
+  // the fill column renders width-less: with table-fixed + w-full +
+  // minWidth=getTotalSize() the browser hands it all leftover width (never
+  // less than its autoSize share of totalSize), so no filler is needed
+  const widthStyle = (col: { id: string; getSize: () => number }) =>
+    col.id === fillColumnId ? {} : { width: col.getSize() }
   const stickyProps = (id: string, header: boolean) => {
     const left = sticky.get(id)
     if (left === undefined) return { style: {}, cls: '' }
@@ -134,7 +145,7 @@ export function DataGrid<T>({
                       ? 'descending'
                       : undefined
                 }
-                style={{ width: h.getSize(), ...stickyProps(h.column.id, true).style }}
+                style={{ ...widthStyle(h.column), ...stickyProps(h.column.id, true).style }}
                 className={stickyProps(h.column.id, true).cls || undefined}
               >
                 {/* sortable only where the table opted in (accessor columns +
@@ -142,7 +153,10 @@ export function DataGrid<T>({
                 {h.column.getCanSort() ? (
                   <button
                     type="button"
-                    className="flex w-full items-center gap-1 truncate pr-1 text-left"
+                    className={cn(
+                      'flex w-full items-center gap-1 truncate pr-1 text-left',
+                      alignRight(h.column) && 'justify-end text-right',
+                    )}
                     onClick={h.column.getToggleSortingHandler()}
                   >
                     <span className="truncate">
@@ -157,11 +171,11 @@ export function DataGrid<T>({
                     )}
                   </button>
                 ) : (
-                  <div className="truncate pr-1">
+                  <div className={cn('truncate pr-1', alignRight(h.column) && 'text-right')}>
                     {h.isPlaceholder ? null : flexRender(h.column.columnDef.header, h.getContext())}
                   </div>
                 )}
-                {h.column.getCanResize() && (
+                {h.column.getCanResize() && h.column.id !== fillColumnId && (
                   <div
                     onMouseDown={h.getResizeHandler()}
                     onTouchStart={h.getResizeHandler()}
@@ -174,7 +188,7 @@ export function DataGrid<T>({
                 )}
               </TableHead>
             ))}
-            <th aria-hidden className="sticky top-0 z-10 border-b bg-secondary p-0" />
+            {!fillColumnId && <th aria-hidden className="sticky top-0 z-10 border-b bg-secondary p-0" />}
           </TableRow>
         ))}
       </TableHeader>
@@ -187,13 +201,17 @@ export function DataGrid<T>({
             {row.getVisibleCells().map((cell) => (
               <TableCell
                 key={cell.id}
-                style={{ width: cell.column.getSize(), ...stickyProps(cell.column.id, false).style }}
-                className={cn(cellClassName, stickyProps(cell.column.id, false).cls || undefined)}
+                style={{ ...widthStyle(cell.column), ...stickyProps(cell.column.id, false).style }}
+                className={cn(
+                  cellClassName,
+                  alignRight(cell.column) && 'text-right',
+                  stickyProps(cell.column.id, false).cls || undefined,
+                )}
               >
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
               </TableCell>
             ))}
-            <td aria-hidden className="border-b p-0" />
+            {!fillColumnId && <td aria-hidden className="border-b p-0" />}
           </TableRow>
         ))}
       </TableBody>
