@@ -34,7 +34,13 @@ import { useCurrentUser } from '../user-context'
 import { Button } from '../components/ui/button'
 import { Card, CardContent } from '../components/ui/card'
 import { Input, Select } from '../components/ui/input'
-import { autoColumnSize, DataGrid, measureCellWidth, usePersistedColumnSizing } from '../components/DataGrid'
+import {
+  autoColumnSize,
+  DataGrid,
+  FitColumnsButton,
+  measureCellWidth,
+  usePersistedColumnSizing,
+} from '../components/DataGrid'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 
 // The AIW work-package editor (spec §6): one request, line items across all
@@ -263,6 +269,8 @@ function EditorGrid({
   onAddLine,
   onDownloadTemplate,
   onImport,
+  onDuplicate,
+  onDelete,
 }: {
   config: ObjectTypeConfig
   lines: EditorLine[]
@@ -275,6 +283,10 @@ function EditorGrid({
   onAddLine: () => void
   onDownloadTemplate: () => void
   onImport: () => void
+  /** toolbar actions on the selected lines (the toolbar renders IN the grid
+      so Fit columns can share its row) */
+  onDuplicate: () => void
+  onDelete: () => void
 }) {
   // auto-fit: header width by default, growing live with the longest typed
   // value (lines change on every keystroke), capped in autoColumnSize
@@ -347,6 +359,7 @@ function EditorGrid({
     return visibility
   }, [lines, config])
 
+  const selectedCount = lines.filter((l) => selected.has(l.key)).length
   const sizing = usePersistedColumnSizing(`editor-${config.objectType}`)
   const table = useReactTable({
     data: lines,
@@ -381,7 +394,24 @@ function EditorGrid({
       </div>
     </div>
   ) : (
-    <DataGrid table={table} rowClassName="hover:bg-transparent" cellClassName="p-0" />
+    <>
+      {/* per-line actions + Fit columns on ONE row, directly above the grid */}
+      <div className="flex flex-wrap items-center gap-2 pb-3 pt-3">
+        <Button variant="outline" size="sm" onClick={onAddLine}>
+          <Plus className="h-4 w-4" /> {S.editor.addLine}
+        </Button>
+        <Button variant="outline" size="sm" disabled={selectedCount === 0} onClick={onDuplicate}>
+          <Copy className="h-4 w-4" /> {S.editor.duplicate(selectedCount)}
+        </Button>
+        <Button variant="outline" size="sm" disabled={selectedCount === 0} onClick={onDelete}>
+          <Trash2 className="h-4 w-4" /> {S.editor.deleteLines(selectedCount)}
+        </Button>
+        <div className="ml-auto">
+          <FitColumnsButton table={table} />
+        </div>
+      </div>
+      <DataGrid table={table} rowClassName="hover:bg-transparent" cellClassName="p-0" noFitStrip />
+    </>
   )
 }
 
@@ -827,9 +857,7 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
     requestId && existing.data
       ? (isReturned ? S.editor.editReturnedTitle : S.editor.editTitle)(existing.data.request.ref)
       : S.editor.newTitle
-  // the toolbars now live outside the tab panels, so they act on the OPEN tab
   const activeCfg = FIELD_MAP[tab]
-  const activeSelected = selectedKeysInTab(tab).size
   const activeTabHasLines = lines.some((l) => l.objectType === tab)
   // line numbers stay per-tab, as they read in the grid. Identical messages
   // are GROUPED — "lines 1, 3, 7: Cost Center must be a whole number" —
@@ -1061,32 +1089,6 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
                 </ul>
               </div>
             )}
-            {/* per-line actions for the OPEN tab, directly above the grid —
-                hidden while the tab is empty (its panel carries the actions;
-                Duplicate/Delete would be dead weight with nothing to select) */}
-            {activeTabHasLines && (
-              <div className="flex flex-wrap gap-2 px-4 pt-3">
-                <Button variant="outline" size="sm" onClick={() => addLine(tab)}>
-                  <Plus className="h-4 w-4" /> {S.editor.addLine}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={activeSelected === 0}
-                  onClick={() => duplicateSelected(tab)}
-                >
-                  <Copy className="h-4 w-4" /> {S.editor.duplicate(activeSelected)}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={activeSelected === 0}
-                  onClick={() => deleteSelected(tab)}
-                >
-                  <Trash2 className="h-4 w-4" /> {S.editor.deleteLines(activeSelected)}
-                </Button>
-              </div>
-            )}
             {OBJECT_TYPE_CONFIGS.map((cfg) => (
               <TabsContent key={cfg.objectType} value={cfg.objectType} className="px-4 pb-4">
                 <EditorGrid
@@ -1100,6 +1102,8 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
                   onAddLine={() => addLine(cfg.objectType)}
                   onDownloadTemplate={() => void downloadTemplate()}
                   onImport={() => fileInputRef.current?.click()}
+                  onDuplicate={() => duplicateSelected(cfg.objectType)}
+                  onDelete={() => deleteSelected(cfg.objectType)}
                 />
               </TabsContent>
             ))}
