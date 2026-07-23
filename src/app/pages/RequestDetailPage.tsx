@@ -537,6 +537,9 @@ export function RequestDetailPage({ id }: { id: string }) {
 
   return (
     <div className="space-y-5">
+      {/* header zone capped at 1280 like home/list (user decision 2026-07-23);
+          the line grids below keep the page's 1536 span */}
+      <div className="mx-auto w-full max-w-7xl space-y-5">
       {backLink}
       {banner && (
         <p className="rounded-md border border-destructive/40 bg-[var(--danger-tint)] p-3 text-sm text-destructive">{banner}</p>
@@ -702,6 +705,7 @@ export function RequestDetailPage({ id }: { id: string }) {
           </div>
         </CardContent>
       </Card>
+      </div>
 
       {/* line items — editor-style tab strip, one PRESENT type per tab;
           clicking the active tab (or the chevron) collapses to the strip */}
