@@ -43,6 +43,9 @@ function Shell({ children }: { children: React.ReactNode }) {
   const isRequester = user.roles.includes('requester')
   const isMaintainer = user.roles.includes('maintainer')
   const isAdmin = user.roles.includes('admin')
+  // one source of truth for the page width: the header letterhead always
+  // aligns with the content below it (home 1280, data pages 1536)
+  const pageCap = route.path === '/' ? 'max-w-7xl' : 'max-w-screen-2xl'
   // highest role labels the identity cluster (same precedence as the home page)
   const roleLabel = isAdmin
     ? S.roles.admin
@@ -57,8 +60,9 @@ function Shell({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-30 bg-card">
         {/* site content is centered; data pages cap at 1536px, home at 1280
             (user decision 2026-07-23 — supersedes the old 1920px cap: fixed
-            grid columns never stretch, so the extra span was empty filler) */}
-        <div className="mx-auto flex h-16 w-full max-w-screen-2xl items-stretch gap-4 px-4">
+            grid columns never stretch, so the extra span was empty filler).
+            The header shares pageCap with <main> so they always align. */}
+        <div className={`mx-auto flex h-16 w-full items-stretch gap-4 px-4 ${pageCap}`}>
           <a href={href('/')} className="flex items-center">
             {/* light/dark lockups swap on the `.dark` html class */}
             <img src={logoLight} alt={S.appName} className="h-[34px] w-auto dark:hidden" />
@@ -122,7 +126,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         <div aria-hidden className="h-[2px] w-full bg-[var(--teal)]" />
       </header>
       {/* home stays a bit tighter; data pages center under the 1536px site cap */}
-      <main className={`mx-auto px-4 py-6 ${route.path === '/' ? 'max-w-7xl' : 'max-w-screen-2xl'}`}>
+      <main className={`mx-auto px-4 py-6 ${pageCap}`}>
         {children}
       </main>
       <footer className="border-t px-4 py-4 text-center text-[11px] tracking-[0.02em] text-muted-foreground">
