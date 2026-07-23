@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { getProvider } from '@/data'
 import logoLight from '@/assets/logo-header.svg'
@@ -6,6 +7,7 @@ import { useAsync } from './hooks'
 import { href, useRoute } from './router'
 import { S } from './strings'
 import { UserContext, useCurrentUser } from './user-context'
+import { HeaderCtaContext } from './shell-context'
 import { RoleSwitcher } from './components/RoleSwitcher'
 import { ThemeToggle } from './components/ThemeToggle'
 import { Button } from './components/ui/button'
@@ -40,6 +42,9 @@ function Shell({ children }: { children: React.ReactNode }) {
   const user = useCurrentUser()
   const route = useRoute()
   const scope = route.query.get('scope')
+  // a page showing its own create CTA (list first-visit invitation) hides
+  // the header one — one primary per screen
+  const [headerCtaHidden, setHeaderCtaHidden] = useState(false)
   const isRequester = user.roles.includes('requester')
   const isMaintainer = user.roles.includes('maintainer')
   const isAdmin = user.roles.includes('admin')
@@ -97,7 +102,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           <div className="ml-auto flex items-center gap-2">
             {/* the primary CTA lives on the right; hidden on home (which
                 carries its own) and on the editor itself */}
-            {(isRequester || isAdmin) && route.path !== '/' && route.path !== '/new' && (
+            {(isRequester || isAdmin) && !headerCtaHidden && route.path !== '/' && route.path !== '/new' && (
               <a
                 href={href('/new')}
                 className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 active:translate-y-[0.5px]"
@@ -127,7 +132,7 @@ function Shell({ children }: { children: React.ReactNode }) {
       </header>
       {/* home stays a bit tighter; data pages center under the 1536px site cap */}
       <main className={`mx-auto px-4 py-6 ${pageCap}`}>
-        {children}
+        <HeaderCtaContext.Provider value={setHeaderCtaHidden}>{children}</HeaderCtaContext.Provider>
       </main>
       <footer className="border-t px-4 py-4 text-center text-[11px] tracking-[0.02em] text-muted-foreground">
         {S.footer.developedBy} · {S.footer.supportLabel}:{' '}

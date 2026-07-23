@@ -13,6 +13,7 @@ import { isOverdue } from '@/domain/sla'
 import { STATUSES, type Request, type User } from '@/domain/types'
 import { downloadBlob, formatDate } from '@/lib/utils'
 import { useAsync, usePageTitle } from '../hooks'
+import { useHeaderCta } from '../shell-context'
 import { href, navigate, useRoute } from '../router'
 import { S } from '../strings'
 import { useCurrentUser } from '../user-context'
@@ -118,9 +119,15 @@ export function RequestListPage() {
   const showClaim = scope === 'unassigned' && user.roles.includes('maintainer')
 
   // brand-new requester, nothing filtered away: the invitation card is the
-  // whole page — the filter row would be five controls over nothing
+  // whole page — the filter row would be five controls over nothing, and
+  // the invitation's CTA replaces the header one (one primary per screen)
   const firstVisit =
     requests.data?.length === 0 && scope === 'mine' && !search && !statusFilter && !overdueOnly
+  const setHeaderCtaHidden = useHeaderCta()
+  useEffect(() => {
+    setHeaderCtaHidden(!!firstVisit)
+    return () => setHeaderCtaHidden(false) // navigating away restores the chrome
+  }, [firstVisit, setHeaderCtaHidden])
 
   // exports exactly the filtered view; module + exceljs stay lazy chunks
   const exportView = async () => {
