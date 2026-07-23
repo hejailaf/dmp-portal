@@ -9,6 +9,7 @@ import {
 } from '@tanstack/react-table'
 import { cn } from '@/lib/utils'
 import { S } from '../strings'
+import { Button } from './ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table'
 
 // The one place all three grids (request list, editor tabs, detail line
@@ -84,6 +85,7 @@ export function DataGrid<T>({
   cellClassName,
   stickyIds,
   noEndDivider,
+  noFitStrip,
 }: {
   table: TanstackTable<T>
   /** static classes, or per-row (the request list marks overdue rows) */
@@ -96,6 +98,9 @@ export function DataGrid<T>({
       (the request list — its filler sliver is narrow; the editor/detail grids
       keep the divider or their wide filler looks open-ended) */
   noEndDivider?: boolean
+  /** suppress the built-in fit-columns strip — the page renders
+      <FitColumnsButton> in its own toolbar instead (the request list) */
+  noFitStrip?: boolean
 }) {
   // left offsets: each pinned column sits after the pinned ones before it.
   // Recomputed every render, so drag-resizing a pinned column stays correct.
@@ -218,29 +223,32 @@ export function DataGrid<T>({
     </Table>
   )
 
-  // one click back to pure auto-fit; grayed while widths already fit
-  // (double-clicking a handle still resets a single column)
-  const hasManualWidths = Object.keys(table.getState().columnSizing).length > 0
+  if (noFitStrip) return grid
   return (
     <div>
-      <div className="flex justify-end px-1 py-1">
-        <button
-          type="button"
-          disabled={!hasManualWidths}
-          title={hasManualWidths ? S.grid.fitColumns : S.grid.alreadyFit}
-          onClick={() => table.resetColumnSizing()}
-          className={cn(
-            'inline-flex h-6 items-center gap-1 rounded-full border bg-card px-2 text-[11px] font-medium',
-            hasManualWidths
-              ? 'text-foreground shadow-raised hover:bg-accent'
-              : 'cursor-default text-muted-foreground/60',
-          )}
-        >
-          <UnfoldHorizontal className="h-3 w-3" /> {S.grid.fitColumns}
-        </button>
+      <div className="flex justify-end px-2 py-1.5">
+        <FitColumnsButton table={table} />
       </div>
       {grid}
     </div>
+  )
+}
+
+/** One click back to pure auto-fit; grayed while widths already fit
+ *  (double-clicking a handle still resets a single column). Rendered by
+ *  DataGrid's own strip, or by a page toolbar with `noFitStrip`. */
+export function FitColumnsButton<T>({ table }: { table: TanstackTable<T> }) {
+  const hasManualWidths = Object.keys(table.getState().columnSizing).length > 0
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      disabled={!hasManualWidths}
+      title={hasManualWidths ? S.grid.fitColumns : S.grid.alreadyFit}
+      onClick={() => table.resetColumnSizing()}
+    >
+      <UnfoldHorizontal className="h-4 w-4" /> {S.grid.fitColumns}
+    </Button>
   )
 }
 

@@ -22,7 +22,13 @@ import { Button } from '../components/ui/button'
 import { Card } from '../components/ui/card'
 import { Input, Select } from '../components/ui/input'
 import { Skeleton } from '../components/ui/skeleton'
-import { autoColumnSize, ClippedCell, DataGrid, usePersistedColumnSizing } from '../components/DataGrid'
+import {
+  autoColumnSize,
+  ClippedCell,
+  DataGrid,
+  FitColumnsButton,
+  usePersistedColumnSizing,
+} from '../components/DataGrid'
 
 // last-used scope/filters, restored when the list is opened without a query
 // (the detail page's back-link reads it too)
@@ -309,8 +315,13 @@ export function RequestListPage() {
     <div className="space-y-5">
       <h1 className="font-display text-display">{S.list.title[scope]}</h1>
 
+      {claimError && <p className="text-sm text-destructive">{claimError}</p>}
+
+      {/* one panel card: toolbar row + grid, divided by a hairline — the
+          controls and the table read as a single instrument */}
+      <Card>
       {!firstVisit && (
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3 border-b p-3">
         <div className="relative w-full max-w-xs">
           <Input
             value={search}
@@ -384,25 +395,25 @@ export function RequestListPage() {
             {S.list.unassignedOnly}
           </label>
         )}
-        {requests.data && (
-          <span className="ml-auto text-sm text-muted-foreground">
-            {S.list.count(filtered.length, requests.data.length)}
-          </span>
-        )}
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={exporting || filtered.length === 0}
-          onClick={() => void exportView()}
-        >
-          <Download className="h-4 w-4" /> {exporting ? S.list.exporting : S.list.export}
-        </Button>
+        <div className="ml-auto flex flex-wrap items-center gap-3">
+          {requests.data && (
+            <span className="whitespace-nowrap text-sm text-muted-foreground">
+              {S.list.count(filtered.length, requests.data.length)}
+            </span>
+          )}
+          <FitColumnsButton table={table} />
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={exporting || filtered.length === 0}
+            onClick={() => void exportView()}
+          >
+            <Download className="h-4 w-4" /> {exporting ? S.list.exporting : S.list.export}
+          </Button>
+        </div>
       </div>
       )}
 
-      {claimError && <p className="text-sm text-destructive">{claimError}</p>}
-
-      <Card>
         {requests.loading ? (
           <div className="space-y-2 p-4">
             {Array.from({ length: 6 }, (_, i) => (
@@ -438,6 +449,8 @@ export function RequestListPage() {
             stickyIds={['ref']}
             // Due's row flows into the narrow filler sliver with no divider
             noEndDivider
+            // Fit columns lives in the toolbar above, not in a strip
+            noFitStrip
             // overdue rows carry a red left edge in addition to the badge
             // (painted by styles.css on the first CELL — tr borders don't
             // render in the border-separate table model)
