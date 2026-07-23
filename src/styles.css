@@ -131,6 +131,13 @@
     animation-delay: calc(var(--stagger-i, 0) * 60ms);
   }
 
+  /* overdue row edge in the request list. Must be a first-cell box-shadow:
+     border-separate tables ignore <tr> borders entirely, and box-shadow
+     paints above the sticky Ref cell's solid bg-card. */
+  .row-overdue > td:first-child {
+    box-shadow: inset 3px 0 0 0 hsl(var(--destructive));
+  }
+
   /* drafting-grid: graph-paper texture in the brand teal (--ring is teal in
      both themes) over a soft radial wash — the home "letterhead" background */
   .drafting-grid {

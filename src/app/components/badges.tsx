@@ -21,10 +21,22 @@ const STATUS_VARIANT: Record<RequestStatus, 'neutral' | 'blue' | 'amber' | 'gree
   Withdrawn: 'neutral', // requester's own retreat — no alarm color
 }
 
+/** Amber means "someone must act". The requester's "Submitted" is calm
+ *  waiting, so it goes neutral; staff's "Unassigned" (act: assign/claim)
+ *  and "Assigned" keep amber. */
+function statusVariant(status: RequestStatus, hasAssignee: boolean, staffView: boolean) {
+  if (status === 'Waiting to be started' && !hasAssignee && !staffView) return 'neutral'
+  return STATUS_VARIANT[status]
+}
+
 /** Badge label follows reality: waiting shows "Submitted"/"Unassigned"/"Assigned" by assignee + viewer. */
 export function StatusBadge({ status, assigneeId }: { status: RequestStatus; assigneeId?: string }) {
   const staffView = useStaffView()
-  return <Badge variant={STATUS_VARIANT[status]}>{S.statusLabel(status, !!assigneeId, staffView)}</Badge>
+  return (
+    <Badge variant={statusVariant(status, !!assigneeId, staffView)}>
+      {S.statusLabel(status, !!assigneeId, staffView)}
+    </Badge>
+  )
 }
 
 /**
@@ -69,7 +81,7 @@ export function StatusStepper({ status, assigneeId }: { status: RequestStatus; a
       state: i < current ? 'past' : i === current ? 'current' : 'future',
     }))
   }
-  const variant = STATUS_VARIANT[status]
+  const variant = statusVariant(status, !!assigneeId, staffView)
   return (
     <div
       className="flex flex-wrap items-center gap-y-1"

@@ -79,7 +79,8 @@ export function RequestListPage() {
   const statusFilter = route.query.get('status') ?? (noQuery ? (stored.status ?? '') : '')
   const overdueOnly = route.query.get('overdue') === '1' || (noQuery && stored.overdue === true)
   const [search, setSearch] = useState('')
-  const [sorting, setSorting] = useState<SortingState>([])
+  // newest first by default — storage order is arbitrary; headers still re-sort
+  const [sorting, setSorting] = useState<SortingState>([{ id: 'ref', desc: true }])
   const [claiming, setClaiming] = useState<string>()
   const [claimError, setClaimError] = useState<string>()
   const [exporting, setExporting] = useState(false)
@@ -219,11 +220,17 @@ export function RequestListPage() {
         size: 90,
         cell: (info) => <span className="text-muted-foreground">{info.getValue()}</span>,
       }),
-      columnHelper.accessor('requesterName', {
-        header: S.list.columns.requester,
-        size: autoSizes.requester,
-        cell: (info) => <ClippedCell value={info.getValue()} />,
-      }),
+      // My requests: every row is the viewer — the column would be noise
+      // (same precedent as the pool omitting Assignee below)
+      ...(scope === 'mine'
+        ? []
+        : [
+            columnHelper.accessor('requesterName', {
+              header: S.list.columns.requester,
+              size: autoSizes.requester,
+              cell: (info) => <ClippedCell value={info.getValue()} />,
+            }),
+          ]),
       // the unassigned pool omits the Assignee column — every row would read
       // "Unassigned", and the freed width keeps Claim on screen
       ...(scope === 'unassigned'
@@ -420,7 +427,9 @@ export function RequestListPage() {
             // Ref stays pinned while the rest scrolls — rows keep their identity
             stickyIds={['ref']}
             // overdue rows carry a red left edge in addition to the badge
-            rowClassName={(row) => (isOverdue(row.original) ? 'border-l-[3px] border-l-destructive' : undefined)}
+            // (painted by styles.css on the first CELL — tr borders don't
+            // render in the border-separate table model)
+            rowClassName={(row) => (isOverdue(row.original) ? 'row-overdue' : undefined)}
           />
         )}
       </Card>
