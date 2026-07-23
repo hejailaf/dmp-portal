@@ -217,7 +217,6 @@ export function RequestListPage() {
         id: 'lines',
         header: S.list.columns.lines,
         size: 90,
-        meta: { align: 'right' },
         cell: (info) => <span className="text-muted-foreground">{info.getValue()}</span>,
       }),
       columnHelper.accessor('requesterName', {
@@ -420,9 +419,6 @@ export function RequestListPage() {
             table={table}
             // Ref stays pinned while the rest scrolls — rows keep their identity
             stickyIds={['ref']}
-            // dashboard-table look: Description absorbs leftover width, so the
-            // grid reaches the card edge with no trailing filler band
-            fillColumnId="description"
             // overdue rows carry a red left edge in addition to the badge
             rowClassName={(row) => (isOverdue(row.original) ? 'border-l-[3px] border-l-destructive' : undefined)}
           />
