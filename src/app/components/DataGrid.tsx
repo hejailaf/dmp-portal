@@ -122,7 +122,7 @@ export function DataGrid<T>({
       <TableHeader>
         {table.getHeaderGroups().map((hg) => (
           <TableRow key={hg.id} className="hover:bg-transparent">
-            {hg.headers.map((h) => (
+            {hg.headers.map((h, i) => (
               // position classes stay OUT of className (they would tw-merge away
               // the base `sticky top-0`); left-pinning rides on inline style
               <TableHead
@@ -135,7 +135,12 @@ export function DataGrid<T>({
                       : undefined
                 }
                 style={{ width: h.getSize(), ...stickyProps(h.column.id, true).style }}
-                className={stickyProps(h.column.id, true).cls || undefined}
+                // the last real column draws no divider against the filler —
+                // its row flows clean to the card edge
+                className={
+                  cn(stickyProps(h.column.id, true).cls, i === hg.headers.length - 1 && 'border-r-0') ||
+                  undefined
+                }
               >
                 {/* sortable only where the table opted in (accessor columns +
                     getSortedRowModel) — editor/detail display columns never sort */}
@@ -184,11 +189,15 @@ export function DataGrid<T>({
             key={row.id}
             className={typeof rowClassName === 'function' ? rowClassName(row) : rowClassName}
           >
-            {row.getVisibleCells().map((cell) => (
+            {row.getVisibleCells().map((cell, i, cells) => (
               <TableCell
                 key={cell.id}
                 style={{ width: cell.column.getSize(), ...stickyProps(cell.column.id, false).style }}
-                className={cn(cellClassName, stickyProps(cell.column.id, false).cls || undefined)}
+                className={cn(
+                  cellClassName,
+                  stickyProps(cell.column.id, false).cls || undefined,
+                  i === cells.length - 1 && 'border-r-0',
+                )}
               >
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
               </TableCell>
