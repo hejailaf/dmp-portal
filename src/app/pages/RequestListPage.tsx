@@ -117,6 +117,11 @@ export function RequestListPage() {
 
   const showClaim = scope === 'unassigned' && user.roles.includes('maintainer')
 
+  // brand-new requester, nothing filtered away: the invitation card is the
+  // whole page — the filter row would be five controls over nothing
+  const firstVisit =
+    requests.data?.length === 0 && scope === 'mine' && !search && !statusFilter && !overdueOnly
+
   // exports exactly the filtered view; module + exceljs stay lazy chunks
   const exportView = async () => {
     setExporting(true)
@@ -266,6 +271,7 @@ export function RequestListPage() {
     <div className="space-y-5">
       <h1 className="font-display text-display">{S.list.title[scope]}</h1>
 
+      {!firstVisit && (
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative w-full max-w-xs">
           <Input
@@ -354,6 +360,7 @@ export function RequestListPage() {
           <Download className="h-4 w-4" /> {exporting ? S.list.exporting : S.list.export}
         </Button>
       </div>
+      )}
 
       {claimError && <p className="text-sm text-destructive">{claimError}</p>}
 
@@ -372,7 +379,7 @@ export function RequestListPage() {
             </Button>
           </div>
         ) : filtered.length === 0 ? (
-          requests.data?.length === 0 && scope === 'mine' && !search && !statusFilter && !overdueOnly ? (
+          firstVisit ? (
             // a brand-new requester's first visit: invite, don't apologize
             <div className="p-10 text-center">
               <p className="font-medium">{S.list.emptyMineTitle}</p>
