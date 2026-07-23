@@ -436,6 +436,8 @@ export function RequestListPage() {
             table={table}
             // Ref stays pinned while the rest scrolls — rows keep their identity
             stickyIds={['ref']}
+            // Due's row flows into the narrow filler sliver with no divider
+            noEndDivider
             // overdue rows carry a red left edge in addition to the badge
             // (painted by styles.css on the first CELL — tr borders don't
             // render in the border-separate table model)

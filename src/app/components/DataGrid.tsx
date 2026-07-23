@@ -80,6 +80,7 @@ export function DataGrid<T>({
   rowClassName,
   cellClassName,
   stickyIds,
+  noEndDivider,
 }: {
   table: TanstackTable<T>
   /** static classes, or per-row (the request list marks overdue rows) */
@@ -88,6 +89,10 @@ export function DataGrid<T>({
   cellClassName?: string
   /** LEADING column ids pinned during horizontal scroll (detail grids pin #/Action/Description) */
   stickyIds?: string[]
+  /** drop the last real column's right divider so rows flow into the filler
+      (the request list — its filler sliver is narrow; the editor/detail grids
+      keep the divider or their wide filler looks open-ended) */
+  noEndDivider?: boolean
 }) {
   // left offsets: each pinned column sits after the pinned ones before it.
   // Recomputed every render, so drag-resizing a pinned column stays correct.
@@ -136,11 +141,11 @@ export function DataGrid<T>({
                       : undefined
                 }
                 style={{ width: h.getSize(), ...stickyProps(h.column.id, true).style }}
-                // the last real column draws no divider against the filler —
-                // its row flows clean to the card edge
                 className={
-                  cn(stickyProps(h.column.id, true).cls, i === hg.headers.length - 1 && 'border-r-0') ||
-                  undefined
+                  cn(
+                    stickyProps(h.column.id, true).cls,
+                    noEndDivider && i === hg.headers.length - 1 && 'border-r-0',
+                  ) || undefined
                 }
               >
                 {/* sortable only where the table opted in (accessor columns +
@@ -197,7 +202,7 @@ export function DataGrid<T>({
                 className={cn(
                   cellClassName,
                   stickyProps(cell.column.id, false).cls || undefined,
-                  i === cells.length - 1 && 'border-r-0',
+                  noEndDivider && i === cells.length - 1 && 'border-r-0',
                 )}
               >
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
