@@ -727,7 +727,11 @@ export function RequestDetailPage({ id }: { id: string }) {
                 setLinesOpen(true)
               }}
             >
-              <div className="flex items-center gap-2 border-b px-4 pt-3">
+              {/* open: border-b so the active tab merges into the grid panel;
+                  collapsed: no panel below, so drop the border and pad the
+                  bottom — otherwise the active tab's square, card-filled bottom
+                  overhangs the card's rounded corners */}
+              <div className={`flex items-center gap-2 px-4 pt-3 ${linesOpen ? 'border-b' : 'pb-3'}`}>
                 <button
                   type="button"
                   aria-expanded={linesOpen}
