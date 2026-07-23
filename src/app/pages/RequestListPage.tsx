@@ -438,19 +438,24 @@ export function RequestListPage() {
             <p className="p-6 text-muted-foreground">{S.list.empty}</p>
           )
         ) : (
-          <DataGrid
-            table={table}
-            // Ref stays pinned while the rest scrolls — rows keep their identity
-            stickyIds={['ref']}
-            // Due's row flows into the narrow filler sliver with no divider
-            noEndDivider
-            // Fit columns lives in the toolbar above, not in a strip
-            noFitStrip
-            // overdue rows carry a red left edge in addition to the badge
-            // (painted by styles.css on the first CELL — tr borders don't
-            // render in the border-separate table model)
-            rowClassName={(row) => (isOverdue(row.original) ? 'row-overdue' : undefined)}
-          />
+          // inset to the toolbar's alignment (search box ↔ Export button)
+          // instead of bleeding to the card edges; the table gets a border-r
+          // so the frame closes where the card edge no longer does it
+          <div className="p-3 [&_table]:border-r">
+            <DataGrid
+              table={table}
+              // Ref stays pinned while the rest scrolls — rows keep their identity
+              stickyIds={['ref']}
+              // Due's row flows into the narrow filler sliver with no divider
+              noEndDivider
+              // Fit columns lives in the toolbar above, not in a strip
+              noFitStrip
+              // overdue rows carry a red left edge in addition to the badge
+              // (painted by styles.css on the first CELL — tr borders don't
+              // render in the border-separate table model)
+              rowClassName={(row) => (isOverdue(row.original) ? 'row-overdue' : undefined)}
+            />
+          </div>
         )}
       </Card>
     </div>
