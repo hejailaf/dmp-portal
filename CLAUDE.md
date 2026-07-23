@@ -285,8 +285,9 @@ tracking, assignment, SLA, audit, Excel export only.
   hero, teal grid header bands (table.tsx + DataGrid filler th
   TOGETHER). Detail line items = editor-style tab strip, collapsible
   (click active tab / chevron). Width caps (user decisions 2026-07-23,
-  supersede 1920): data pages max-w-screen-2xl (1536), home 1280 —
-  fixed grid columns never stretch, so the extra span was empty filler.
+  supersede 1920): detail/editor max-w-screen-2xl (1536), home + request
+  list max-w-7xl (1280 — list joined after Req. Type went short) — fixed
+  grid columns never stretch, so the extra span was empty filler.
   Header ITEMS independently fixed max-w-7xl (1280) on every page (no
   shift on navigation; alignment with content deliberately dropped —
   the full-width band + teal rule carry the header visual). Big-data seeds DCR "Area 7" draft (46
