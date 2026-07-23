@@ -27,6 +27,15 @@ function NavLink({ to, label, active }: { to: string; label: string; active: boo
   )
 }
 
+/** "Rana Requester" → "RR" — the header identity disc. */
+const initialsOf = (name: string) =>
+  name
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0] ?? '')
+    .join('')
+    .toUpperCase()
+
 function Shell({ children }: { children: React.ReactNode }) {
   const user = useCurrentUser()
   const route = useRoute()
@@ -34,6 +43,14 @@ function Shell({ children }: { children: React.ReactNode }) {
   const isRequester = user.roles.includes('requester')
   const isMaintainer = user.roles.includes('maintainer')
   const isAdmin = user.roles.includes('admin')
+  // highest role labels the identity cluster (same precedence as the home page)
+  const roleLabel = isAdmin
+    ? S.roles.admin
+    : isMaintainer
+      ? S.roles.maintainer
+      : isRequester
+        ? S.roles.requester
+        : S.roles.none
 
   return (
     <div className="min-h-screen">
@@ -47,6 +64,8 @@ function Shell({ children }: { children: React.ReactNode }) {
             <img src={logoLight} alt={S.appName} className="h-[34px] w-auto dark:hidden" />
             <img src={logoDark} alt={S.appName} className="hidden h-[34px] w-auto dark:block" />
           </a>
+          {/* zone ruling: brand | workspace | identity — drafting-document hairlines */}
+          <span aria-hidden className="h-8 w-px self-center bg-border" />
           <nav className="flex items-stretch gap-1">
             <NavLink to="/" label={S.nav.home} active={route.path === '/'} />
             {isRequester && (
@@ -83,7 +102,20 @@ function Shell({ children }: { children: React.ReactNode }) {
               </a>
             )}
             <ThemeToggle />
-            <span className="text-sm text-muted-foreground">{user.displayName}</span>
+            <span aria-hidden className="h-8 w-px bg-border" />
+            {/* identity cluster: initials disc + name over role caption */}
+            <div className="flex items-center gap-2.5">
+              <span
+                aria-hidden
+                className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-[var(--teal-tint)] text-xs font-semibold text-primary"
+              >
+                {initialsOf(user.displayName)}
+              </span>
+              <span className="leading-tight">
+                <span className="block text-sm font-medium">{user.displayName}</span>
+                <span className="block text-[11px] text-muted-foreground">{roleLabel}</span>
+              </span>
+            </div>
           </div>
         </div>
         {/* letterhead rule — the brand's teal line under the masthead */}
