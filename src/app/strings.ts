@@ -77,6 +77,7 @@ export const S = {
   // shared by every DataGrid
   grid: {
     fitColumns: 'Fit columns',
+    alreadyFit: 'Column widths already fit the content',
   },
 
   list: {

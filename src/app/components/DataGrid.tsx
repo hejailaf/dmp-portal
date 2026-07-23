@@ -218,23 +218,27 @@ export function DataGrid<T>({
     </Table>
   )
 
-  // one click back to pure auto-fit — only offered while a manual drag is
-  // in effect (double-clicking a handle still resets a single column)
+  // one click back to pure auto-fit; grayed while widths already fit
+  // (double-clicking a handle still resets a single column)
   const hasManualWidths = Object.keys(table.getState().columnSizing).length > 0
   return (
-    // relative anchor: the pill floats over the grid's corner instead of
-    // scrolling with the table
-    <div className="relative">
-      {hasManualWidths && (
+    <div>
+      <div className="flex justify-end px-1 py-1">
         <button
           type="button"
-          title={S.grid.fitColumns}
+          disabled={!hasManualWidths}
+          title={hasManualWidths ? S.grid.fitColumns : S.grid.alreadyFit}
           onClick={() => table.resetColumnSizing()}
-          className="absolute right-1 top-1 z-40 inline-flex h-5 items-center gap-1 rounded-full border bg-card px-2 text-[11px] font-medium text-muted-foreground shadow-raised hover:text-foreground"
+          className={cn(
+            'inline-flex h-6 items-center gap-1 rounded-full border bg-card px-2 text-[11px] font-medium',
+            hasManualWidths
+              ? 'text-foreground shadow-raised hover:bg-accent'
+              : 'cursor-default text-muted-foreground/60',
+          )}
         >
           <UnfoldHorizontal className="h-3 w-3" /> {S.grid.fitColumns}
         </button>
-      )}
+      </div>
       {grid}
     </div>
   )
