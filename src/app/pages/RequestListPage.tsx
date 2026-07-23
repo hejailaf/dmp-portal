@@ -17,7 +17,7 @@ import { useHeaderCta } from '../shell-context'
 import { href, navigate, useRoute } from '../router'
 import { S } from '../strings'
 import { useCurrentUser } from '../user-context'
-import { SlaBadge, StatusBadge } from '../components/badges'
+import { SlaBadge, slaBadgeText, StatusBadge } from '../components/badges'
 import { Button } from '../components/ui/button'
 import { Card } from '../components/ui/card'
 import { Input, Select } from '../components/ui/input'
@@ -174,8 +174,8 @@ export function RequestListPage() {
     }
   }
 
-  // auto-fit text columns from the visible rows; badge columns (status, due)
-  // keep explicit sizes since text measurement misses the badge chrome
+  // auto-fit text columns from the visible rows; the status column keeps an
+  // explicit size since text measurement misses the badge chrome
   const autoSizes = useMemo(
     () => ({
       ref: autoColumnSize(S.list.columns.ref, filtered.map((r) => r.ref)),
@@ -183,6 +183,14 @@ export function RequestListPage() {
       reqType: autoColumnSize(S.list.columns.reqType, filtered.map(reqTypeOf)),
       requester: autoColumnSize(S.list.columns.requester, filtered.map((r) => r.requesterName)),
       assignee: autoColumnSize(S.list.columns.assignee, filtered.map((r) => r.assigneeName ?? S.detail.unassigned)),
+      // date + SLA chip; `extra` covers the chip chrome (padding, dot, gap).
+      // Due is the LAST column — if the chip overflowed the cell it would
+      // poke past the table and open a phantom scroll strip after it.
+      due: autoColumnSize(
+        S.list.columns.due,
+        filtered.map((r) => [formatDate(r.dueDate), slaBadgeText(r)].filter(Boolean).join(' ')),
+        { floor: 120, extra: 48 },
+      ),
     }),
     [filtered],
   )
@@ -249,9 +257,11 @@ export function RequestListPage() {
           ]),
       columnHelper.accessor('dueDate', {
         header: S.list.columns.due,
-        size: 210,
+        size: autoSizes.due,
         cell: (info) => (
-          <span className="flex items-center gap-2 whitespace-nowrap">
+          // overflow-hidden: a manually narrowed column clips like ClippedCell
+          // does, instead of overflowing past the table edge
+          <span className="flex items-center gap-2 overflow-hidden whitespace-nowrap">
             {formatDate(info.getValue())}
             <SlaBadge request={info.row.original} />
           </span>

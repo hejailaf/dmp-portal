@@ -122,18 +122,23 @@ export function DueSuffix({ request }: { request: Request }) {
   )
 }
 
-/** SLA countdown / overdue badge — derived at render time, never stored. */
-export function SlaBadge({ request }: { request: Pick<Request, 'status' | 'dueDate'> }) {
+/** The SlaBadge's label, or null when no chip renders — exported so the
+ *  request list can MEASURE the chip when auto-sizing the Due column. */
+export function slaBadgeText(request: Pick<Request, 'status' | 'dueDate'>): string | null {
   if (!request.dueDate) return null
   if (request.status === 'Completed' || request.status === 'Rejected' || request.status === 'Withdrawn')
     return null
-  if (isOverdue(request)) {
-    return <Badge variant="red">{S.sla.overdue(-daysUntilDue(request.dueDate))}</Badge>
-  }
   const days = daysUntilDue(request.dueDate)
+  if (isOverdue(request)) return S.sla.overdue(-days)
+  return days <= 0 ? S.sla.dueToday : S.sla.dueIn(days)
+}
+
+/** SLA countdown / overdue badge — derived at render time, never stored. */
+export function SlaBadge({ request }: { request: Pick<Request, 'status' | 'dueDate'> }) {
+  const text = slaBadgeText(request)
+  if (!text) return null
+  const days = daysUntilDue(request.dueDate!)
   return (
-    <Badge variant={days <= 1 ? 'amber' : 'outline'}>
-      {days <= 0 ? S.sla.dueToday : S.sla.dueIn(days)}
-    </Badge>
+    <Badge variant={isOverdue(request) ? 'red' : days <= 1 ? 'amber' : 'outline'}>{text}</Badge>
   )
 }

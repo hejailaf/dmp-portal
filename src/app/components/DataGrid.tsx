@@ -41,10 +41,11 @@ function measure(text: string, font: string): number {
 export function autoColumnSize(
   headerLabel: string,
   values: Iterable<string>,
-  opts: { select?: boolean; floor?: number } = {},
+  opts: { select?: boolean; floor?: number; extra?: number } = {},
 ): number {
   let width = measure(headerLabel.toUpperCase(), HEADER_FONT) + HEADER_PAD
-  const extra = opts.select ? SELECT_ARROW : 0
+  // per-value chrome text measurement can't see: select arrow, badge padding
+  const extra = (opts.select ? SELECT_ARROW : 0) + (opts.extra ?? 0)
   for (const v of values) {
     if (v) width = Math.max(width, measure(v, CELL_FONT) + CELL_PAD + extra)
   }
