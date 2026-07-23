@@ -107,7 +107,9 @@ export function RequestListPage() {
     if (search.trim()) {
       const q = search.trim().toLowerCase()
       rows = rows.filter((r) =>
-        [r.ref, r.description, r.lineSummary, r.requesterName, r.assigneeName ?? '']
+        // reqTypeOf included so typing what the Req. Type column SHOWS
+        // ("FLoc", "Multiple") actually matches
+        [r.ref, r.description, r.lineSummary, reqTypeOf(r), r.requesterName, r.assigneeName ?? '']
           .join(' ')
           .toLowerCase()
           .includes(q),
@@ -118,16 +120,20 @@ export function RequestListPage() {
 
   const showClaim = scope === 'unassigned' && user.roles.includes('maintainer')
 
-  // brand-new requester, nothing filtered away: the invitation card is the
-  // whole page — the filter row would be five controls over nothing, and
-  // the invitation's CTA replaces the header one (one primary per screen)
-  const firstVisit =
+  // brand-new requester, nothing filtered away: the invitation card replaces
+  // the empty message and its CTA replaces the header one (one primary per
+  // screen)…
+  const emptyMine =
     requests.data?.length === 0 && scope === 'mine' && !search && !statusFilter && !overdueOnly
+  // …but the filter ROW disappears only when 'mine' is the user's ONLY scope:
+  // multi-role users need it — the Unassigned-pool checkbox has no other
+  // list-page entry (the pool deliberately has no nav link)
+  const firstVisit = emptyMine && scopesFor(user).length === 1
   const setHeaderCtaHidden = useHeaderCta()
   useEffect(() => {
-    setHeaderCtaHidden(!!firstVisit)
+    setHeaderCtaHidden(!!emptyMine)
     return () => setHeaderCtaHidden(false) // navigating away restores the chrome
-  }, [firstVisit, setHeaderCtaHidden])
+  }, [emptyMine, setHeaderCtaHidden])
 
   // exports exactly the filtered view; module + exceljs stay lazy chunks
   const exportView = async () => {
@@ -135,9 +141,17 @@ export function RequestListPage() {
     setClaimError(undefined)
     try {
       const { makeRequestListExport } = await import('@/lib/excel-export')
+      // export what the SCREEN shows: the table's final row model (sorting
+      // applied) and the same Req. Type labels, stamped with the LOCAL date
+      const d = new Date()
+      const stamp = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
       downloadBlob(
-        await makeRequestListExport(filtered, S.list.title[scope]),
-        S.list.exportFilename(new Date().toISOString().slice(0, 10)),
+        await makeRequestListExport(
+          table.getRowModel().rows.map((r) => r.original),
+          S.list.title[scope],
+          reqTypeOf,
+        ),
+        S.list.exportFilename(stamp),
       )
     } catch (e) {
       setClaimError(e instanceof Error ? e.message : String(e))
@@ -386,7 +400,7 @@ export function RequestListPage() {
             </Button>
           </div>
         ) : filtered.length === 0 ? (
-          firstVisit ? (
+          emptyMine ? (
             // a brand-new requester's first visit: invite, don't apologize
             <div className="p-10 text-center">
               <p className="font-medium">{S.list.emptyMineTitle}</p>

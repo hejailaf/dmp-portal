@@ -36,6 +36,7 @@ import { href, navigate } from '../router'
 import { S } from '../strings'
 import { useCurrentUser } from '../user-context'
 import { readListState, scopesFor } from './RequestListPage'
+import { autosaveKeyFor } from './RequestEditorPage'
 import { DueSuffix, StatusStepper } from '../components/badges'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
@@ -451,7 +452,13 @@ export function RequestDetailPage({ id }: { id: string }) {
     // submit (Draft) and resubmit (Returned) go through submitRequest —
     // validation + SLA compute/extension live there, not in setStatus
     if (to === 'Waiting to be started' && (req.status === 'Draft' || req.status === 'Returned')) {
-      void run(() => provider.submitRequest(req.id))
+      void run(async () => {
+        await provider.submitRequest(req.id)
+        // the editor's autosave invariant: EVERY successful submit clears the
+        // key — including this detail-page path, or a stale autosave later
+        // resurrects pre-submit edits over the newer server copy
+        localStorage.removeItem(autosaveKeyFor(user.id, req.id))
+      })
       return
     }
     void run(() => provider.setStatus(req.id, to))
@@ -710,7 +717,16 @@ export function RequestDetailPage({ id }: { id: string }) {
           </>
         ) : (
           <CardContent className="p-0">
-            <Tabs value={activeLinesTab}>
+            <Tabs
+              value={activeLinesTab}
+              // keyboard support: Radix arrow-key activation goes through
+              // onValueChange — without it, arrows move focus but never
+              // switch the panel (trigger onClick only covers pointer/Enter)
+              onValueChange={(v) => {
+                setLinesTab(v as ObjectType)
+                setLinesOpen(true)
+              }}
+            >
               <div className="flex items-center gap-2 border-b px-4 pt-3">
                 <button
                   type="button"

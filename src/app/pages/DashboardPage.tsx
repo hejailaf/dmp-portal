@@ -91,13 +91,14 @@ export function DashboardPage() {
         </Select>
       </div>
 
-      <div className="reveal grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6" style={{ '--stagger-i': 1 } as React.CSSProperties}>
+      <div className="reveal grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-7" style={{ '--stagger-i': 1 } as React.CSSProperties}>
         <StatCard label={k.total} value={kpis.total} to="/requests?scope=all" />
         <StatCard label={k.waiting} value={kpis.waiting} to="/requests?scope=all&status=Waiting to be started" />
         <StatCard label={k.inProcess} value={kpis.inProcess} to="/requests?scope=all&status=In process" />
         <StatCard label={k.completed} value={kpis.completed} to="/requests?scope=all&status=Completed" />
         <StatCard label={k.overdue} value={kpis.overdue} to="/requests?scope=all&overdue=1" tone="red" />
         <StatCard label={k.unassigned} value={kpis.unassigned} to="/requests?scope=unassigned" />
+        <StatCard label={k.withdrawn} value={kpis.withdrawn} to="/requests?scope=all&status=Withdrawn" />
       </div>
 
       <Card>

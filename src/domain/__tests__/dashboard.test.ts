@@ -39,7 +39,7 @@ describe('filterByWindow', () => {
 describe('computeDashboard', () => {
   it('returns zeros and no maintainers for empty input', () => {
     const { kpis, maintainers } = computeDashboard([], NOW)
-    expect(kpis).toEqual({ total: 0, waiting: 0, inProcess: 0, completed: 0, overdue: 0, unassigned: 0 })
+    expect(kpis).toEqual({ total: 0, waiting: 0, inProcess: 0, completed: 0, overdue: 0, unassigned: 0, withdrawn: 0 })
     expect(maintainers).toEqual([])
   })
 
@@ -56,9 +56,18 @@ describe('computeDashboard', () => {
       req({ status: 'In process', assigneeId: 'u-m', assigneeName: 'Malik', dueDate: '2026-07-30T00:00:00Z' }),
       req({ status: 'Completed', assigneeId: 'u-m', assigneeName: 'Malik' }),
       req({ status: 'Rejected' }),
+      req({ status: 'Withdrawn', assigneeId: 'u-m', assigneeName: 'Malik' }),
     ]
     const { kpis } = computeDashboard(requests, NOW)
-    expect(kpis).toEqual({ total: 6, waiting: 2, inProcess: 1, completed: 1, overdue: 1, unassigned: 1 })
+    expect(kpis).toEqual({ total: 7, waiting: 2, inProcess: 1, completed: 1, overdue: 1, unassigned: 1, withdrawn: 1 })
+  })
+
+  it('withdrawn requests create no maintainer performance rows', () => {
+    const { maintainers } = computeDashboard(
+      [req({ status: 'Withdrawn', assigneeId: 'u-m', assigneeName: 'Malik' })],
+      NOW,
+    )
+    expect(maintainers).toEqual([]) // assignee kept, but no workload row
   })
 
   it('groups maintainer stats and sorts by open desc then name', () => {

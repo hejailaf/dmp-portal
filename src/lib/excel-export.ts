@@ -100,9 +100,15 @@ export async function makeRequestExport(req: Request, lines: RequestLine[]): Pro
 /**
  * List-page export: one sheet, one row per request, exactly what the
  * filtered table shows plus the useful dates. Stored status names on
- * purpose — this is a report, not a per-viewer UI surface.
+ * purpose — this is a report, not a per-viewer UI surface. The caller
+ * passes rows in SCREEN order and the same Req. Type derivation the
+ * table renders, so sheet and screen can never disagree.
  */
-export async function makeRequestListExport(requests: Request[], title: string): Promise<Blob> {
+export async function makeRequestListExport(
+  requests: Request[],
+  title: string,
+  reqType: (r: Request) => string,
+): Promise<Blob> {
   const ExcelJS = await excel()
   const wb = new ExcelJS.Workbook()
   const ws = wb.addWorksheet(title.slice(0, 31) || 'Requests') // sheet names cap at 31 chars
@@ -123,12 +129,12 @@ export async function makeRequestListExport(requests: Request[], title: string):
   header.font = { bold: true }
 
   for (const r of requests) {
-    const { types, total } = parseLineSummary(r.lineSummary)
+    const { total } = parseLineSummary(r.lineSummary)
     ws.addRow([
       r.ref,
       r.description,
       r.status,
-      types.length > 1 ? 'Multiple' : (types[0] ?? ''),
+      reqType(r),
       total,
       r.requesterName,
       r.assigneeName ?? '',

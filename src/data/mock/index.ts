@@ -107,7 +107,11 @@ export class MockProvider implements DataProvider {
       case 'mine':
         return all.filter((r) => r.requesterId === me.id)
       case 'queue':
-        return all.filter((r) => r.assigneeId === me.id && r.status !== 'Draft')
+        // Withdrawn keeps its assignee but the maintainer has no action on it
+        // — the requester pulled it back, so it leaves the queue
+        return all.filter(
+          (r) => r.assigneeId === me.id && r.status !== 'Draft' && r.status !== 'Withdrawn',
+        )
       case 'unassigned':
         return all.filter((r) => r.status === 'Waiting to be started' && !r.assigneeId)
       case 'all':
@@ -383,6 +387,11 @@ export const mockControls = {
   },
   resetDemoData() {
     localStorage.removeItem(DB_KEY)
+    // stale editor autosaves would resurrect over the fresh seed (ids are
+    // deterministic r-N, so old keys match new requests) — clear them too
+    for (const key of Object.keys(localStorage)) {
+      if (key.startsWith('dmp-draft-autosave-')) localStorage.removeItem(key)
+    }
     window.location.reload()
   },
 }

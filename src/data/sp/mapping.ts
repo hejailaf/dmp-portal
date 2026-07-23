@@ -139,7 +139,11 @@ export function filterByScope(requests: Request[], scope: RequestScope, me: User
     case 'mine':
       return requests.filter((r) => r.requesterId === me.id)
     case 'queue':
-      return requests.filter((r) => r.assigneeId === me.id && r.status !== 'Draft')
+      // Withdrawn keeps its assignee but offers the maintainer no action —
+      // the requester pulled it back, so it leaves the queue (same as mock)
+      return requests.filter(
+        (r) => r.assigneeId === me.id && r.status !== 'Draft' && r.status !== 'Withdrawn',
+      )
     case 'unassigned':
       return requests.filter((r) => r.status === 'Waiting to be started' && !r.assigneeId)
     case 'all':

@@ -11,6 +11,7 @@ interface DashboardKpis {
   completed: number
   overdue: number
   unassigned: number
+  withdrawn: number
 }
 
 interface MaintainerStats {
@@ -58,6 +59,7 @@ export function computeDashboard(
     completed: 0,
     overdue: 0,
     unassigned: 0,
+    withdrawn: 0,
   }
 
   interface Acc {
@@ -77,8 +79,12 @@ export function computeDashboard(
     if (r.status === 'Completed') kpis.completed += 1
     if (isOverdue(r, now)) kpis.overdue += 1
     if (r.status === 'Waiting to be started' && !r.assigneeId) kpis.unassigned += 1
+    if (r.status === 'Withdrawn') kpis.withdrawn += 1
 
     if (!r.assigneeId) continue
+    // withdrawn requests keep their assignee but are no maintainer workload —
+    // they must not create all-zero performance rows
+    if (r.status === 'Withdrawn') continue
     let acc = byMaintainer.get(r.assigneeId)
     if (!acc) {
       acc = {

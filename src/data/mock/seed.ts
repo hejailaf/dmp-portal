@@ -47,6 +47,9 @@ export function buildSeed(): MockDb {
   const year = new Date().getFullYear()
   let seq = 0
 
+  // audit actor for admin-only events — found by ROLE, immune to list order
+  const adminActor = () => SEED_USERS.find((u) => u.roles.includes('admin'))!
+
   const audit = (requestId: string, event: AuditEntry['event'], actor: User, at: string, oldValue?: string, newValue?: string) =>
     db.audit.push({ id: `a-${db.audit.length + 1}`, requestId, event, actorId: actor.id, actorName: actor.displayName, oldValue, newValue, at })
 
@@ -86,19 +89,26 @@ export function buildSeed(): MockDb {
     audit(id, 'Created', spec.requester, createdAt)
     if (submittedAt) audit(id, 'Submitted', spec.requester, submittedAt, 'Draft', 'Waiting to be started')
     if (spec.assignee && submittedAt)
-      audit(id, 'Assigned', SEED_USERS[4], submittedAt, undefined, spec.assignee.displayName)
+      audit(id, 'Assigned', adminActor(), submittedAt, undefined, spec.assignee.displayName)
     if ((spec.status === 'In process' || spec.status === 'Completed') && spec.assignee && submittedAt)
       audit(id, 'StatusChanged', spec.assignee, daysAgo((spec.submittedDaysAgo ?? 1) - 0.5), 'Waiting to be started', 'In process')
     if (spec.status === 'Completed' && spec.assignee)
       audit(id, 'StatusChanged', spec.assignee, req.completedAt ?? daysAgo(0.2), 'In process', 'Completed')
     if (spec.status === 'Rejected' && spec.rejectReason)
-      audit(id, 'Rejected', SEED_USERS[4], daysAgo(0.5), 'Waiting to be started', spec.rejectReason)
+      audit(id, 'Rejected', adminActor(), daysAgo(0.5), 'Waiting to be started', spec.rejectReason)
     if (spec.status === 'Withdrawn')
       audit(id, 'Withdrawn', spec.requester, daysAgo(0.4), 'Waiting to be started', 'Withdrawn')
     return req
   }
 
-  const [rana, omar, malik, mona, aya] = SEED_USERS
+  // look users up BY ID — positional destructuring broke once before when a
+  // user was inserted mid-list (Noor shifted every maintainer binding by one)
+  const seedUser = (id: string): User => SEED_USERS.find((u) => u.id === id)!
+  const rana = seedUser('u-rana')
+  const omar = seedUser('u-omar')
+  const malik = seedUser('u-malik')
+  const mona = seedUser('u-mona')
+  const aya = seedUser('u-aya')
 
   // Drafts
   add({

@@ -37,10 +37,12 @@ export const S = {
     statDrafts: (n: number) => `${n} ${n === 1 ? 'draft' : 'drafts'}`,
     statOpen: (n: number) => `${n} open`,
     statCompleted: (n: number) => `${n} completed`,
+    statWithdrawn: (n: number) => `${n} withdrawn`, // shown only when > 0
     templatesCardTitle: 'Excel template',
     templatesCardBody: 'One workbook, a sheet per data type — fill and import in the editor.',
     rejectedCallout: (ref: string) => `${ref} was rejected — fix and resubmit.`,
     returnedCallout: (ref: string) => `${ref} was returned — update and resubmit.`,
+    withdrawnCallout: (ref: string) => `${ref} is withdrawn — reopen it to edit and resubmit.`,
     recentTitle: 'Recent requests',
     viewAll: 'View all',
     howSteps: [
@@ -291,6 +293,7 @@ export const S = {
       completed: 'Completed',
       overdue: 'Overdue',
       unassigned: 'Unassigned pool', // subset of the waiting KPI — named like the home tile
+      withdrawn: 'Withdrawn',
     },
     windowLabel: 'Time window',
     window: {

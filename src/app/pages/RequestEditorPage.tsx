@@ -25,11 +25,12 @@ import {
   type LineValidation,
 } from '@/domain/schemas'
 import { makeUnifiedTemplate, parseUnifiedTemplate, TEMPLATE_FILENAME } from '@/lib/excel-lines'
-import { LINE_ACTIONS, type LineAction, type ObjectType, type RequestLine } from '@/domain/types'
+import { LINE_ACTIONS, OBJECT_TYPES, type LineAction, type ObjectType, type RequestLine } from '@/domain/types'
 import { cn, downloadBlob, formatDateValue, parseUsDate } from '@/lib/utils'
 import { useAsync, usePageTitle } from '../hooks'
 import { navigate, setNavGuard } from '../router'
 import { S } from '../strings'
+import { useCurrentUser } from '../user-context'
 import { Button } from '../components/ui/button'
 import { Card, CardContent } from '../components/ui/card'
 import { Input, Select } from '../components/ui/input'
@@ -389,11 +390,32 @@ interface AutosaveState {
   tab: ObjectType
   lines: EditorLine[]
 }
-const autosaveKeyFor = (requestId?: string) => `dmp-draft-autosave-${requestId ?? 'new'}`
+/** User-scoped: role switches / shared machines must never leak another user's draft. */
+export const autosaveKeyFor = (userId: string, requestId?: string) =>
+  `dmp-draft-autosave-${userId}-${requestId ?? 'new'}`
 function readAutosave(key: string): AutosaveState | undefined {
   try {
     const parsed = JSON.parse(localStorage.getItem(key) ?? '') as AutosaveState
-    return Array.isArray(parsed?.lines) ? parsed : undefined
+    // full shape check — a partial/foreign value must never hydrate state
+    // (undefined description crashes the counter; a bad objectType crashes
+    // FIELD_MAP lookups) and a bad key is simply ignored, never restored
+    const types = OBJECT_TYPES as readonly string[]
+    const actions = LINE_ACTIONS as readonly string[]
+    if (
+      typeof parsed?.description !== 'string' ||
+      !types.includes(parsed.tab) ||
+      !Array.isArray(parsed.lines) ||
+      !parsed.lines.every(
+        (l) =>
+          typeof l?.key === 'string' &&
+          types.includes(l.objectType) &&
+          actions.includes(l.action) &&
+          !!l.fieldData &&
+          typeof l.fieldData === 'object',
+      )
+    )
+      return undefined
+    return parsed
   } catch {
     return undefined
   }
@@ -401,7 +423,8 @@ function readAutosave(key: string): AutosaveState | undefined {
 
 export function RequestEditorPage({ requestId }: { requestId?: string }) {
   const provider = getProvider()
-  const autosaveKey = autosaveKeyFor(requestId)
+  const user = useCurrentUser()
+  const autosaveKey = autosaveKeyFor(user.id, requestId)
   // Autosave invariant: the key is cleared on every successful save/submit,
   // so a surviving value ALWAYS holds unsaved changes newer than the server
   // copy — restoring unconditionally is safe.
@@ -454,7 +477,18 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
   // closing/reloading the tab hits the native beforeunload prompt.
   const dirtyRef = useRef(!!restored) // restored content IS unsaved changes
   useEffect(() => {
-    setNavGuard(() => !dirtyRef.current || window.confirm(S.editor.confirmLeave))
+    setNavGuard(() => {
+      if (!dirtyRef.current) return true
+      const leave = window.confirm(S.editor.confirmLeave)
+      if (leave) {
+        // the prompt promised "changes will be lost" — honor it, or the
+        // autosave resurrects the explicitly discarded edits on next visit.
+        // (Tab close/crash keeps the key: that's what autosave is FOR.)
+        localStorage.removeItem(autosaveKey)
+        dirtyRef.current = false
+      }
+      return leave
+    })
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
       if (!dirtyRef.current) return
       e.preventDefault()
@@ -465,10 +499,23 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
       setNavGuard(null)
       window.removeEventListener('beforeunload', onBeforeUnload)
     }
-  }, [])
+  }, [autosaveKey])
 
   useEffect(() => {
     if (requestId && existing.data && !initialized) {
+      const status = existing.data.request.status
+      if (status !== 'Draft' && status !== 'Returned') {
+        // request moved past editability — a surviving autosave is a zombie:
+        // kill it instead of arming the nav guard on the read-only page
+        if (restored) {
+          localStorage.removeItem(autosaveKey)
+          setRestored(undefined)
+          setShowRestored(false)
+          dirtyRef.current = false
+        }
+        setInitialized(true)
+        return
+      }
       if (restored) {
         // autosaved (unsaved) changes beat the server copy — see invariant
         setLines(restored.lines)
@@ -499,7 +546,7 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
       if (startTab) setTab(startTab.objectType)
       setInitialized(true)
     }
-  }, [requestId, existing.data, initialized, restored])
+  }, [requestId, existing.data, initialized, restored, autosaveKey])
 
   // a passed check is only true for the state it checked — any edit voids it
   useEffect(() => {
@@ -514,7 +561,11 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
       importShownRef.current = false
       return
     }
-    setImportResult(undefined)
+    // noteless (clean) callouts are transient; callouts CARRYING NOTES
+    // (skipped rows, unknown columns) persist until the X or the next
+    // import — switching tabs to review a multi-type import must not
+    // destroy unread error details
+    setImportResult((r) => (r && r.notes.length > 0 ? r : undefined))
   }, [lines, description, tab])
 
   // best-effort autosave of actual edits (dirty only — pristine mounts and
@@ -709,6 +760,7 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
     }
     setErrors({})
     setRequestErrors([])
+    setDescriptionErrors([]) // inline field error too — the field is pristine again
   }
 
   // dry run of the submit validation: same rules, same error panel and red
@@ -716,7 +768,7 @@ export function RequestEditorPage({ requestId }: { requestId?: string }) {
   // confirmation (a silent button would feel broken when all is well).
   const onCheck = () => {
     setBanner(undefined)
-    setImportResult(undefined)
+    setImportResult((r) => (r && r.notes.length > 0 ? r : undefined)) // keep unread notes
     const kept = lines.filter(
       (l) => !isEmptyLine({ fieldData: normalizeFieldData(l.objectType, l.action, l.fieldData) }),
     )
