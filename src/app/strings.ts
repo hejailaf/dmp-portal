@@ -218,7 +218,7 @@ export const S = {
     commentAdd: 'Add comment',
     commentHint: 'Ctrl+Enter to send',
     noComments: 'No comments yet.',
-    auditTitle: 'Audit trail',
+    auditTitle: 'Action log',
     attachmentsTitle: 'Attachments',
     attachmentsEmpty: 'No attachments yet.',
     attachmentAdd: 'Add attachment',
