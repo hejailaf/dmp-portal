@@ -450,9 +450,8 @@ export function RequestDetailPage({ id }: { id: string }) {
   if (detail.loading)
     return (
       <div className="space-y-5">
-        <Skeleton className="h-44 w-full rounded-card" />
-        <Skeleton className="h-56 w-full rounded-card" />
-        <Skeleton className="h-64 w-full rounded-card" />
+        {/* one skeleton — the page is a single unified card */}
+        <Skeleton className="h-[32rem] w-full rounded-card" />
       </div>
     )
   // error/not-found still offer the way back to the list
@@ -594,7 +593,6 @@ export function RequestDetailPage({ id }: { id: string }) {
 
   return (
     <div className="space-y-5">
-      {backLink}
       {banner && (
         <p className="rounded-md border border-destructive/40 bg-[var(--danger-tint)] p-3 text-sm text-destructive">{banner}</p>
       )}
@@ -617,13 +615,19 @@ export function RequestDetailPage({ id }: { id: string }) {
       <Card className="reveal border-t-2 border-t-[var(--teal)]">
         <CardContent className="p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            {req.description ? (
-              <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                {req.ref}
-              </span>
-            ) : (
-              <h1 className="font-display text-title text-secondary-foreground">{req.ref}</h1>
-            )}
+            <div className="flex items-center gap-3">
+              {backLink}
+              {/* hairline between navigation and identifier — same idiom as
+                  the meta strip's divide-x below */}
+              <span aria-hidden className="h-3.5 w-px bg-border" />
+              {req.description ? (
+                <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                  {req.ref}
+                </span>
+              ) : (
+                <h1 className="font-display text-title text-secondary-foreground">{req.ref}</h1>
+              )}
+            </div>
             <div className="flex flex-wrap items-center gap-2">
               {canEditDraft && (
                 <a href={href(`/requests/${req.id}/edit`)}>
