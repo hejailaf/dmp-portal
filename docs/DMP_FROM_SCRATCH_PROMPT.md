@@ -168,6 +168,13 @@ recipe in docs.
 
 ## 8. Notifications
 
+> **Superseded 2026-07-24 — this section's premise turned out to be wrong.**
+> Email CAN be built in code: SharePoint's `SP.Utilities.Utility.SendEmail`
+> REST endpoint lets the app send its own mail, so there is no SharePoint
+> Designer workflow. The rest of this section is kept as the original
+> brief; the built design is WORKFLOW_RECIPE.md §A (§B keeps the SPD
+> recipe as a fallback).
+
 MVP: a **SharePoint Designer 2013 workflow** on DMP_Requests (on change: status
 changed → email requester; assignee changed → email assignee). You cannot build
 this in code — instead produce `docs/WORKFLOW_RECIPE.md`, an exact click-by-click

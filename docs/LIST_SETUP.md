@@ -54,7 +54,7 @@ Create a version each time = Yes). Attachments stay enabled (default).
 | SubmittedAt / DueDate / CompletedAt / ReturnedAt | Date and Time | Date & Time format |
 | SlaDays | Number | 0 decimals |
 | Description / RejectReason / LineSummary | Multi (plain) | |
-| LastNotifiedStatus / LastNotifiedAssignee | Line | workflow scratch (Phase 4) |
+| LastNotifiedStatus / LastNotifiedAssignee | Line | UNUSED since 2026-07-24 — SPD-workflow scratch; still provisioned, harmless. Only the §B fallback would need them |
 
 **PMDC_RequestLines**
 
@@ -165,9 +165,11 @@ Two notes:
   after submitting). SharePoint has no per-status lock without a server.
   Mitigation: PMDC_Requests versioning is ON (§3) — every change is
   recorded with name + timestamp, so tampering is visible.
-- After applying, re-run the workflow TEST from WORKFLOW_RECIPE.md once:
-  the email workflow writes scratch columns under the editing user's
-  identity and must still save.
+- (Obsolete since 2026-07-24: this used to require re-running the SPD
+  workflow test, because the workflow wrote scratch columns as the
+  editing user. The app sends mail itself now and writes no scratch
+  columns, so item-level permissions no longer interact with
+  notifications.)
 
 ## §5 Verify
 
@@ -234,9 +236,11 @@ PMDC Admins (i.e. you):
 7. **Hide the lists from Site contents** — Site setup screen → **"Hide
    lists from Site contents"**. Cosmetic (direct URLs and the API still
    work; §4c is the real protection) but keeps requesters from stumbling
-   into raw list views. Do this LAST — after the email workflow is built:
-   SharePoint Designer does not show hidden lists, so click **"Show lists
-   in Site contents"** before any workflow edit and re-hide after.
+   into raw list views. Order no longer matters (2026-07-24): the app
+   sends its own mail, so there is no SharePoint Designer step that needs
+   to see the lists. Only if you fall back to the SPD workflow
+   (WORKFLOW_RECIPE.md §B) must you click **"Show lists in Site
+   contents"** first — SPD cannot see hidden lists — and re-hide after.
 
 What this does NOT protect against (know the limits):
 - **Site collection admins** of the parent collection bypass every grant

@@ -25,8 +25,10 @@ URL segment renamed `dmp` → `pmdc` on 2026-07-19).
    grants, Read on the subsite for all three groups).
 6. **Vertical slice** — run `LIST_SETUP.md` §5's checks, including a
    non-owner colleague opening the app.
-7. **Notifications** — Phase 4 ships `WORKFLOW_RECIPE.md` (SharePoint
-   Designer 2013 workflow, click-by-click).
+7. **Notifications** — nothing to build: the app sends its own mail
+   (2026-07-24). Run the on-site checks in `WORKFLOW_RECIPE.md` §A —
+   farm outgoing email, one real send, and PMDC Maintainers holding
+   direct members.
 
 ## Routine update (every new build)
 
@@ -61,12 +63,14 @@ index.aspx.
 ## Pilot
 
 Before inviting pilot users, run docs/SMOKE_TEST.md top to bottom, and
-execute docs/WORKFLOW_RECIPE.md once for the email notifications.
+work through docs/WORKFLOW_RECIPE.md §A's on-site checks to prove email
+actually sends from this farm.
 
 ## Moving to a new subsite (off the personal site collection)
 
-Groups, permission levels, lists, and workflows are all per site
-collection — NOTHING carries over. The move is a clean re-run of
+Groups, permission levels, and lists are all per site collection —
+NOTHING carries over. (Notifications now travel WITH the build, so
+there is no workflow to rebuild.) The move is a clean re-run of
 first-time setup on the new site; only the subsite creation step below is
 new. Budget ~1–2 hours.
 
@@ -117,10 +121,12 @@ per-list grants; Read on the subsite for all three groups.
 **8. Friendly URL** — Site setup → "Make the app the site home page";
 share the bare `…/pmdc` URL.
 
-**9. Emails** — workflows live on the old site's lists and do not move:
-re-run WORKFLOW_RECIPE.md on the new lists. Then SMOKE_TEST.md before
-inviting anyone. After the workflow works: Site setup → **"Hide lists
-from Site contents"** (LIST_SETUP.md §7.7).
+**9. Emails** — nothing to rebuild: notifications ship inside the build,
+so they follow the upload. Just re-run WORKFLOW_RECIPE.md §A's checks on
+the new site (farm outgoing email, one real send, Maintainers membership).
+Then SMOKE_TEST.md before inviting anyone, and Site setup → **"Hide lists
+from Site contents"** (LIST_SETUP.md §7.7) — no longer order-sensitive,
+since nothing needs SharePoint Designer to see the lists.
 
 **10. Retire the old site.** If the old site holds only test data there is
 nothing to migrate — once §5/§7 pass on the new site, delete the old

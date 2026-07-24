@@ -38,7 +38,7 @@ completed (one on-time, one late — so the dashboard shows both 100% and
 (Requester) create + submit a request; as Malik (Maintainer) claim,
 start, and complete it; as Aya (Admin) tour the dashboard and reject the
 spare request with a reason; back as Rana, reopen it. Pilot checklists
-and the email-workflow recipe live in `docs/SMOKE_TEST.md` and
+and the email-notification design live in `docs/SMOKE_TEST.md` and
 `docs/WORKFLOW_RECIPE.md`.
 
 ## Current status
@@ -49,7 +49,7 @@ and the email-workflow recipe live in `docs/SMOKE_TEST.md` and
 | 1 — Domain + full app on mock data | **Done** (this build) |
 | 2 — SharePoint provider | Waiting on Phase-0 results |
 | 3 — Attachments, Excel export, dashboard | Not started |
-| 4 — Notification workflow + pilot | Not started |
+| 4 — Notifications + pilot | Emails built INTO the app (no SharePoint Designer); on-site send + pilot pending |
 
 ## Architecture in one paragraph
 

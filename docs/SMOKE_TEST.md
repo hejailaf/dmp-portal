@@ -63,12 +63,23 @@ Everything is browser-only. Tick as you go.
 - [ ] Maintainer table shows open/completed; on-time % and cycle time
       populate for requests completed AFTER the CompletedAt upgrade.
 
-## 7. Email workflow (after WORKFLOW_RECIPE.md is executed)
+## 7. Email notifications (sent by the app — WORKFLOW_RECIPE.md §A)
+
+Nothing to build first; the notifications ship in the build. Prove the
+farm can actually send (§A "On-site checks") before ticking these.
 
 - [ ] Submit → maintainers email. Assign → assignee email.
       Reject → requester email with reason. Complete → requester email.
-- [ ] Deep links in the emails open the right request.
-- [ ] No duplicate emails on unrelated edits (guards working).
+- [ ] Return → requester email with the reason. Resubmit after a return →
+      the ASSIGNEE only, not the whole maintainer group.
+- [ ] Withdraw → the assignee is told. Add a comment → the other
+      participants get it.
+- [ ] You are never emailed about your own action (self-claim a request:
+      no mail to you).
+- [ ] Deep links in the emails open the right request on THIS site
+      (they are derived from the running page, not hardcoded).
+- [ ] A blocked/failing send never breaks the action — the status change
+      still commits and the UI shows no error.
 
 ## 8. Pilot readiness
 

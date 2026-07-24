@@ -188,8 +188,9 @@ tracking, assignment, SLA, audit, Excel export only.
   403-retry, schema, pure mapping w/ tests, full provider — nometadata
   writes only), Site setup screen (`#/admin/provision`: provision/verify
   lists, groups check, connection self-test incl. untested DELETE verb,
-  hide/show lists in Site contents — hide LAST, SPD can't see hidden
-  lists), `LIST_SETUP.md` (groups, custom permission levels
+  hide/show lists in Site contents — order no longer matters since
+  emails left SPD 2026-07-24; only the §B fallback needs lists visible),
+  `LIST_SETUP.md` (groups, custom permission levels
   "PMDC Contribute (no delete)" + "PMDC Add only" + "PMDC Maintain"
   (Contribute + Manage Lists — bypasses §4c item-level edit-own-only so
   maintainers work requester-created items), per-list grants, §4c
