@@ -68,19 +68,42 @@ function maintainers(): Promise<{ login: string; email: string }[]> {
   return (maintainersPromise ??= groupMembers(PMDC_GROUPS.maintainer))
 }
 
-/**
- * Send one mail. Tries nometadata (this farm's proven dialect) and falls back
- * to verbose + the typed __metadata that service methods historically demand,
- * so whichever the farm wants, the first real send discovers it.
- */
-export async function sendMail(to: string[], subject: string, html: string): Promise<void> {
-  const props = { To: { results: to }, Subject: subject, Body: html }
+/** Visible recipients vs hidden ones. Fan-outs use `bcc` so a whole team's
+ *  addresses are not published on every notification. */
+export interface Recipients {
+  to?: string[]
+  bcc?: string[]
+}
+
+/** One POST, trying nometadata (this farm's proven dialect) then verbose +
+ *  the typed __metadata that service methods historically demand. */
+async function post(props: Record<string, unknown>): Promise<void> {
   try {
     await spPost(SEND_EMAIL, { properties: props })
   } catch {
     await spPostVerbose(SEND_EMAIL, {
       properties: { __metadata: { type: 'SP.Utilities.EmailProperties' }, ...props },
     })
+  }
+}
+
+/**
+ * Send one mail. BCC-only messages are legal here but some farms insist on a
+ * To — rather than lose the notification, retry once with the recipients
+ * visible. Degrading privacy beats dropping the mail nobody knows was dropped.
+ */
+export async function sendMail(r: Recipients, subject: string, html: string): Promise<void> {
+  const base = { Subject: subject, Body: html }
+  const props = {
+    ...base,
+    ...(r.to?.length ? { To: { results: r.to } } : {}),
+    ...(r.bcc?.length ? { BCC: { results: r.bcc } } : {}),
+  }
+  try {
+    await post(props)
+  } catch (e) {
+    if (!r.to?.length && r.bcc?.length) await post({ ...base, To: { results: r.bcc } })
+    else throw e
   }
 }
 
@@ -97,9 +120,10 @@ export function linkToRequest(id: string): string {
  * Who hears about this event — never the person who caused it.
  * Actor exclusion compares LOGINS (exact) before any address is resolved.
  */
-async function recipients(event: NotifyEvent, req: Request, actorId: string): Promise<string[]> {
+async function recipients(event: NotifyEvent, req: Request, actorId: string): Promise<Recipients> {
   if (event.kind === 'submitted') {
-    return (await maintainers()).filter((m) => m.login !== actorId).map((m) => m.email)
+    // team fan-out → BCC, so maintainers do not see each other's addresses
+    return { bcc: (await maintainers()).filter((m) => m.login !== actorId).map((m) => m.email) }
   }
   const toRequester =
     (event.kind === 'returned' ||
@@ -124,7 +148,8 @@ async function recipients(event: NotifyEvent, req: Request, actorId: string): Pr
     const email = (await maintainers()).find((m) => m.login === req.assigneeId)?.email
     if (email) out.push(email)
   }
-  return [...new Set(out)]
+  // named individuals (at most requester + assignee) — visible To is correct
+  return { to: [...new Set(out)] }
 }
 
 /**
@@ -134,10 +159,10 @@ async function recipients(event: NotifyEvent, req: Request, actorId: string): Pr
  */
 export async function notify(event: NotifyEvent, req: Request, actorId: string): Promise<void> {
   try {
-    const to = await recipients(event, req, actorId)
-    if (to.length === 0) return
+    const r = await recipients(event, req, actorId)
+    if (!r.to?.length && !r.bcc?.length) return
     const mail = buildMail(event, req, linkToRequest(req.id))
-    await sendMail(to, mail.subject, mail.html)
+    await sendMail(r, mail.subject, mail.html)
   } catch {
     // deliberately silent — see the contract above
   }

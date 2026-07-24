@@ -235,7 +235,8 @@ tracking, assignment, SLA, audit, Excel export only.
   Maintainers group listing. Requesters arrive via a huge nested AD
   group, so they are NEVER looked up by claims login (brittle) and the
   AD group is never expanded — each requester is mailed as one person.
-  Fired inside
+  Submit fan-out uses BCC (team addresses stay private; retries once with
+  a visible To if the farm rejects a To-less message). Fired inside
   SharePointProvider transitions, so the UI is untouched and Mock stays
   silent. Matrix: submitted→Maintainers, resubmit-after-Return→assignee
   only, assigned→assignee, returned/rejected/completed→requester,

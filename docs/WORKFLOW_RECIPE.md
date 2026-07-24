@@ -72,11 +72,16 @@ jobs — overdue lives in the UI and the dashboard).
 
 ### How each address is resolved (and why)
 
-| Recipient | Source |
-|---|---|
-| Requester | the request item's `Author/EMail` |
-| Assignee | their entry in the **PMDC Maintainers** group listing |
-| Maintainers (submit) | the same group listing |
+| Recipient | Source | Field |
+|---|---|---|
+| Requester | the request item's `Author/EMail` | To |
+| Assignee | their entry in the **PMDC Maintainers** group listing | To |
+| Maintainers (submit) | the same group listing | **BCC** |
+
+The submit fan-out uses **BCC** so the team's addresses are not published
+on every request; named individuals stay in To. If a farm rejects a
+message with no To, the client retries once with those recipients
+visible — losing the privacy, never the notification.
 
 Requesters reach this site through a large nested AD group, so they are
 deliberately NOT looked up by claims login against `siteusers` — matching

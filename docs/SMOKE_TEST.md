@@ -118,8 +118,10 @@ on the production site and nowhere else.**
 Nothing to build first; the notifications ship in the build. Prove the
 farm can actually send (§A "On-site checks") before ticking these.
 
-- [ ] Submit → maintainers email. Assign → assignee email.
-      Reject → requester email with reason. Complete → requester email.
+- [ ] Submit → maintainers email, addressed **BCC** (open it: the other
+      maintainers must NOT be listed as recipients). Assign → assignee
+      email. Reject → requester email with reason. Complete → requester
+      email.
 - [ ] Return → requester email with the reason. Resubmit after a return →
       the ASSIGNEE only, not the whole maintainer group.
 - [ ] Withdraw → the assignee is told. Add a comment → the other
