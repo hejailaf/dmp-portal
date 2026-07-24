@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { createColumnHelper, getCoreRowModel, useReactTable } from '@tanstack/react-table'
 import {
@@ -363,28 +363,68 @@ const AUDIT_ICONS: Record<AuditEvent, LucideIcon> = {
   AttachmentAdded: Paperclip,
 }
 
-/** A titled sub-panel in the activity card (icon + name + count header). */
+/** A titled sub-panel in the activity card (icon + name + count header).
+ *  `collapsible` turns the header into a disclosure button (the whole row is
+ *  the target; title + count already name it, so no extra aria-label). */
 function ActivityTile({
   icon: Icon,
   title,
   count,
+  collapsible,
+  defaultOpen = true,
   children,
 }: {
   icon: LucideIcon
   title: string
   count: number
+  collapsible?: boolean
+  defaultOpen?: boolean
   children: React.ReactNode
 }) {
+  const [open, setOpen] = useState(defaultOpen)
+  const bodyId = useId()
+  const shown = !collapsible || open
+  const tileIcon = <Icon className="h-4 w-4 flex-none text-[var(--teal)]" />
+  const badge = (
+    <span className="ml-auto rounded-full bg-muted px-2 py-0.5 text-xs font-normal text-muted-foreground">
+      {count}
+    </span>
+  )
   return (
-    <div className="rounded-lg border">
-      <div className="flex items-center gap-2 border-b bg-muted/40 px-3 py-2">
-        <Icon className="h-4 w-4 flex-none text-[var(--teal)]" />
-        <h3 className="text-sm font-medium">{title}</h3>
-        <span className="ml-auto rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-          {count}
-        </span>
-      </div>
-      <div className="p-3">{children}</div>
+    // overflow-hidden: collapsed, the header is the tile's only child — its
+    // square background would otherwise overhang the rounded corners
+    <div className="overflow-hidden rounded-lg border">
+      {collapsible ? (
+        // disclosure pattern: the heading wraps the button, so the whole
+        // header row toggles and the title + count already name it
+        <h3 className="text-sm font-medium">
+          <button
+            type="button"
+            aria-expanded={open}
+            aria-controls={bodyId}
+            onClick={() => setOpen((o) => !o)}
+            className={`flex w-full items-center gap-2 bg-muted/40 px-3 py-2 text-left hover:bg-muted/60 ${shown ? 'border-b' : ''}`}
+          >
+            {tileIcon}
+            {title}
+            {badge}
+            <ChevronDown
+              className={`h-4 w-4 flex-none text-muted-foreground transition-transform ${shown ? '' : '-rotate-90'}`}
+            />
+          </button>
+        </h3>
+      ) : (
+        <div className="flex items-center gap-2 border-b bg-muted/40 px-3 py-2">
+          {tileIcon}
+          <h3 className="text-sm font-medium">{title}</h3>
+          {badge}
+        </div>
+      )}
+      {shown && (
+        <div id={bodyId} className="p-3">
+          {children}
+        </div>
+      )}
     </div>
   )
 }
@@ -910,7 +950,15 @@ export function RequestDetailPage({ id }: { id: string }) {
             >
               <AttachmentsPanel requestId={req.id} attachments={attachments} onAdded={() => audit.reload()} />
             </ActivityTile>
-            <ActivityTile icon={History} title={S.detail.auditTitle} count={audit.data?.length ?? 0}>
+            {/* history is reference material — collapsed on load so it stops
+                driving the page height (user decision 2026-07-24) */}
+            <ActivityTile
+              icon={History}
+              title={S.detail.auditTitle}
+              count={audit.data?.length ?? 0}
+              collapsible
+              defaultOpen={false}
+            >
               {/* newest first; each event carries its icon and a relative time */}
               <div className="max-h-80 overflow-y-auto">
                 {[...(audit.data ?? [])].reverse().map((a, i, all) => {
