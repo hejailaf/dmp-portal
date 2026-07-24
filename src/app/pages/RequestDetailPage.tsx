@@ -758,22 +758,20 @@ export function RequestDetailPage({ id }: { id: string }) {
             </StripItem>
           </div>
         </CardContent>
-      </Card>
 
-      {/* line items — editor-style tab strip, one PRESENT type per tab;
-          clicking the active tab (or the chevron) collapses to the strip */}
-      <Card className="reveal" style={{ '--stagger-i': 1 } as React.CSSProperties}>
-        {groups.length === 0 ? (
-          <>
-            <CardHeader>
-              <CardTitle>{S.detail.linesTitle}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">{S.detail.noLines}</p>
-            </CardContent>
-          </>
-        ) : (
-          <CardContent className="p-0">
+        {/* line items — editor-style tab strip, one PRESENT type per tab;
+            clicking the active tab (or the chevron) collapses to the strip */}
+        <div className="border-t">
+          {groups.length === 0 ? (
+            <>
+              <CardHeader>
+                <CardTitle>{S.detail.linesTitle}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">{S.detail.noLines}</p>
+              </CardContent>
+            </>
+          ) : (
             <Tabs
               value={activeLinesTab}
               // onValueChange fires ONLY on an actual tab change (Radix routes
@@ -789,9 +787,9 @@ export function RequestDetailPage({ id }: { id: string }) {
             >
               {/* open: border-b so the active tab merges into the grid panel;
                   collapsed: no panel below, so drop the border and pad the
-                  bottom — otherwise the active tab's square, card-filled bottom
-                  overhangs the card's rounded corners */}
-              <div className={`flex items-center gap-2 px-4 pt-3 ${linesOpen ? 'border-b' : 'pb-3'}`}>
+                  bottom instead — the tab's square, card-filled bottom must not
+                  sit flush on the next section's rule */}
+              <div className={`flex items-center gap-2 px-5 pt-4 ${linesOpen ? 'border-b' : 'pb-4'}`}>
                 <button
                   type="button"
                   aria-expanded={linesOpen}
@@ -833,20 +831,18 @@ export function RequestDetailPage({ id }: { id: string }) {
               </div>
               {linesOpen &&
                 groups.map(({ cfg, lines: groupLines }) => (
-                  <TabsContent key={cfg.objectType} value={cfg.objectType} className="px-4 pb-4">
+                  <TabsContent key={cfg.objectType} value={cfg.objectType} className="px-5 pb-5">
                     <DetailLineGrid config={cfg} lines={groupLines} fitSlot={fitSlot} />
                   </TabsContent>
                 ))}
             </Tabs>
-          </CardContent>
-        )}
-      </Card>
+          )}
+        </div>
 
-      {/* activity — one card; all three sections shown at once as tiles:
-          Comments leads the wide left column, Attachments + Audit stack on
-          the right (user decision 2026-07-23). reveal stays on the CARD. */}
-      <Card className="reveal" style={{ '--stagger-i': 2 } as React.CSSProperties}>
-        <CardContent className="grid items-start gap-3 p-3 md:grid-cols-[1.4fr_1fr]">
+        {/* activity — all three sections shown at once as tiles: Comments
+            leads the wide left column, Attachments + Audit stack on the
+            right (user decision 2026-07-23) */}
+        <div className="grid items-start gap-3 border-t p-5 md:grid-cols-[1.4fr_1fr]">
           <ActivityTile
             icon={MessageSquare}
             title={S.detail.commentsTitle}
@@ -940,7 +936,7 @@ export function RequestDetailPage({ id }: { id: string }) {
               </div>
             </ActivityTile>
           </div>
-        </CardContent>
+        </div>
       </Card>
 
       {/* reason dialog — Reject (admin) and Return to requester share it */}
