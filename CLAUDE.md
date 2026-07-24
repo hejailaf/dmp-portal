@@ -47,6 +47,15 @@ tracking, assignment, SLA, audit, Excel export only.
 4. Never claim works on SP2019 without Phase-0 verification or
    `VERIFY-ON-SITE` marker in code + check in spike panel.
 5. Keep `docs/` current at end of each phase.
+6. **Every user-facing change → check `docs/SMOKE_TEST.md` in the SAME
+   commit.** It is the pilot gate and NOTHING tests it, so it silently
+   drifts (audited 2026-07-24: it still expected a hardcoded
+   `PMDCApp/index.aspx`, said "audit trail" after the rename, and had
+   never covered Return, Withdraw or the 2026-07-23 features). Ask: does
+   an existing check still describe this, or does it need a new one?
+   Triggers = new feature, renamed label/status, changed flow, changed
+   expected value. Same question for `WORKFLOW_RECIPE.md`/`DEPLOY_SP.md`/
+   `LIST_SETUP.md` when the change touches on-site setup.
 
 ## Architecture
 
