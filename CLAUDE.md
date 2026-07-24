@@ -215,15 +215,27 @@ tracking, assignment, SLA, audit, Excel export only.
   need pre-rename build to re-provision, being retired instead).
   "Digest-expiry retry" already implemented in Phase 2 (client.ts 403 →
   refresh digest → retry once) — not Phase-3 item.
-- ✅ Phase 4 AUTHORED (2026-07-19): WORKFLOW_RECIPE.md (SPD 2013,
-  "core four" emails — submitted→Maintainers, assigned→assignee,
-  rejected/completed→requester; loop-safe via LastNotifiedStatus/
-  LastNotifiedAssignee scratch columns now in LIST_SPECS; Step-0 check
-  for claims-login email resolution), SMOKE_TEST.md (pre-pilot
-  checklist), README demo script, DEPLOY_SP pilot note. ON-SITE
-  EXECUTION PENDING (on NEW subsite, DEPLOY_SP.md "Moving to a new
-  subsite"): fresh provision, workflow per recipe, smoke test, then
-  pilot.
+- ✅ Phase 4 emails BUILT IN THE APP (2026-07-24, user decision —
+  replaces the SPD 2013 workflow plan): `src/lib/email-templates.ts`
+  (PURE, snapshot-tested — table+inline-style HTML because Outlook uses
+  the Word engine; escapes all user content) + `src/data/sp/email.ts`
+  (SendEmail REST, nometadata→verbose fallback so the farm's dialect is
+  discovered not guessed; recipients resolved read-only from
+  `siteusers`/group members — NO new columns). Fired inside
+  SharePointProvider transitions, so the UI is untouched and Mock stays
+  silent. Matrix: submitted→Maintainers, resubmit-after-Return→assignee
+  only, assigned→assignee, returned/rejected/completed→requester,
+  withdrawn→assignee, comment→requester+assignee — ALWAYS minus the
+  actor. `notify()` never throws (the transition already committed).
+  Deep links derived from the running page. Kills the SPD/Workflow
+  Manager/`LastNotified*` dependencies (columns now unused, harmless).
+  WORKFLOW_RECIPE.md §A = this; §B keeps the SPD recipe as fallback.
+  VERIFY-ON-SITE: SendEmail untested on the farm; PMDC Maintainers must
+  hold DIRECT members (a nested AD group has no email to expand).
+  Also authored 2026-07-19: SMOKE_TEST.md, README demo script,
+  DEPLOY_SP pilot note. ON-SITE EXECUTION PENDING (on NEW subsite,
+  DEPLOY_SP.md "Moving to a new subsite"): fresh provision, notification
+  checks (recipe §A), smoke test, then pilot.
 
 ## Deployment
 

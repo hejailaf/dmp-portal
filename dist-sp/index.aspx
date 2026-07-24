@@ -16,9 +16,9 @@
           document.documentElement.classList.add('dark')
       } catch (e) {}
     </script>
-    <script type="module" crossorigin src="./assets/index.js?v=202607241230"></script>
-    <link rel="modulepreload" crossorigin href="./assets/client.js?v=202607241230">
-    <link rel="stylesheet" crossorigin href="./assets/index.css?v=202607241230">
+    <script type="module" crossorigin src="./assets/index.js?v=202607241329"></script>
+    <link rel="modulepreload" crossorigin href="./assets/client.js?v=202607241329">
+    <link rel="stylesheet" crossorigin href="./assets/index.css?v=202607241329">
   </head>
   <body>
     <div id="root"></div>

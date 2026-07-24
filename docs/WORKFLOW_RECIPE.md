@@ -1,7 +1,82 @@
-# WORKFLOW_RECIPE.md — email notifications via SharePoint Designer 2013
+# WORKFLOW_RECIPE.md — email notifications
 
-Click-by-click recipe for the "core four" notifications (decision
-2026-07-19):
+> **SUPERSEDED 2026-07-24 — the app now sends its own mail.**
+> Notifications moved into the app (`src/lib/email-templates.ts` +
+> `src/data/sp/email.ts`), which calls SharePoint's
+> `SP.Utilities.Utility.SendEmail` directly. **No SharePoint Designer, no
+> Workflow Manager, no `LastNotified*` guard columns.** See
+> "§A — app-sent notifications" below.
+> The SPD recipe is kept as **§B**, the fallback if `SendEmail` turns out
+> to be unavailable on the farm.
+
+## §A — app-sent notifications (current design)
+
+Sent from the browser at the moment the action commits, by the same
+provider method that wrote the change. What goes out (decision
+2026-07-24):
+
+| Event | Email goes to |
+|---|---|
+| Submitted (Draft → Waiting) | **PMDC Maintainers** group |
+| **Resubmitted after a Return** | the **assignee** only (it is still theirs) |
+| Assignee set or changed | the **assignee** |
+| **Returned** for changes | the **requester** (with the reason) |
+| Rejected | the **requester** (with the reason) |
+| Completed | the **requester** |
+| **Withdrawn** | the **assignee**, so they stop work |
+| **Comment added** | **requester + assignee**, minus the author |
+
+Global rule: **the person who performed the action is never mailed about
+it** — self-claiming a request does not mail you your own assignment.
+
+Silent by design: Draft edits, In process, Reopened, and overdue
+reminders (a reminder needs a scheduler; this app has no server-side
+jobs — overdue lives in the UI and the dashboard).
+
+### Properties worth knowing
+
+- **Deep links are derived from the running page**, not hardcoded, so
+  they cannot rot when the subsite or library is renamed. (The old §B
+  recipe hardcoded `…/personal/<you>/pmdc/PMDCApp/…`, which is already
+  wrong for the real site — subsite `ss`, library `app`.)
+- **Mail can never break an action.** `notify()` swallows every failure;
+  the transition has already been written when it runs.
+- **Bodies are unit-tested** (`src/lib/__tests__/email-templates.test.ts`)
+  — the one part of this that is verifiable without a farm.
+- **Client-triggered**, so mail is only sent for actions taken in the
+  app, and a browser closed mid-action can lose that one notification.
+  This is the trade accepted in exchange for dropping SPD.
+
+### On-site checks (in order)
+
+1. **Outgoing email configured on the farm.** Same hard dependency as
+   any workflow: List settings → "Alert me" on any list → change an item
+   → mail arrives? If never, stop and ask IT. Nothing below matters.
+2. **Send one real notification** — add a comment to a request that has
+   both a requester and an assignee, as a third person. Both should get
+   mail.
+   - Nothing arrives → open F12 → Network, repeat, look for
+     `SP.Utilities.Utility.SendEmail`. A **400/500** means the payload
+     dialect was rejected; the client already retries `nometadata` then
+     `verbose`, so if BOTH fail capture the response body.
+   - **403** → the account may not send mail; check with IT.
+3. **`PMDC Maintainers` must hold DIRECT members, not a nested AD
+   security group.** Members are read via
+   `/_api/web/sitegroups/getbyname('PMDC Maintainers')/users`; a nested
+   AD group returns one entry with **no email**, so nobody is reachable.
+   If it is an AD group, point that one notification at a distribution
+   list address instead.
+4. **Recipients need an email on their SharePoint profile** (People and
+   groups shows it; it syncs from AD). Requester/assignee addresses are
+   resolved from the stored claims login against `siteusers`.
+
+---
+
+## §B — FALLBACK: SharePoint Designer 2013 workflow
+
+Only if §A cannot send on this farm. Original recipe (decision
+2026-07-19), covering the "core four" — note it predates Returned,
+Withdrawn and comment notifications, and its deep links are stale:
 
 | Event | Email goes to |
 |---|---|

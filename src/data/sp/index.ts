@@ -21,6 +21,7 @@ import type {
   RequestScope,
 } from '../provider'
 import { listPath, spDelete, spGet, spMerge, spPost, webUrl } from './client'
+import { notify } from './email'
 import { PMDC_GROUPS, LIST_SPECS } from './schema'
 import {
   filterByScope,
@@ -252,7 +253,11 @@ export class SharePointProvider implements DataProvider {
     }
     await spMerge(item(REQUESTS, id), patch)
     await this.writeAudit(id, t.event, from, 'Waiting to be started', req.ref)
-    return this.fetchRequest(id)
+    const submitted = await this.fetchRequest(id)
+    // a resubmit after Return keeps its assignee — tell that one person, not
+    // the whole maintainer group again
+    await notify({ kind: from === 'Returned' ? 'resubmitted' : 'submitted' }, submitted, me.id)
+    return submitted
   }
 
   async assignRequest(id: string, assigneeId: string): Promise<Request> {
@@ -268,7 +273,10 @@ export class SharePointProvider implements DataProvider {
     if (!assignee) throw new Error('Unknown maintainer')
     await spMerge(item(REQUESTS, id), { AssigneeLogin: assignee.id, AssigneeName: assignee.displayName })
     await this.writeAudit(id, 'Assigned', req.assigneeName, assignee.displayName, req.ref)
-    return this.fetchRequest(id)
+    const assigned = await this.fetchRequest(id)
+    // self-claim addresses the actor, who is dropped from recipients — no mail
+    await notify({ kind: 'assigned' }, assigned, me.id)
+    return assigned
   }
 
   async setStatus(id: string, to: RequestStatus): Promise<Request> {
@@ -286,7 +294,12 @@ export class SharePointProvider implements DataProvider {
     }
     await spMerge(item(REQUESTS, id), patch)
     await this.writeAudit(id, t.event, req.status, to, req.ref)
-    return this.fetchRequest(id)
+    const next = await this.fetchRequest(id)
+    // Completed → the requester; Withdrawn → the assignee, so they stop work.
+    // Draft/In process/Reopened stay silent by design.
+    if (to === 'Completed') await notify({ kind: 'completed' }, next, me.id)
+    if (to === 'Withdrawn') await notify({ kind: 'withdrawn' }, next, me.id)
+    return next
   }
 
   async rejectRequest(id: string, reason: string): Promise<Request> {
@@ -295,7 +308,9 @@ export class SharePointProvider implements DataProvider {
     const t = assertTransition(this.ctxFor(me, req), req.status, 'Rejected')
     await spMerge(item(REQUESTS, id), { RequestStatus: 'Rejected', RejectReason: reason.trim() })
     await this.writeAudit(id, t.event, req.status, reason.trim(), req.ref)
-    return this.fetchRequest(id)
+    const rejected = await this.fetchRequest(id)
+    await notify({ kind: 'rejected', reason: reason.trim() }, rejected, me.id)
+    return rejected
   }
 
   async returnRequest(id: string, reason: string): Promise<Request> {
@@ -308,7 +323,9 @@ export class SharePointProvider implements DataProvider {
       RejectReason: reason.trim(), // shown to the requester; assignee is KEPT
     })
     await this.writeAudit(id, t.event, req.status, reason.trim(), req.ref)
-    return this.fetchRequest(id)
+    const returned = await this.fetchRequest(id)
+    await notify({ kind: 'returned', reason: reason.trim() }, returned, me.id)
+    return returned
   }
 
   async addComment(id: string, body: string): Promise<Comment> {
@@ -321,6 +338,12 @@ export class SharePointProvider implements DataProvider {
       Body: body.trim(),
     })
     await this.writeAudit(id, 'CommentAdded', undefined, undefined, ref)
+    // the other participants hear about it — requester + assignee, minus the author
+    await notify(
+      { kind: 'comment', author: me.displayName, body: body.trim() },
+      await this.fetchRequest(id),
+      me.id,
+    )
     return {
       id: String(created.Id),
       requestId: id,

@@ -5,6 +5,7 @@
 //     discovered by walking up the path until /_api answers (spike-proven)
 
 const NOMETA = 'application/json;odata=nometadata'
+const VERBOSE = 'application/json;odata=verbose'
 const DIGEST_MARGIN_MS = 120_000
 
 const short = (data: unknown) => {
@@ -121,6 +122,18 @@ async function writeRequest(
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function spPost(path: string, body?: unknown): Promise<any> {
   return writeRequest(path, body, {})
+}
+
+/**
+ * Verbose-OData POST. Phase 0 proved nometadata is enough for every LIST write,
+ * but static service methods that take a typed parameter (SP.Utilities.SendEmail
+ * takes SP.Utilities.EmailProperties) can insist on a `__metadata` type — and
+ * that payload is rejected under nometadata. Callers try nometadata first and
+ * fall back here, so the farm's preference is discovered, not guessed.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function spPostVerbose(path: string, body?: unknown): Promise<any> {
+  return writeRequest(path, body, { Accept: VERBOSE, 'Content-Type': VERBOSE })
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
