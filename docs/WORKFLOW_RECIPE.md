@@ -65,10 +65,26 @@ jobs — overdue lives in the UI and the dashboard).
    `/_api/web/sitegroups/getbyname('PMDC Maintainers')/users`; a nested
    AD group returns one entry with **no email**, so nobody is reachable.
    If it is an AD group, point that one notification at a distribution
-   list address instead.
+   list address instead. **This affects maintainers only** — requesters
+   are addressed individually and are immune (see below).
 4. **Recipients need an email on their SharePoint profile** (People and
-   groups shows it; it syncs from AD). Requester/assignee addresses are
-   resolved from the stored claims login against `siteusers`.
+   groups shows it; it syncs from AD).
+
+### How each address is resolved (and why)
+
+| Recipient | Source |
+|---|---|
+| Requester | the request item's `Author/EMail` |
+| Assignee | their entry in the **PMDC Maintainers** group listing |
+| Maintainers (submit) | the same group listing |
+
+Requesters reach this site through a large nested AD group, so they are
+deliberately NOT looked up by claims login against `siteusers` — matching
+that login string is the brittle step. `Author` is the Person lookup
+SharePoint maintains itself, and the app creates the item AS the
+requester, so it cannot miss: the entry has to exist for the item to have
+been created. **A requester is always mailed as one person; the AD group
+is never expanded and never receives mail.**
 
 ---
 

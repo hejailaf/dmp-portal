@@ -95,3 +95,6 @@ export const PMDC_GROUPS = {
   maintainer: 'PMDC Maintainers',
   admin: 'PMDC Admins',
 } as const
+
+/** Requests list title — shared by the provider and the notification module. */
+export const REQUESTS_LIST = 'PMDC_Requests'

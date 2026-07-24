@@ -230,8 +230,12 @@ tracking, assignment, SLA, audit, Excel export only.
   (PURE, snapshot-tested — table+inline-style HTML because Outlook uses
   the Word engine; escapes all user content) + `src/data/sp/email.ts`
   (SendEmail REST, nometadata→verbose fallback so the farm's dialect is
-  discovered not guessed; recipients resolved read-only from
-  `siteusers`/group members — NO new columns). Fired inside
+  discovered not guessed — NO new columns). RECIPIENTS: requester from
+  the item's `Author/EMail`, assignee + maintainers from the PMDC
+  Maintainers group listing. Requesters arrive via a huge nested AD
+  group, so they are NEVER looked up by claims login (brittle) and the
+  AD group is never expanded — each requester is mailed as one person.
+  Fired inside
   SharePointProvider transitions, so the UI is untouched and Mock stays
   silent. Matrix: submitted→Maintainers, resubmit-after-Return→assignee
   only, assigned→assignee, returned/rejected/completed→requester,

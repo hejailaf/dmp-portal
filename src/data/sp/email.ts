@@ -1,7 +1,7 @@
 import type { Request } from '@/domain/types'
 import { buildMail, type NotifyEvent } from '@/lib/email-templates'
-import { spGet, spPost, spPostVerbose } from './client'
-import { PMDC_GROUPS } from './schema'
+import { listPath, spGet, spPost, spPostVerbose } from './client'
+import { PMDC_GROUPS, REQUESTS_LIST } from './schema'
 
 // Notification transport. The app sends its own mail through SharePoint's
 // SendEmail service method — no SharePoint Designer workflow, no Workflow
@@ -19,33 +19,36 @@ const SEND_EMAIL = '/_api/SP.Utilities.Utility.SendEmail'
 /** OData string literal: double the quotes, then percent-encode for the URL. */
 const odataLiteral = (value: string) => encodeURIComponent(value.replace(/'/g, "''"))
 
-// logins rarely change within a session; resolving costs a round trip each
-const emailCache = new Map<string, string | undefined>()
-
 /**
- * Email address for a claims login (`i:0#.w|domain\user`). Read-only lookup —
- * deliberately NOT ensureuser, which would WRITE the user into the site.
+ * The REQUESTER's address, read from the item's `Author` — the Person lookup
+ * SharePoint maintains itself. The app creates the item AS the requester, so
+ * Author IS the requester.
+ *
+ * Deliberately not a `siteusers` lookup by claims login: requesters reach this
+ * site through a large nested AD group, and matching that login string is the
+ * brittle step. An Author lookup cannot miss — the entry has to exist for the
+ * item to have been created at all.
  */
-export async function emailForLogin(login: string): Promise<string | undefined> {
-  if (emailCache.has(login)) return emailCache.get(login)
-  let email: string | undefined
+export async function requesterEmail(requestId: string): Promise<string | undefined> {
   try {
     const data = await spGet(
-      `/_api/web/siteusers?$select=Email,LoginName&$filter=LoginName eq '${odataLiteral(login)}'&$top=1`,
+      `${listPath(REQUESTS_LIST)}/items(${Number(requestId)})?$select=Author/EMail&$expand=Author`,
     )
-    email = ((data.value ?? []) as { Email?: string }[])[0]?.Email || undefined
+    return (data?.Author?.EMail as string) || undefined
   } catch {
-    email = undefined // unresolvable recipient is not an error worth failing on
+    return undefined // unresolvable recipient is not worth failing an action over
   }
-  emailCache.set(login, email)
-  return email
 }
+
+// the maintainer roster is small and stable within a session
+let maintainersPromise: Promise<{ login: string; email: string }[]> | undefined
 
 /**
  * Members of a SharePoint group with a usable address.
  * NOTE: a nested AD security group appears as ONE entry with no Email, so its
  * members cannot be reached this way — if PMDC Maintainers is an AD group
  * rather than direct members, point that notification at a distribution list.
+ * (Requesters are unaffected: they are addressed individually via Author.)
  */
 export async function groupMembers(group: string): Promise<{ login: string; email: string }[]> {
   try {
@@ -58,6 +61,11 @@ export async function groupMembers(group: string): Promise<{ login: string; emai
   } catch {
     return []
   }
+}
+
+/** Maintainers, cached per session — the source for every assignee address. */
+function maintainers(): Promise<{ login: string; email: string }[]> {
+  return (maintainersPromise ??= groupMembers(PMDC_GROUPS.maintainer))
 }
 
 /**
@@ -85,21 +93,38 @@ export function linkToRequest(id: string): string {
   return `${window.location.href.split('#')[0]}#/requests/${id}`
 }
 
-/** Who hears about this event — never the person who caused it. */
+/**
+ * Who hears about this event — never the person who caused it.
+ * Actor exclusion compares LOGINS (exact) before any address is resolved.
+ */
 async function recipients(event: NotifyEvent, req: Request, actorId: string): Promise<string[]> {
   if (event.kind === 'submitted') {
-    const members = await groupMembers(PMDC_GROUPS.maintainer)
-    return members.filter((m) => m.login !== actorId).map((m) => m.email)
+    return (await maintainers()).filter((m) => m.login !== actorId).map((m) => m.email)
   }
-  const logins =
-    event.kind === 'assigned' || event.kind === 'resubmitted' || event.kind === 'withdrawn'
-      ? [req.assigneeId]
-      : event.kind === 'comment'
-        ? [req.requesterId, req.assigneeId]
-        : [req.requesterId] // returned, rejected, completed
-  const wanted = [...new Set(logins.filter((l): l is string => !!l && l !== actorId))]
-  const resolved = await Promise.all(wanted.map(emailForLogin))
-  return resolved.filter((e): e is string => !!e)
+  const toRequester =
+    (event.kind === 'returned' ||
+      event.kind === 'rejected' ||
+      event.kind === 'completed' ||
+      event.kind === 'comment') &&
+    req.requesterId !== actorId
+  const toAssignee =
+    (event.kind === 'assigned' ||
+      event.kind === 'resubmitted' ||
+      event.kind === 'withdrawn' ||
+      event.kind === 'comment') &&
+    !!req.assigneeId &&
+    req.assigneeId !== actorId
+
+  const out: string[] = []
+  if (toRequester) {
+    const email = await requesterEmail(req.id)
+    if (email) out.push(email)
+  }
+  if (toAssignee) {
+    const email = (await maintainers()).find((m) => m.login === req.assigneeId)?.email
+    if (email) out.push(email)
+  }
+  return [...new Set(out)]
 }
 
 /**

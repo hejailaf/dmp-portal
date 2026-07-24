@@ -22,7 +22,7 @@ import type {
 } from '../provider'
 import { listPath, spDelete, spGet, spMerge, spPost, webUrl } from './client'
 import { notify } from './email'
-import { PMDC_GROUPS, LIST_SPECS } from './schema'
+import { PMDC_GROUPS, LIST_SPECS, REQUESTS_LIST } from './schema'
 import {
   filterByScope,
   mapAudit,
@@ -41,7 +41,7 @@ import {
 // MockProvider: transition permissions, self-claim rule, empty-line pruning
 // at submit, and normalizeFieldData on every line read and write.
 
-const REQUESTS = 'PMDC_Requests'
+const REQUESTS = REQUESTS_LIST
 const LINES = 'PMDC_RequestLines'
 const COMMENTS = 'PMDC_Comments'
 const AUDIT = 'PMDC_AuditLog'
