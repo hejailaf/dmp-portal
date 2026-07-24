@@ -88,7 +88,11 @@ Withdrawn and comment notifications, and its deep links are stale:
 No overdue reminders — that needs a scheduler, and this app deliberately
 has no server-side jobs. Overdue lives in the app UI and dashboard.
 
-## Prerequisites (check before starting)
+### §B prerequisites
+
+**Everything from here to the end of the file applies to §B ONLY.** None
+of it is needed for the app-sent notifications in §A — in particular, §A
+needs no SharePoint Designer and no helper columns.
 
 1. **SharePoint Designer 2013** installed on a work PC (free Microsoft
    download; may need an IT request). It is the last SPD version and
@@ -109,7 +113,7 @@ has no server-side jobs. Overdue lives in the app UI and dashboard.
    contents" (LIST_SETUP.md §7.7), SPD will not show PMDC_Requests —
    Site setup → "Show lists in Site contents" first, re-hide when done.
 
-## ⚠ Step 0 — verify claims-login email resolution (5 minutes, do first)
+### ⚠ §B Step 0 — verify claims-login email resolution (5 minutes, before the rest of §B)
 
 The app stores the requester as a claims login TEXT string
 (`i:0#.w|domain\user`), not a SharePoint Person field. SPD usually
@@ -137,12 +141,12 @@ before building everything:
      skips `i:0#.w|`), output to Variable:plainLogin — and use
      Variable:plainLogin in To instead.
 
-## The real workflow — `PMDC Notify`
+### The real workflow — `PMDC Notify`
 
 SPD → Workflows → List Workflow → **PMDC_Requests**. Name: `PMDC Notify`.
 Platform type: SharePoint 2013 Workflow.
 
-### Stage: Notify
+#### Stage: Notify
 
 Build these blocks in order (each ⬜ is one SPD action/condition; type
 the action name in the SPD search box to find it):
@@ -175,7 +179,7 @@ If Current Item:AssigneeLogin is not empty
 
 **Transition to stage**: Go to End of Workflow.
 
-### Email contents
+#### Email contents
 
 Use **Add or Change Lookup** in the email body for every `[..]` token.
 The deep link works in every mail; replace the site path with yours:
@@ -202,7 +206,7 @@ https://<server>/personal/<you>/pmdc/PMDCApp/index.aspx#/requests/[%Current Item
   - Subject: `[%Current Item:Title%] assigned to you: [%Current Item:Description%]`
   - Body: Description, LineSummary, DueDate, deep link.
 
-### Workflow settings (before publishing)
+#### Workflow settings (before publishing)
 
 On the workflow's settings page tick BOTH:
 - ✅ Start workflow automatically when an item is **created** (covers a
@@ -212,13 +216,13 @@ On the workflow's settings page tick BOTH:
 Then **Publish** (ribbon). Publishing errors about the app step /
 permissions can be ignored as long as Publish completes.
 
-### Loop safety (why this doesn't email forever)
+#### Loop safety (why this doesn't email forever)
 
 The workflow's own "Set field" edits re-trigger it once; on that second
 run both guards compare equal, nothing sends, the workflow ends. The two
 LastNotified columns exist purely for this.
 
-## Test matrix (after publishing)
+### Test matrix (after publishing)
 
 | Do this in the app | Expect |
 |---|---|
@@ -228,7 +232,7 @@ LastNotified columns exist purely for this.
 | Reject it (admin) | requester gets Email B with the reason |
 | Reopen + resubmit + complete | requester gets Email C |
 
-## Troubleshooting
+### Troubleshooting
 
 - **Nothing ever sends** → farm outgoing email off (prereq 2), or the
   workflow isn't published / start-on-change not ticked.
