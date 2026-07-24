@@ -9,8 +9,8 @@ An internal portal where end users submit **change requests for SAP Plant
 Maintenance (PM) master data**, and the Data Maintenance team executes those
 requests **manually in SAP Fiori MDG**. The app never touches SAP: it is a
 structured intake queue with a multi-object work-package editor, a status
-workflow, SLA deadlines, comments, an audit trail, and (Phase 3) an Excel
-export to ease manual keying.
+workflow, SLA deadlines, comments, an action log, and an Excel export to
+ease manual keying.
 
 Runs as a **static single-page app inside a SharePoint 2019 document
 library** — SharePoint lists are the database, Windows auth is the login.
@@ -45,10 +45,10 @@ and the email-notification design live in `docs/SMOKE_TEST.md` and
 
 | Phase | State |
 |---|---|
-| 0 — Feasibility spike | Built — upload `spike.aspx` per `docs/PHASE0_UPLOAD.md` and report results |
-| 1 — Domain + full app on mock data | **Done** (this build) |
-| 2 — SharePoint provider | Waiting on Phase-0 results |
-| 3 — Attachments, Excel export, dashboard | Not started |
+| 0 — Feasibility spike | **Passed on-site** (2026-07-19) — all 5 checks green |
+| 1 — Domain + full app on mock data | **Done** |
+| 2 — SharePoint provider | **Verified on-site** (2026-07-19) — provisioning, groups and write self-test green; §4 permissions + §5 checks closing out |
+| 3 — Attachments, Excel export, dashboard | **Built** (2026-07-19), verified end-to-end on mock |
 | 4 — Notifications + pilot | Emails built INTO the app (no SharePoint Designer); on-site send + pilot pending |
 
 ## Architecture in one paragraph
