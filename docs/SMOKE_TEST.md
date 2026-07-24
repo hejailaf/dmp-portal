@@ -1,7 +1,32 @@
 # SMOKE_TEST.md — pre-pilot checklist
 
-Run top to bottom on the production site before inviting pilot users.
+Run top to bottom **on the production site** before inviting pilot users.
 Everything is browser-only. Tick as you go.
+
+## What can be rehearsed at home, and what cannot
+
+Most of this can be dry-run against `npm run dev` (MockProvider) to catch
+app regressions early. **A green run at home is NOT a green run on the
+farm** — these sections are structurally untestable off SharePoint,
+because MockProvider has no lists, no groups, and deliberately sends no
+mail:
+
+| Section | At home (mock) | Why |
+|---|---|---|
+| 1 Deployment | ❌ | there is no upload; the dev server serves the files |
+| 2 Site setup | ❌ | provisioning, groups, write self-test and the home-page button are all SharePoint REST |
+| 3 Access & roles | ⚠ partly | the role switcher fakes roles; real group/AD membership is not exercised |
+| 4 Vertical slice | ✅ | |
+| 5 Attachments, comments, export | ✅ | |
+| 5b Pre-pilot features | ✅ | |
+| 6 Dashboard | ✅ | |
+| 7 Email notifications | ❌ | MockProvider sends nothing by design — this only ever runs on the farm |
+| 8 Pilot readiness | ❌ | process, not software |
+
+So: rehearse 4–6 at home as often as you like; **1, 2, 7 must be ticked
+on the production site and nowhere else.**
+
+(Last home rehearsal of 4–6: 2026-07-24, all green.)
 
 ## 1. Deployment current
 
