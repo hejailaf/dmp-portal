@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { createColumnHelper, getCoreRowModel, useReactTable } from '@tanstack/react-table'
 import {
@@ -407,6 +407,18 @@ export function RequestDetailPage({ id }: { id: string }) {
   const [assignOpen, setAssignOpen] = useState(false)
   const [assigneeId, setAssigneeId] = useState('')
   const [commentBody, setCommentBody] = useState('')
+  // comments read oldest → newest, so open on the newest one. The ref callback
+  // is identity-stable, so it fires when the list MOUNTS and not on every
+  // composer keystroke; the effect re-pins after a comment is posted.
+  const commentListRef = useRef<HTMLDivElement | null>(null)
+  const attachCommentList = useCallback((el: HTMLDivElement | null) => {
+    commentListRef.current = el
+    if (el) el.scrollTop = el.scrollHeight
+  }, [])
+  useEffect(() => {
+    const el = commentListRef.current
+    if (el) el.scrollTop = el.scrollHeight
+  }, [comments.data?.length])
   // Line items tab strip: default = first present type; collapsed = strip only
   const [linesTab, setLinesTab] = useState<ObjectType>()
   const [linesOpen, setLinesOpen] = useState(true)
@@ -854,7 +866,7 @@ export function RequestDetailPage({ id }: { id: string }) {
           >
             <div className="space-y-3">
               {/* the list scrolls; the composer below stays visible */}
-              <div className="max-h-80 space-y-3 overflow-y-auto">
+              <div ref={attachCommentList} className="max-h-80 space-y-3 overflow-y-auto">
                 {comments.data?.length === 0 && (
                   <p className="text-sm text-muted-foreground">{S.detail.noComments}</p>
                 )}
