@@ -20,7 +20,7 @@ import type {
   RequestDetail,
   RequestScope,
 } from '../provider'
-import { listPath, spDelete, spGet, spMerge, spPost } from './client'
+import { listPath, spDelete, spGet, spMerge, spPost, webUrl } from './client'
 import { PMDC_GROUPS, LIST_SPECS } from './schema'
 import {
   filterByScope,
@@ -448,13 +448,36 @@ export async function checkDmpGroups(): Promise<{ name: string; exists: boolean 
 }
 
 /**
+ * Web-relative path of the page the app is being served from, e.g.
+ * "app/index.aspx" — derived from the CURRENT location rather than assumed,
+ * so it works whatever the library and subsite are named. Hardcoding a
+ * library name pointed the welcome page at a file that didn't exist
+ * (on-site 2026-07-24: library named "app", not "PMDCApp" → 404).
+ */
+async function appPageRelativeUrl(): Promise<string> {
+  const base = await webUrl() // server-relative web URL, '' at a root site
+  // slice BEFORE decoding: `base` is un-decoded, so lengths must line up
+  const rel = decodeURIComponent(window.location.pathname.slice(base.length)).replace(/^\/+/, '')
+  if (!/\.aspx$/i.test(rel)) {
+    // the bare site URL already serves the app (no page in the path), so
+    // there is nothing to derive — and nothing to change
+    throw new Error(
+      `Cannot tell which page to set: the address is "${window.location.pathname}". ` +
+        'Open the app from its library (…/<library>/index.aspx) and click this again.',
+    )
+  }
+  return rel
+}
+
+/**
  * Point the site's welcome page at the app, so opening the bare site URL
- * (…/pmdc) serves index.aspx directly. Path is web-root-relative.
- * VERIFY-ON-SITE: rootfolder MERGE is standard REST but untested on this
- * farm — the Site setup button surfaces success/failure.
+ * serves the app directly. Path is web-relative and self-derived, so it can
+ * never point at a file that isn't there.
+ * VERIFY-ON-SITE: rootfolder MERGE is standard REST — the Site setup button
+ * surfaces success/failure.
  */
 export async function setAppAsSiteHome(): Promise<string> {
-  await spMerge('/_api/web/rootfolder', { WelcomePage: 'PMDCApp/index.aspx' })
+  await spMerge('/_api/web/rootfolder', { WelcomePage: await appPageRelativeUrl() })
   const check = await spGet('/_api/web/rootfolder?$select=WelcomePage')
   return String(check.WelcomePage ?? '')
 }
