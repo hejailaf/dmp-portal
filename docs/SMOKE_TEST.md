@@ -13,13 +13,17 @@ Everything is browser-only. Tick as you go.
 ## 2. Site setup screen (as admin)
 
 - [ ] Verify & provision → all four lists green, "All fields present"
-      (first run after the Phase-3/4 builds reports ADDED fields:
-      CompletedAt, Description, LastNotifiedStatus, LastNotifiedAssignee).
+      (a first run on a fresh site reports ADDED fields, incl.
+      CompletedAt/Description and the LastNotified* pair — the latter are
+      unused since emails left SPD, but still provisioned and harmless).
 - [ ] Groups check → all three exist.
 - [ ] Connection self-test → all lines OK incl. DELETE and the
       EffectiveBasePermissions line ("AddListItems OK").
-- [ ] "Make the app the site home page" → confirmation shows
-      `PMDCApp/index.aspx`; opening the bare site URL now loads the app.
+- [ ] "Make the app the site home page" → the confirmation echoes back
+      **your** library path (e.g. `app/index.aspx` — it is derived from
+      the page you are on, NOT a fixed name); opening the bare site URL
+      now loads the app. If it echoes a library you do not have, the
+      site URL will 404 — that was the 2026-07-24 bug.
 
 ## 3. Access & roles
 
@@ -38,11 +42,16 @@ Everything is browser-only. Tick as you go.
 - [ ] Submit without description or with an invalid line is blocked with
       a clear message.
 - [ ] Maintainer: request appears in Unassigned pool → Claim → Start
-      work → Complete. Status badges update; audit trail fills in.
+      work → Complete. Status badges update; the Action log fills in.
 - [ ] Detail header shows the description headline, ref label, meta
       strip incl. Changed (updates after any action) and Completed.
 - [ ] Reject path: second request → admin rejects with reason → requester
       sees the banner → Reopen → resubmit (SLA recomputed, reason gone).
+- [ ] Return path: maintainer returns a request with a reason → requester
+      EDITS IT DIRECTLY (no reopen) → resubmits → it goes back to the
+      same assignee and the due date is pushed out by the paused time.
+- [ ] Withdraw path: requester withdraws a waiting request → it leaves
+      the maintainer queue → requester reopens it as a draft.
 
 ## 5. Attachments, comments, export
 
@@ -56,10 +65,26 @@ Everything is browser-only. Tick as you go.
 - [ ] Export to Excel on a detail page → Summary + one sheet per object
       type, derived columns present, amber/grey shading sensible.
 
+## 5b. Pre-pilot features (added 2026-07-23)
+
+- [ ] **Draft autosave**: start a request, type a description and a line,
+      close the tab WITHOUT saving → reopen → the amber restore notice
+      offers the draft back; Discard returns to the server copy.
+- [ ] **Duplicate as draft** (More menu): produces a new draft with the
+      same lines and a NEW ref; attachments are not copied.
+- [ ] **List export**: filter the list, then "Export view" → the sheet
+      holds exactly the filtered rows, in the on-screen sort order.
+- [ ] **Fit columns**: drag a column wider → the button activates → click
+      → widths return to auto-fit.
+- [ ] Line-items tabs on the detail page: switching type keeps the grid
+      OPEN; clicking the active tab (or the chevron) collapses it.
+
 ## 6. Dashboard (as admin)
 
-- [ ] KPI cards match the request counts; cards click through to
-      filtered lists.
+- [ ] KPI cards match the request counts, including **Withdrawn**; cards
+      click through to filtered lists.
+- [ ] Time window (all / this month / this quarter) re-scopes the KPIs
+      and the maintainer table; drafts drop out of a windowed view.
 - [ ] Maintainer table shows open/completed; on-time % and cycle time
       populate for requests completed AFTER the CompletedAt upgrade.
 
@@ -83,7 +108,9 @@ farm can actually send (§A "On-site checks") before ticking these.
 
 ## 8. Pilot readiness
 
-- [ ] Share ONE link: the bare site URL (…/pmdc).
+- [ ] Share ONE link: the bare site URL of THIS site (whatever the
+      subsite is called — e.g. `…/ss`), which serves the app once §2's
+      home-page step is done.
 - [ ] Nominate 3–5 pilot requesters + the maintainer team; agree the
       pilot window and a feedback channel.
 - [ ] Known limits communicated: no overdue reminder emails (dashboard
@@ -93,4 +120,8 @@ farm can actually send (§A "On-site checks") before ticking these.
       team site before broad (post-pilot) rollout — DEPLOY_SP.md note.
 
 Training collateral: docs/PM-DataCare-Requester-Guide.pptx (annotated
-walkthrough for pilot requesters).
+walkthrough for pilot requesters). ⚠ **Screenshots are from 2026-07-20,
+before the UI overhaul and the "Action log" rename — the flow is right
+but the pictures and some wording are not.** Refresh deferred until the
+new site is live; either redo it before handing out, or tell pilot users
+the screens have moved on.
